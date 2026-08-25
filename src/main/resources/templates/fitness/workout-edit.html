@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Edit Workout</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="/fitness/dashboard">Fitness Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="/fitness/exercises">Exercises</a></li>
+                            <li class="breadcrumb-item"><a th:href="@{/fitness/workouts/{id}(id=${workout.id})}" th:text="${workout.name}">Workout Name</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Edit</li>
+                        </ol>
+                    </nav>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="mb-0">Edit Workout: <span th:text="${workout.name}">Workout Name</span></h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <strong>Note:</strong> Workout editing functionality is not yet fully implemented.
+                                This is a placeholder page that will be enhanced in future updates.
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Current Workout Details</h5>
+                                    <p><strong>Name:</strong> <span th:text="${workout.name}">Workout Name</span></p>
+                                    <p><strong>Type:</strong> <span th:text="${workout.type.displayName}">Workout Type</span></p>
+                                    <p><strong>Source:</strong> <span th:text="${workout.source}">Source</span></p>
+                                    <p><strong>Public:</strong> <span th:text="${workout.isPublic} ? 'Yes' : 'No'">Visibility</span></p>
+                                    <p><strong>Exercises:</strong> <span th:text="${workout.workoutExercises != null ? workout.workoutExercises.size() : 0}">Count</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <a th:href="@{/fitness/workouts/{id}(id=${workout.id})}" class="btn btn-secondary">Cancel</a>
+                            <button type="button" class="btn btn-primary ms-2" disabled>Update Workout (Coming Soon)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

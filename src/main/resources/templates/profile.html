@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Profile</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <!-- Profile Header -->
+        <div class="row mb-5" data-aos="fade-up">
+            <div class="col-12">
+                <div class="card hover-lift">
+                    <div class="card-body p-5 profile-header">
+                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-4">
+                            <div class="d-flex flex-column profile-info">
+                                <h2 class="display-5 fw-bold gradient-text mb-3" th:text="${user?.username ?: 'User'}">User</h2>
+
+                                <!-- Weight Goals -->
+                                <div class="d-flex flex-column flex-sm-row gap-2 mb-3" th:if="${user?.targetWeight}">
+                                    <span class="badge bg-primary">
+                                        <i class="bi bi-weight me-1"></i>
+                                        Current: <span th:text="${user?.weight != null ? #numbers.formatDecimal(user.weight, 1, 1) + ' kg' : 'N/A'}">70.0 kg</span>
+                                    </span>
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-target me-1"></i>
+                                        Target: <span th:text="${user?.targetWeight != null ? #numbers.formatDecimal(user.targetWeight, 1, 1) + ' kg' : 'N/A'}">75.0 kg</span>
+                                    </span>
+                                </div>
+
+                                <!-- Member Since -->
+                                <div class="member-since">
+                                    <i class="bi bi-calendar-check me-1"></i>
+                                    <strong>Member since:</strong> <span th:text="${user?.createdAt != null ? #temporals.format(user.createdAt, 'MMMM yyyy') : 'Unknown'}">January 2024</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Information -->
+        <div class="row">
+            <!-- Personal Information -->
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person me-2"></i>Personal Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/profile/update/biometrics}" method="post">
+                            <input type="hidden" name="_method" value="patch">
+
+                            <!-- Display binding errors -->
+                            <div th:if="${userProfileUpdateRequest != null}" th:object="${userProfileUpdateRequest}" class="alert alert-danger" role="alert">
+                                <h6 class="alert-heading">Please fix the following errors:</h6>
+                                <ul class="mb-0">
+                                    <li th:each="error : ${#fields.errors('*')}" th:text="${error}">Error message</li>
+                                </ul>
+                            </div>
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" th:value="${user?.username}" readonly required>
+                                <div th:if="${userProfileUpdateRequest != null}" th:object="${userProfileUpdateRequest}" class="text-danger small">
+                                    <span th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error</span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" th:value="${user?.email}" readonly required>
+                                <div th:if="${userProfileUpdateRequest != null}" th:object="${userProfileUpdateRequest}" class="text-danger small">
+                                    <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email error</span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="height" class="form-label">Height (cm)</label>
+                                <input type="number" class="form-control" id="height" name="height" th:value="${user?.height}" readonly required>
+                                <div th:if="${userProfileUpdateRequest != null}" th:object="${userProfileUpdateRequest}" class="text-danger small">
+                                    <span th:if="${#fields.hasErrors('height')}" th:errors="*{height}">Height error</span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="weight" class="form-label">Weight (kg)</label>
+                                <input type="number" class="form-control" id="weight" name="weight" th:value="${user?.weight}" step="0.1" readonly required>
+                                <div th:if="${userProfileUpdateRequest != null}" th:object="${userProfileUpdateRequest}" class="text-danger small">
+                                    <span th:if="${#fields.hasErrors('weight')}" th:errors="*{weight}">Weight error</span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="age" class="form-label">Age</label>
+                                    <input type="number" class="form-control" id="age" name="age" th:value="${user?.age}" readonly required>
+                                    <div th:if="${userProfileUpdateRequest != null}" th:object="${userProfileUpdateRequest}" class="text-danger small">
+                                        <span th:if="${#fields.hasErrors('age')}" th:errors="*{age}">Age error</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="gender" class="form-label">Gender</label>
+                                    <select class="form-select" id="gender" name="gender" disabled required>
+                                        <option th:each="genderOption : ${T(com.momentum.user.model.enums.GenderType).values()}"
+                                                th:value="${genderOption.name()}"
+                                                th:selected="${user?.gender == genderOption}"
+                                                th:text="${genderOption.displayName}">Gender Option</option>
+                                    </select>
+                                    <div th:if="${userProfileUpdateRequest != null}" th:object="${userProfileUpdateRequest}" class="text-danger small">
+                                        <span th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}">Gender error</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary save-btn d-none" data-section="personal">
+                                    <i class="bi bi-check me-1"></i>Save
+                                </button>
+                                <button type="button" class="btn btn-secondary cancel-btn d-none me-2" data-section="personal">
+                                    <i class="bi bi-x me-1"></i>Cancel
+                                </button>
+                                <button type="button" class="btn btn-outline-primary edit-btn" data-section="personal">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fitness Goals -->
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-target me-2"></i>Fitness Goals
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/profile/update/goals}" method="post">
+                            <input type="hidden" name="_method" value="patch">
+
+                            <!-- Display binding errors -->
+                            <div th:if="${userGoalsRequest != null}" th:object="${userGoalsRequest}" class="alert alert-danger" role="alert">
+                                <h6 class="alert-heading">Please fix the following errors:</h6>
+                                <ul class="mb-0">
+                                    <li th:each="error : ${#fields.errors('*')}" th:text="${error}">Error message</li>
+                                </ul>
+                            </div>
+                            <div class="mb-3">
+                                <label for="goal" class="form-label">Primary Goal</label>
+                                <select class="form-select" id="goal" name="goal" disabled required>
+                                    <option th:each="goalOption : ${T(com.momentum.user.model.enums.UserGoal).values()}"
+                                            th:value="${goalOption.name()}"
+                                            th:selected="${user?.goal == goalOption}"
+                                            th:text="${goalOption.displayName}">Goal Option</option>
+                                </select>
+                                <div th:if="${userGoalsRequest != null}" th:object="${userGoalsRequest}" class="text-danger small">
+                                    <span th:if="${#fields.hasErrors('goal')}" th:errors="*{goal}">Goal error</span>
+                                </div>
+                            </div>
+                            <div class="row goal-dependent-fields">
+                                <div class="col-md-6 mb-3">
+                                    <label for="targetWeight" class="form-label">Target Weight (kg)</label>
+                                    <input type="number" class="form-control" id="targetWeight" name="targetWeight" th:value="${user?.targetWeight}" step="0.1" readonly>
+                                    <div th:if="${userGoalsRequest != null}" th:object="${userGoalsRequest}" class="text-danger small">
+                                        <span th:if="${#fields.hasErrors('targetWeight')}" th:errors="*{targetWeight}">Target weight error</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="pace" class="form-label">Weekly Pace (kg/week)</label>
+                                    <input type="number" class="form-control" id="pace" name="pace" th:value="${user?.pace}" step="0.1" readonly>
+                                    <div th:if="${userGoalsRequest != null}" th:object="${userGoalsRequest}" class="text-danger small">
+                                        <span th:if="${#fields.hasErrors('pace')}" th:errors="*{pace}">Pace error</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary save-btn d-none" data-section="goals">
+                                    <i class="bi bi-check me-1"></i>Save
+                                </button>
+                                <button type="button" class="btn btn-secondary cancel-btn d-none me-2" data-section="goals">
+                                    <i class="bi bi-target me-1"></i>Cancel
+                                </button>
+                                <button type="button" class="btn btn-outline-primary edit-btn" data-section="goals">
+                                    <i class="bi bi-pencil me-1"></i>Edit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card success">
+                    <h3 class="stats-number" th:text="${totalWorkoutsCompleted}">0</h3>
+                    <p class="stats-label">Workouts Completed</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card info">
+                    <h3 class="stats-number" th:text="${totalCaloriesBurned}">0</h3>
+                    <p class="stats-label">Calories Burned</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card warning">
+                    <h3 class="stats-number" th:text="${totalHoursExercised}">0</h3>
+                    <p class="stats-label">Hours Exercised</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card">
+                    <h3 class="stats-number" th:text="${dayStreak}">0</h3>
+                    <p class="stats-label">Day Streak</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProfileForm">
+                        <h6 class="mb-3">Personal Information</h6>
+                        <div class="mb-3">
+                            <label for="editUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="editUsername" value="johndoe" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editEmail" value="john.doe@example.com" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editHeight" class="form-label">Height (cm)</label>
+                                <input type="number" class="form-control" id="editHeight" value="175" min="50" max="300" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editWeight" class="form-label">Weight (kg)</label>
+                                <input type="number" class="form-control" id="editWeight" value="70" step="0.1" min="20" max="400" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editAge" class="form-label">Age</label>
+                                <input type="number" class="form-control" id="editAge" value="30" min="10" max="120" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editGender" class="form-label">Gender</label>
+                                <select class="form-select" id="editGender" required>
+                                    <option value="MALE">Male</option>
+                                    <option value="FEMALE">Female</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h6 class="mb-3">Fitness Goals</h6>
+                        <div class="mb-3">
+                            <label for="editGoal" class="form-label">Primary Goal</label>
+                            <select class="form-select" id="editGoal" required>
+                                <option value="MAINTAIN_WEIGHT">Maintain Weight</option>
+                                <option value="LOSE_WEIGHT">Lose Weight</option>
+                                <option value="RECOMPOSITION">Recomposition</option>
+                                <option value="GAIN_MUSCLE">Gain Muscle</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editTargetWeight" class="form-label">Target Weight (kg)</label>
+                                <input type="number" class="form-control" id="editTargetWeight" value="75" step="0.1" min="20" max="300">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editPace" class="form-label">Weekly Pace (kg/week)</label>
+                                <input type="number" class="form-control" id="editPace" value="0.5" step="0.1" min="0.1" max="2.0">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .profile-header {
+            background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0.5));
+            border-radius: 1.5rem;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.7), 0 10px 40px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        .profile-info .gradient-text {
+            font-size: 2rem;
+        }
+
+        .profile-stat {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            text-align: center;
+            min-width: 80px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .member-since {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .member-since i {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Disabled/readonly field styling */
+        .form-control[readonly],
+        .form-select:disabled {
+            background-color: #f8f9fa !important;
+            border-color: #dee2e6 !important;
+            color: #6c757d !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+        }
+
+        .form-control[readonly]:focus,
+        .form-select:disabled:focus {
+            border-color: #dee2e6 !important;
+            box-shadow: none !important;
+        }
+
+        /* Test button styling */
+        .edit-btn {
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: #007bff !important;
+            color: white !important;
+        }
+
+    </style>
+
+    <div layout:fragment="scripts">
+        <script>
+            // Profile edit functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Setting up profile edit functionality');
+
+                // Initialize goal-dependent field visibility
+                initializeGoalFields();
+
+                // Store original values for cancel functionality
+                let originalValues = {};
+
+                // Add event listeners to edit buttons
+                const editButtons = document.querySelectorAll('.edit-btn');
+
+                editButtons.forEach(button => {
+                    button.addEventListener('click', function(event) {
+                        const section = button.getAttribute('data-section');
+                        enterEditMode(section);
+                        event.preventDefault();
+                    });
+                });
+
+                // Add event listeners to cancel buttons
+                const cancelButtons = document.querySelectorAll('.cancel-btn');
+
+                cancelButtons.forEach(button => {
+                    button.addEventListener('click', function(event) {
+                        const section = button.getAttribute('data-section');
+                        cancelEditMode(section);
+                        event.preventDefault();
+                    });
+                });
+
+                // Add listener for goal changes
+                const goalSelect = document.getElementById('goal');
+                if (goalSelect) {
+                    goalSelect.addEventListener('change', function() {
+                        updateGoalFieldVisibility();
+                    });
+                }
+
+                function enterEditMode(section) {
+                    // Store original values
+                    storeOriginalValues(section);
+
+                    // Get form elements for this section
+                    const formSelector = section === 'personal' ? '#username, #email, #height, #weight, #age, #gender' : '#goal, #targetWeight, #pace';
+                    const inputs = document.querySelectorAll(formSelector);
+
+                    // Enable form fields
+                    inputs.forEach(input => {
+                        input.readOnly = false;
+                        if (input.tagName === 'SELECT') {
+                            input.disabled = false;
+                        }
+                    });
+
+                    // Toggle button visibility
+                    const editBtn = document.querySelector(`.edit-btn[data-section="${section}"]`);
+                    const saveBtn = document.querySelector(`.save-btn[data-section="${section}"]`);
+                    const cancelBtn = document.querySelector(`.cancel-btn[data-section="${section}"]`);
+
+                    editBtn.classList.add('d-none');
+                    saveBtn.classList.remove('d-none');
+                    cancelBtn.classList.remove('d-none');
+
+                    // Update goal field visibility if in goals section
+                    if (section === 'goals') {
+                        updateGoalFieldVisibility();
+                    }
+                }
+
+                function cancelEditMode(section) {
+                    // Restore original values
+                    restoreOriginalValues(section);
+
+                    // Get form elements for this section
+                    const formSelector = section === 'personal' ? '#username, #email, #height, #weight, #age, #gender' : '#goal, #targetWeight, #pace';
+                    const inputs = document.querySelectorAll(formSelector);
+
+                    // Disable form fields
+                    inputs.forEach(input => {
+                        input.readOnly = true;
+                        if (input.tagName === 'SELECT') {
+                            input.disabled = true;
+                        }
+                    });
+
+                    // Toggle button visibility
+                    const editBtn = document.querySelector(`.edit-btn[data-section="${section}"]`);
+                    const saveBtn = document.querySelector(`.save-btn[data-section="${section}"]`);
+                    const cancelBtn = document.querySelector(`.cancel-btn[data-section="${section}"]`);
+
+                    editBtn.classList.remove('d-none');
+                    saveBtn.classList.add('d-none');
+                    cancelBtn.classList.add('d-none');
+
+                    // Update goal field visibility if in goals section
+                    if (section === 'goals') {
+                        updateGoalFieldVisibility();
+                    }
+                }
+
+                function storeOriginalValues(section) {
+                    const formSelector = section === 'personal' ? '#username, #email, #height, #weight, #age, #gender' : '#goal, #targetWeight, #pace';
+                    const inputs = document.querySelectorAll(formSelector);
+
+                    originalValues[section] = {};
+                    inputs.forEach(input => {
+                        originalValues[section][input.id] = input.value;
+                    });
+                }
+
+                function restoreOriginalValues(section) {
+                    if (originalValues[section]) {
+                        Object.keys(originalValues[section]).forEach(id => {
+                            const element = document.getElementById(id);
+                            if (element) {
+                                element.value = originalValues[section][id];
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Function to initialize goal-dependent field visibility on page load
+            function initializeGoalFields() {
+                updateGoalFieldVisibility();
+            }
+
+            // Function to show/hide target weight and pace based on selected goal
+            function updateGoalFieldVisibility() {
+                const goalSelect = document.getElementById('goal');
+                const goalFields = document.querySelector('.goal-dependent-fields');
+
+                if (!goalSelect || !goalFields) {
+                    return;
+                }
+
+                const selectedGoal = goalSelect.value;
+
+                // Hide fields for MAINTAIN_WEIGHT and RECOMPOSITION
+                if (selectedGoal === 'MAINTAIN_WEIGHT' || selectedGoal === 'RECOMPOSITION') {
+                    goalFields.style.display = 'none';
+                } else {
+                    goalFields.style.display = '';
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>

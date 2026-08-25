@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title th:text="${action == 'updated'} ? 'Activity Updated Successfully' : 'Activity Created Successfully'">Activity Created Successfully</title>
+    <style>
+        .fitness-theme {
+            --primary-color: #4facfe;
+            --gradient-primary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .success-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            color: #00f2fe;
+            margin-bottom: 1.5rem;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-message {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .activity-name {
+            font-weight: bold;
+            color: #4facfe;
+            font-size: 2rem;
+        }
+
+        .success-subtitle {
+            color: #666;
+            margin-bottom: 2.5rem;
+            font-size: 1.1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3a9de6 0%, #00d9e6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-outline-primary {
+            border: 2px solid #4facfe;
+            color: #4facfe;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-color: #4facfe;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(79, 172, 254, 0.3);
+        }
+
+        .activity-icon {
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content" class="fitness-theme">
+        <div class="container">
+            <div class="success-container">
+                <i class="bi bi-check-circle-fill success-icon"></i>
+                <h1 class="success-message">
+                    <span th:if="${activityType == 'exercise'}"
+                          th:text="${action == 'updated'} ? 'Exercise updated successfully!' : 'Exercise created successfully!'"></span>
+                    <span th:if="${activityType == 'workout'}"
+                          th:text="${action == 'updated'} ? 'Workout updated successfully!' : 'Workout created successfully!'"></span>
+                    <span th:if="${activityType == 'plan'}"
+                          th:text="${action == 'updated'} ? 'Plan updated successfully!' : 'Plan created successfully!'"></span>
+                </h1>
+                <div th:if="${pending}" class="alert alert-warning d-inline-flex align-items-center mb-3" style="max-width: 500px;">
+                    <i class="bi bi-hourglass-split me-2"></i>
+                    <span>This item is <strong>public</strong>, but stays private until an admin reviews and approves it. You can keep using it yourself in the meantime.</span>
+                </div>
+                <p class="success-subtitle" th:if="${!pending}">
+                    <span th:if="${activityType == 'exercise'}"
+                          th:text="${action == 'updated'} ? 'Your exercise now includes the latest changes and is ready to be used.' : 'Your custom exercise has been saved and is now available for use in workouts.'"></span>
+                    <span th:if="${activityType == 'workout'}"
+                          th:text="${action == 'updated'} ? 'Your workout has been refreshed with the latest tweaks and is ready to go.' : 'Your custom workout has been saved and is ready to be used in your fitness routine.'"></span>
+                    <span th:if="${activityType == 'plan'}"
+                          th:text="${action == 'updated'} ? 'Your plan has been updated to keep you on track.' : 'Your custom plan has been saved and is ready to guide your fitness journey.'"></span>
+                </p>
+                <div class="action-buttons">
+                    <!-- Exercise: encourage creating another exercise -->
+                    <a th:if="${activityType == 'exercise'}"
+                       th:href="@{/fitness/create-activity(tab='exercise')}"
+                       class="btn btn-primary">
+                        <i class="bi bi-plus-circle activity-icon"></i>Create Another Exercise
+                    </a>
+                    <!-- Workout: encourage creating another workout -->
+                    <a th:if="${activityType == 'workout'}"
+                       th:href="@{/fitness/create-activity(tab='workout')}"
+                       class="btn btn-primary">
+                        <i class="bi bi-plus-circle activity-icon"></i>Create Another Workout
+                    </a>
+                    <!-- Plan: encourage creating another plan -->
+                    <a th:if="${activityType == 'plan'}"
+                       th:href="@{/fitness/create-activity(tab='plan')}"
+                       class="btn btn-primary">
+                        <i class="bi bi-plus-circle activity-icon"></i>Create Another Plan
+                    </a>
+
+                    <!-- All activities go to fitness dashboard -->
+                    <a th:href="@{/fitness/dashboard}" class="btn btn-outline-primary">
+                        <i class="bi bi-house-door activity-icon"></i>Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

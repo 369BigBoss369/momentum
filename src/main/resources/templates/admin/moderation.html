@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Admin - Moderation Queue</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Header -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white morphing-shape">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="card-title mb-3 display-5 fw-bold">Moderation Queue</h2>
+                            <p class="card-text mb-0 lead">
+                                <span th:text="${queue.totalPending}">0</span> item(s) awaiting review before going public.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <i class="bi bi-clipboard-check-fill float" style="font-size: 5rem; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="/admin/dashboard" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Back to Admin Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <ul class="nav nav-tabs mb-4" id="moderationTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#products-tab-pane" type="button">
+                        Products <span class="badge bg-secondary ms-1" th:text="${queue.pendingProducts.size()}">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#composites-tab-pane" type="button">
+                        Composite Foods <span class="badge bg-secondary ms-1" th:text="${queue.pendingCompositeFoods.size()}">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#recipes-tab-pane" type="button">
+                        Recipes <span class="badge bg-secondary ms-1" th:text="${queue.pendingRecipes.size()}">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#exercises-tab-pane" type="button">
+                        Exercises <span class="badge bg-secondary ms-1" th:text="${queue.pendingExercises.size()}">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#workouts-tab-pane" type="button">
+                        Workouts <span class="badge bg-secondary ms-1" th:text="${queue.pendingWorkouts.size()}">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#plans-tab-pane" type="button">
+                        Plans <span class="badge bg-secondary ms-1" th:text="${queue.pendingPlans.size()}">0</span>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="moderationTabsContent">
+
+                <!-- Products -->
+                <div class="tab-pane fade show active" id="products-tab-pane" role="tabpanel">
+                    <div th:replace="~{::moderationTable(${queue.pendingProducts}, ${queue.usernamesByOwnerId}, 'product', '/nutrition/products/')}"></div>
+                </div>
+
+                <!-- Composite Foods -->
+                <div class="tab-pane fade" id="composites-tab-pane" role="tabpanel">
+                    <div th:replace="~{::moderationTable(${queue.pendingCompositeFoods}, ${queue.usernamesByOwnerId}, 'composite', '/nutrition/composites/')}"></div>
+                </div>
+
+                <!-- Recipes -->
+                <div class="tab-pane fade" id="recipes-tab-pane" role="tabpanel">
+                    <div th:replace="~{::moderationTable(${queue.pendingRecipes}, ${queue.usernamesByOwnerId}, 'recipe', '/nutrition/recipes/')}"></div>
+                </div>
+
+                <!-- Exercises -->
+                <div class="tab-pane fade" id="exercises-tab-pane" role="tabpanel">
+                    <div th:replace="~{::moderationTable(${queue.pendingExercises}, ${queue.usernamesByOwnerId}, 'exercise', '/fitness/exercises/')}"></div>
+                </div>
+
+                <!-- Workouts -->
+                <div class="tab-pane fade" id="workouts-tab-pane" role="tabpanel">
+                    <div th:replace="~{::moderationTable(${queue.pendingWorkouts}, ${queue.usernamesByOwnerId}, 'workout', '/fitness/workouts/')}"></div>
+                </div>
+
+                <!-- Plans -->
+                <div class="tab-pane fade" id="plans-tab-pane" role="tabpanel">
+                    <div th:replace="~{::moderationTable(${queue.pendingPlans}, ${queue.usernamesByOwnerId}, 'plan', '/fitness/plans/')}"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div th:fragment="moderationTable(items, usernames, contentType, viewUrlPrefix)">
+        <div th:if="${#lists.isEmpty(items)}" class="text-center text-muted py-5">
+            <i class="bi bi-inbox display-4"></i>
+            <p class="mt-3 mb-0">Nothing pending here.</p>
+        </div>
+        <div class="table-responsive" th:unless="${#lists.isEmpty(items)}">
+            <table class="table table-hover align-middle">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Submitted by</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${items}">
+                    <td th:text="${item.name}"></td>
+                    <td th:text="${item.type}"></td>
+                    <td th:text="${usernames.get(item.ownerId)} ?: 'Unknown'"></td>
+                    <td th:text="${#temporals.format(item.createdAt, 'yyyy-MM-dd')}"></td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{${viewUrlPrefix} + ${item.id}}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                            <form th:action="@{'/admin/moderation/' + ${contentType} + '/' + ${item.id} + '/approve'}" method="post">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-check-circle me-1"></i>Approve
+                                </button>
+                            </form>
+                            <form th:action="@{'/admin/moderation/' + ${contentType} + '/' + ${item.id} + '/reject'}" method="post">
+                                <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-x-circle me-1"></i>Reject
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

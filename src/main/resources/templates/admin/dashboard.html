@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Header -->
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white morphing-shape">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="card-title mb-3 display-5 fw-bold">Admin Dashboard</h2>
+                            <p class="card-text mb-0 lead">Administrative controls and system-wide statistics.</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <i class="bi bi-shield-lock-fill float" style="font-size: 5rem; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Site Stats -->
+    <div class="row mb-5">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stats-card hover-lift">
+                <div class="stats-icon"><i class="bi bi-people-fill"></i></div>
+                <h3 class="stats-number" th:text="${stats.totalUsers}">0</h3>
+                <p class="stats-label">Users</p>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stats-card danger hover-lift">
+                <div class="stats-icon"><i class="bi bi-shield-fill-check"></i></div>
+                <h3 class="stats-number" th:text="${stats.totalAdmins}">0</h3>
+                <p class="stats-label">Admins</p>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stats-card success hover-lift">
+                <div class="stats-icon"><i class="bi bi-check2-circle"></i></div>
+                <h3 class="stats-number" th:text="${stats.totalCompletions}">0</h3>
+                <p class="stats-label">Completions Logged</p>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stats-card info hover-lift">
+                <div class="stats-icon info-icon"><i class="bi bi-basket-fill"></i></div>
+                <h3 class="stats-number" th:text="${stats.totalProducts}">0</h3>
+                <p class="stats-label">Products</p>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stats-card warning hover-lift">
+                <div class="stats-icon"><i class="bi bi-egg-fried"></i></div>
+                <h3 class="stats-number" th:text="${stats.totalCompositeFoods}">0</h3>
+                <p class="stats-label">Composite Foods</p>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stats-card streak hover-lift">
+                <div class="stats-icon"><i class="bi bi-journal-richtext"></i></div>
+                <h3 class="stats-number" th:text="${stats.totalRecipes}">0</h3>
+                <p class="stats-label">Recipes</p>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stats-card success hover-lift">
+                <div class="stats-icon"><i class="bi bi-activity"></i></div>
+                <h3 class="stats-number" th:text="${stats.totalExercises}">0</h3>
+                <p class="stats-label">Exercises</p>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stats-card info hover-lift">
+                <div class="stats-icon info-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+                <h3 class="stats-number" th:text="${stats.totalWorkouts}">0</h3>
+                <p class="stats-label">Workouts</p>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stats-card warning hover-lift">
+                <div class="stats-icon"><i class="bi bi-calendar-week-fill"></i></div>
+                <h3 class="stats-number" th:text="${stats.totalPlans}">0</h3>
+                <p class="stats-label">Plans</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="mb-3"><i class="bi bi-gear-fill me-2"></i>Management</h4>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 hover-lift">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-people display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">User Management</h5>
+                    <p class="card-text text-muted">View, search, and manage user accounts, roles, and access.</p>
+                    <a href="/admin/users" class="btn btn-primary">
+                        <i class="bi bi-arrow-right-circle me-1"></i>Manage Users
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 hover-lift">
+                <div class="card-body text-center p-4">
+                    <i class="bi bi-clipboard-check display-4 text-warning mb-3"></i>
+                    <h5 class="card-title">
+                        Moderation Queue
+                        <span th:if="${pendingCount > 0}" class="badge bg-danger ms-1" th:text="${pendingCount}">0</span>
+                    </h5>
+                    <p class="card-text text-muted">Review and approve public submissions before they go live.</p>
+                    <a href="/admin/moderation" class="btn btn-warning">
+                        <i class="bi bi-arrow-right-circle me-1"></i>Review Queue
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

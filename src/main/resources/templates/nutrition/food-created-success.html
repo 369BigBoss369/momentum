@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title th:text="${action == 'updated'} ? 'Food Updated Successfully' : 'Food Created Successfully'">Food Created Successfully</title>
+    <style>
+        .nutrition-theme {
+            --primary-color: #11998e;
+            --gradient-primary: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .success-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .success-icon {
+            font-size: 5rem;
+            color: #38ef7d;
+            margin-bottom: 1.5rem;
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .success-message {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .food-name {
+            font-weight: bold;
+            color: #11998e;
+            font-size: 2rem;
+        }
+        
+        .success-subtitle {
+            color: #666;
+            margin-bottom: 2.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0f857a 0%, #2dd970 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(17, 153, 142, 0.3);
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid #11998e;
+            color: #11998e;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-color: #11998e;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(17, 153, 142, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content" class="nutrition-theme">
+        <div class="container">
+            <div class="success-container">
+                <i class="bi bi-check-circle-fill success-icon"></i>
+                <h1 class="success-message">
+                    <span th:if="${action == 'updated'}">Food was updated successfully!</span>
+                    <span th:if="${action != 'updated'}">Food was added successfully!</span>
+                </h1>
+                <div th:if="${pending}" class="alert alert-warning d-inline-flex align-items-center mb-3" style="max-width: 500px;">
+                    <i class="bi bi-hourglass-split me-2"></i>
+                    <span>This item is <strong>public</strong>, but stays private until an admin reviews and approves it. You can keep using it yourself in the meantime.</span>
+                </div>
+                <p class="success-subtitle" th:if="${!pending}" th:text="${action == 'updated'}
+                    ? 'Your changes have been saved and are now available.' 
+                    : 'Your custom food has been saved and is now available for use.'">
+                    Your custom food has been saved and is now available for use.
+                </p>
+                <div class="action-buttons">
+                    <!-- Created: encourage adding another food -->
+                    <a th:if="${action != 'updated'}"
+                       th:href="@{/nutrition/create-food}"
+                       class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Add Another Food
+                    </a>
+                    <!-- Updated: encourage browsing foods -->
+                    <a th:if="${action == 'updated'}"
+                       th:href="@{/nutrition/foods}"
+                       class="btn btn-primary">
+                        <i class="bi bi-egg-fried me-2"></i>Browse Foods
+                    </a>
+                    <a th:href="@{/nutrition/dashboard}" class="btn btn-outline-primary">
+                        <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+

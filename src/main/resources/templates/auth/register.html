@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Momentum | Create Account</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css?v=1.0" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.92), rgba(118, 75, 162, 0.88));
+            position: relative;
+            overflow: hidden;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .auth-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.25), transparent 55%),
+                        radial-gradient(circle at bottom left, rgba(102, 126, 234, 0.35), transparent 60%);
+            pointer-events: none;
+        }
+
+        .auth-container {
+            position: relative;
+            z-index: 1;
+            width: min(520px, 92vw);
+        }
+
+        .auth-card {
+            backdrop-filter: blur(18px);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1.6rem;
+            box-shadow: 0 35px 75px rgba(102, 126, 234, 0.38);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.55);
+        }
+
+        .auth-header {
+            text-align: center;
+            padding: 2.6rem 2.4rem 1.8rem;
+        }
+
+        .auth-header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin-bottom: 0.55rem;
+            color: #2d2a44;
+        }
+
+        .auth-header p {
+            margin: 0;
+            font-size: 0.98rem;
+            color: #67648b;
+        }
+
+        .auth-form {
+            padding: 0 2.4rem 2.2rem;
+        }
+
+        .form-floating > label {
+            color: #6c6a8d;
+        }
+
+        .form-control {
+            background-color: rgba(255, 255, 255, 0.97);
+            border: 1px solid rgba(102, 126, 234, 0.25);
+            border-radius: 0.9rem;
+            padding-left: 1.25rem;
+        }
+
+        .form-control:focus {
+            border-color: rgba(102, 126, 234, 0.65);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.18);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #6c63ff 0%, #a855f7 100%);
+            border: none;
+            border-radius: 0.9rem;
+            padding: 0.95rem;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(108, 99, 255, 0.3);
+        }
+
+        .auth-footer {
+            text-align: center;
+            padding: 0 2.6rem 2.5rem;
+        }
+
+        .auth-footer a {
+            color: #6c63ff;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            font-size: 1.05rem;
+            color: #2d2a44;
+        }
+
+        .brand-badge i {
+            font-size: 1.35rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .social-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.6rem;
+        }
+
+        .social-buttons .social-btn {
+            flex: 1;
+            border: 1px solid rgba(108, 99, 255, 0.25);
+            border-radius: 0.9rem;
+            padding: 0.7rem 0.85rem;
+            background: rgba(108, 99, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            color: #5a57a3;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .social-buttons .social-btn:hover {
+            background: rgba(108, 99, 255, 0.18);
+            transform: translateY(-1px);
+        }
+
+        .global-error {
+            background: rgba(255, 99, 132, 0.12);
+            border: 1px solid rgba(255, 99, 132, 0.35);
+            color: #ff5777;
+            border-radius: 0.9rem;
+            padding: 0.9rem 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 1.4rem;
+            box-shadow: 0 12px 26px rgba(255, 99, 132, 0.08);
+        }
+
+        .floating-field {
+            position: relative;
+        }
+
+        .floating-field .form-floating {
+            position: relative;
+        }
+
+        .floating-field.has-error .form-control {
+            border-color: rgba(255, 99, 132, 0.55);
+            box-shadow: 0 0 0 0.15rem rgba(255, 99, 132, 0.15);
+        }
+
+        .floating-field .field-error {
+            color: #ff6584;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-top: 0.45rem;
+            padding-left: 0.2rem;
+            letter-spacing: 0.01em;
+        }
+
+        .floating-field .field-error::before {
+            content: '\26A0';
+            font-size: 0.72rem;
+            margin-right: 0.35rem;
+        }
+
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            border: none;
+            background: rgba(108, 99, 255, 0.1);
+            color: #6c63ff;
+            border-radius: 999px;
+            width: 2.2rem;
+            height: 2.2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .password-toggle:hover,
+        .password-toggle:focus {
+            background: rgba(108, 99, 255, 0.18);
+            color: #4c45d6;
+            outline: none;
+        }
+
+        .floating-field.has-error .password-toggle {
+            right: 1.8rem;
+        }
+
+        .floating-field.has-error .form-control.is-invalid {
+            padding-right: 3.2rem;
+        }
+
+        .divider {
+            position: relative;
+            text-align: center;
+            margin: 1.75rem 0 1.9rem;
+            color: #8c8aae;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            height: 1px;
+            width: 35%;
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0), rgba(102, 126, 234, 0.35));
+            position: absolute;
+            top: 50%;
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+            transform: rotate(180deg);
+        }
+
+        .tos-text a {
+            color: #6c63ff;
+            text-decoration: none;
+        }
+
+        .tos-text a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 576px) {
+            .auth-card {
+                border-radius: 1.3rem;
+            }
+
+            .auth-header,
+            .auth-form,
+            .auth-footer {
+                padding-left: 1.6rem;
+                padding-right: 1.6rem;
+            }
+
+            .social-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-overlay"></div>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="brand-badge">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    Momentum
+                </div>
+                <h1>Create Your Account</h1>
+                <p>Start your journey to a healthier, personalized lifestyle</p>
+            </div>
+            <div class="auth-form">
+                <div class="social-buttons">
+                    <a href="/oauth2/authorization/google" class="social-btn">
+                        <i class="bi bi-google"></i>
+                        Google
+                    </a>
+                </div>
+                <div class="divider">or sign up with email</div>
+                <div th:if="${error}" class="global-error" th:text="${error}">Error</div>
+                <form th:action="@{/register}" th:method="POST" th:object="${registerRequest}">
+                    <div class="floating-field mb-3" th:classappend="${#fields.hasErrors('username')} ? ' has-error'">
+                        <div class="form-floating">
+                            <input th:field="*{username}" type="text" class="form-control" id="username" name="username" placeholder="Username" required th:classappend="${#fields.hasErrors('username')} ? ' is-invalid'">
+                            <label for="username">Username</label>
+                        </div>
+                        <div class="field-error" th:each="err : ${#fields.errors('username')}">
+                            <span th:text="${err}">Error</span>
+                        </div>
+                    </div>
+                    <div class="floating-field mb-3" th:classappend="${#fields.hasErrors('password')} ? ' has-error'">
+                        <div class="form-floating">
+                            <input th:field="*{password}" type="password" class="form-control" id="password" name="password" placeholder="Create a password" required th:classappend="${#fields.hasErrors('password')} ? ' is-invalid'">
+                            <label for="password">Password</label>
+                            <button type="button" class="password-toggle" aria-label="Show password" title="Show password">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div class="field-error" th:each="err : ${#fields.errors('password')}">
+                            <span th:text="${err}">Error</span>
+                        </div>
+                    </div>
+                    <div class="floating-field mb-3" th:classappend="${#fields.hasErrors('email')} ? ' has-error'">
+                        <div class="form-floating">
+                            <input th:field="*{email}" type="email" class="form-control" id="email" name="email" placeholder="name@example.com" th:classappend="${#fields.hasErrors('email')} ? ' is-invalid'">
+                            <label for="email">Email address</label>
+                        </div>
+                        <div class="field-error" th:each="err : ${#fields.errors('email')}">
+                            <span th:text="${err}">Error</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-gradient w-100">
+                        <i class="bi bi-person-plus-fill me-2"></i>Create Account
+                    </button>
+                </form>
+            </div>
+            <div class="auth-footer">
+                <p class="mb-0">Already have an account?
+                    <a th:href="@{/login}">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            const toggles = document.querySelectorAll('.password-toggle');
+            toggles.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const input = btn.closest('.form-floating')?.querySelector('input');
+                    if (!input) {
+                        return;
+                    }
+
+                    const isMasked = input.type === 'password';
+                    input.type = isMasked ? 'text' : 'password';
+
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('bi-eye', !isMasked);
+                        icon.classList.toggle('bi-eye-slash', isMasked);
+                    }
+
+                    btn.setAttribute('aria-label', isMasked ? 'Hide password' : 'Show password');
+                    btn.setAttribute('title', isMasked ? 'Hide password' : 'Show password');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

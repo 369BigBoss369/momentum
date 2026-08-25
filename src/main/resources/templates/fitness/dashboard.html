@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Hub</title>
+    <style>
+        .fitness-theme {
+            --primary-color: #4facfe;
+            --gradient-primary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .page-header-fitness {
+            background: var(--gradient-primary);
+            padding: 2rem;
+            border-radius: 1rem;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        
+        /* Override card header gradient for fitness theme */
+        .fitness-theme .card-header {
+            background: var(--gradient-primary) !important;
+        }
+        
+        .fitness-theme .card-header.glass {
+            background: var(--gradient-primary) !important;
+        }
+        
+        /* Override Bootstrap primary button color for fitness theme */
+        .fitness-theme .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+        }
+        
+        .fitness-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #3d8bfe 0%, #00d9fe 100%);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="fitness-theme">
+    <div layout:fragment="content">
+        <!-- Fitness Theme Header -->
+        <div class="page-header-fitness" data-aos="fade-down">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 fw-bold mb-2">
+                        <i class="bi bi-activity me-3"></i>Fitness Hub
+                    </h1>
+                    <p class="lead mb-0">Transform your body with targeted workouts</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a th:href="@{/dashboard}" class="btn btn-light btn-lg">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Fitness Overview -->
+        <div class="row mb-4 justify-content-center" data-aos="fade-up">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stats-card hover-lift">
+                    <div class="stats-icon">
+                        <i class="bi bi-trophy"></i>
+                    </div>
+                    <h3 class="stats-number" th:text="${workoutsThisWeek}">0</h3>
+                    <p class="stats-label">Workouts This Week</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stats-card success hover-lift">
+                    <div class="stats-icon">
+                        <i class="bi bi-list-check"></i>
+                    </div>
+                    <h3 class="stats-number" th:text="${exercisesThisWeek}">0</h3>
+                    <p class="stats-label">Exercises This Week</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stats-card warning hover-lift">
+                    <div class="stats-icon">
+                        <i class="bi bi-fire"></i>
+                    </div>
+                    <h3 class="stats-number" th:text="${caloriesToday}">0</h3>
+                    <p class="stats-label">Calories Burned Today</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="col-md-6 col-xl-3 mb-3 d-flex">
+                <a th:href="@{/fitness/tracker}" class="card hover-lift text-decoration-none w-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="bi bi-plus-circle" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="mt-3">Log Workout</h5>
+                        <p class="text-muted">Quickly record a new workout session</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-3 mb-3 d-flex">
+                <a href="/fitness/plans" th:href="@{/fitness/plans}" class="card hover-lift text-decoration-none w-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="bi bi-calendar-check" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="mt-3">Workout Planning</h5>
+                        <p class="text-muted">Plan and manage your weekly workouts</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-3 mb-3 d-flex">
+                <a th:href="@{/fitness/exercises}" class="card hover-lift text-decoration-none w-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="bi bi-list-ul" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="mt-3">Fitness Library</h5>
+                        <p class="text-muted">Explore exercises, workouts and fitness content</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-3 mb-3 d-flex">
+                <a th:href="@{/fitness/create-activity}" class="card hover-lift text-decoration-none w-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="bi bi-pencil-square" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="mt-3">Build Workouts & Plans</h5>
+                        <p class="text-muted">Create custom exercises, workouts and plans</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Workouts -->
+        <div class="row" data-aos="fade-up" data-aos-delay="400">
+            <div class="col-12">
+                <div class="card hover-lift">
+                    <div class="card-header glass">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-clock-history me-2"></i>Recent Workouts
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Workout</th>
+                                        <th>Type</th>
+                                        <th>Calories Burned</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="workout : ${recentWorkouts}">
+                                        <td th:text="${workout.workoutName}">Workout Name</td>
+                                        <td>
+                                            <span th:class="'badge ' + ${workout.workoutType == 'STRENGTH' ? 'bg-danger' : workout.workoutType == 'CARDIO' ? 'bg-warning' : 'bg-info'}"
+                                                  th:text="${workout.workoutType}">Type</span>
+                                        </td>
+                                        <td th:text="${workout.caloriesBurned}">450</td>
+                                        <td th:text="${#temporals.format(workout.completedAt, 'MMM dd')}">Today</td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(recentWorkouts)}">
+                                        <td colspan="4" class="text-center text-muted">No workouts completed yet. Start tracking your fitness journey!</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

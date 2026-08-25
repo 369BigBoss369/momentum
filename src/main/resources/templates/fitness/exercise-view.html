@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title th:text="${exercise.name} + ' - Exercise Details'">Exercise Details</title>
+    <style>
+        .fitness-theme {
+            --primary-color: #4facfe;
+            --gradient-primary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .fitness-theme .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+        }
+
+        .fitness-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #3d8bfe 0%, #00d9fe 100%);
+        }
+
+        .exercise-header {
+            background: var(--gradient-primary);
+            padding: 2rem;
+            border-radius: 1rem;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .exercise-image {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .exercise-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+        }
+
+        .exercise-details {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .exercise-details::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .exercise-details h3 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+
+        .exercise-details h3 i {
+            margin-right: 0.75rem;
+            font-size: 1.8rem;
+        }
+
+        .exercise-details .table {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .exercise-details .table th {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .exercise-details .table td {
+            border: none;
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .exercise-details .badge {
+            font-size: 0.85rem;
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+        }
+
+
+        .exercise-stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .exercise-stat-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 1.25rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .exercise-stat-badge:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .exercise-stat-badge i {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .exercise-stat-badge .stat-number {
+            font-weight: 700;
+            margin-left: 0.25rem;
+            margin-right: 0.8rem;
+        }
+
+        .muscle-group-item {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.75rem 1.25rem;
+            margin: 0.25rem;
+            border-radius: 2rem;
+            border: 2px solid transparent;
+            font-size: 0.9rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .muscle-group-item:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .muscle-group-item i {
+            margin-right: 0.75rem;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .video-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .video-section .btn {
+            padding: 0.75rem 2rem;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body class="fitness-theme">
+    <div layout:fragment="content">
+        <div class="container">
+            <!-- Back Button -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="/fitness/exercises" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Exercises
+                    </a>
+                </div>
+            </div>
+
+            <!-- Exercise Header -->
+            <div class="exercise-header">
+                <div class="row align-items-center">
+                    <div class="col-md-4" th:if="${exercise.imageUrl}">
+                        <img th:src="${exercise.imageUrl}"
+                             th:alt="${exercise.name}"
+                             class="exercise-image"
+                             onerror="this.src='/images/exercises/default.png'">
+                    </div>
+                    <div th:class="${exercise.imageUrl} ? 'col-md-8' : 'col-12'">
+                        <h1 th:text="${exercise.name}" class="mb-3">Exercise Name</h1>
+                        <div class="exercise-stats">
+                            <div class="exercise-stat-badge" th:if="${exercise.type != null}">
+                                <i class="bi bi-activity"></i>
+                                <span th:text="${exercise.type.displayName}">Type</span>
+                            </div>
+                            <div class="exercise-stat-badge">
+                                <i class="bi bi-diagram-3"></i>
+                                <span class="stat-number" th:text="${exercise.muscleGroupTarget != null ? exercise.muscleGroupTarget.size() : 0}">0</span>
+                                <span>muscle group<span th:if="${exercise.muscleGroupTarget != null and exercise.muscleGroupTarget.size() != 1}">s</span></span>
+                            </div>
+                        </div>
+                        <div class="mt-3" th:if="${!isOwner and ((exercise.isPublic and (exercise.moderationStatus == null or exercise.moderationStatus.name() == 'APPROVED')) or isInLibrary)}">
+                            <button class="btn btn-lg" type="button"
+                                    th:classappend="${isInLibrary} ? 'btn-danger' : 'btn-light'"
+                                    th:attr="data-exercise-id=${exercise.id},data-in-library=${isInLibrary}"
+                                    onclick="toggleExerciseLibrary(this)">
+                                <i class="bi me-2" th:classappend="${isInLibrary} ? 'bi-bookmark-dash' : 'bi-bookmark-plus'"></i>
+                                <span th:text="${isInLibrary} ? 'Remove from Library' : 'Add to Library'"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exercise Details -->
+            <div class="exercise-details">
+                <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Exercise Information</h3>
+
+                <h5>Target Muscle Groups</h5>
+                <div th:if="${exercise.muscleGroupTarget != null and !exercise.muscleGroupTarget.isEmpty()}">
+                    <div th:each="muscleGroup : ${exercise.muscleGroupTarget}" class="muscle-group-item">
+                        <i class="bi bi-bullseye"></i>
+                        <span th:text="${muscleGroup.muscle.displayName}">Muscle Group</span>
+                    </div>
+                </div>
+                <p th:if="${exercise.muscleGroupTarget == null or exercise.muscleGroupTarget.isEmpty()}" class="text-muted mb-0">
+                    No muscle groups specified for this exercise.
+                </p>
+            </div>
+
+            <!-- Video Section -->
+            <div class="video-section" th:if="${exercise.videoUrl != null and !exercise.videoUrl.trim().isEmpty()}">
+                <h3 class="mb-4"><i class="bi bi-play-circle me-2"></i>Exercise Tutorial</h3>
+                <a th:href="${exercise.videoUrl}" target="_blank" class="btn btn-primary btn-lg">
+                    <i class="bi bi-play-fill me-2"></i>Watch Tutorial Video
+                </a>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="/fitness/exercises" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Exercises
+                        </a>
+                        <div th:if="${isOwner}">
+                            <a th:href="@{/fitness/exercises/{id}/edit(id=${exercise.id})}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-pencil me-2"></i>Edit Exercise
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            </div>
+        </div>
+    </div>
+    <div layout:fragment="scripts">
+        <script>
+            function toggleExerciseLibrary(button) {
+                const exerciseId = button.dataset.exerciseId;
+                const currentlyInLibrary = button.dataset.inLibrary === 'true';
+                const method = currentlyInLibrary ? 'DELETE' : 'PATCH';
+
+                button.disabled = true;
+
+                const headers = {
+                    'X-Requested-With': 'XMLHttpRequest'
+                };
+                if (window.csrfHeader && window.csrfToken) {
+                    headers[window.csrfHeader] = window.csrfToken;
+                }
+
+                fetch('/api/v1/fitness/exercises/' + exerciseId + '/library', {
+                    method: method,
+                    credentials: 'same-origin',
+                    headers: headers
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Unable to update library membership right now.');
+                        }
+                        // Toggle the button appearance and state
+                        const icon = button.querySelector('i');
+                        const label = button.querySelector('span');
+
+                if (currentlyInLibrary) {
+                    // Was in library, now removed - change to "Add to Library"
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-light');
+                    icon.classList.remove('bi-bookmark-dash');
+                    icon.classList.add('bi-bookmark-plus');
+                    label.textContent = 'Add to Library';
+                    button.dataset.inLibrary = 'false';
+                } else {
+                    // Was not in library, now added - change to "Remove from Library"
+                    button.classList.remove('btn-light');
+                    button.classList.add('btn-danger');
+                    icon.classList.remove('bi-bookmark-plus');
+                    icon.classList.add('bi-bookmark-dash');
+                    label.textContent = 'Remove from Library';
+                    button.dataset.inLibrary = 'true';
+                }
+                    })
+                    .catch(error => {
+                        alert(error.message || 'Failed to update the library.');
+                    })
+                    .finally(() => button.disabled = false);
+            }
+        </script>
+    </div>
+</body>
+</html>
+

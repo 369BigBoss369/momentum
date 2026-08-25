@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Admin - User Management</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Header -->
+    <div class="row mb-4" data-aos="fade-up">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white morphing-shape">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="card-title mb-3 display-5 fw-bold">User Management</h2>
+                            <p class="card-text mb-0 lead">Manage user roles, access, and account status.</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <i class="bi bi-people-fill float" style="font-size: 5rem; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="/admin/dashboard" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Back to Admin Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-people me-2"></i>All Users</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <strong>Important:</strong> After changing a user's role, they must log out and log back in for the changes to take effect.
+            </div>
+
+            <!-- Search -->
+            <form method="get" th:action="@{/admin/users}" class="row g-2 mb-4 align-items-end">
+                <div class="col-md-6 col-lg-4">
+                    <label class="form-label small mb-1">Search</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" name="query" placeholder="Username or email..."
+                               th:value="${query}">
+                    </div>
+                </div>
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label small mb-1">Role</label>
+                    <select name="role" class="form-select">
+                        <option value="">All roles</option>
+                        <option value="USER" th:selected="${selectedRole != null and selectedRole.name() == 'USER'}">USER</option>
+                        <option value="ADMIN" th:selected="${selectedRole != null and selectedRole.name() == 'ADMIN'}">ADMIN</option>
+                    </select>
+                </div>
+                <div class="col-md-3 col-lg-2">
+                    <label class="form-label small mb-1">Status</label>
+                    <select name="enabled" class="form-select">
+                        <option value="">All statuses</option>
+                        <option value="true" th:selected="${selectedEnabled != null and selectedEnabled == true}">Active</option>
+                        <option value="false" th:selected="${selectedEnabled != null and selectedEnabled == false}">Deactivated</option>
+                    </select>
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" class="btn btn-primary">Apply</button>
+                    <a th:if="${(query != null and !query.isEmpty()) or selectedRole != null or selectedEnabled != null}" href="/admin/users" class="btn btn-outline-secondary">Clear</a>                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user : ${users}">
+                        <td>
+                            <span th:text="${user.username}"></span>
+                            <span th:if="${user.id.equals(currentUserId)}" class="badge bg-light text-dark border ms-1">You</span>
+                        </td>
+                        <td th:text="${user.email != null ? user.email : 'N/A'}"></td>
+                        <td>
+                            <span class="badge" th:classappend="${user.role.name() == 'ADMIN'} ? 'bg-danger' : 'bg-primary'"
+                                  th:text="${user.role.name()}"></span>
+                        </td>
+                        <td>
+                            <span class="badge" th:classappend="${user.enabled == null or user.enabled} ? 'bg-success' : 'bg-secondary'"
+                                  th:text="${user.enabled == null or user.enabled} ? 'Active' : 'Deactivated'"></span>
+                        </td>
+                        <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd')}"></td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-2">
+                                <form th:action="@{'/admin/users/' + ${user.id} + '/role'}" method="post" class="d-inline">
+                                    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                                    <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        <option value="USER" th:selected="${user.role.name() == 'USER'}">USER</option>
+                                        <option value="ADMIN" th:selected="${user.role.name() == 'ADMIN'}">ADMIN</option>
+                                    </select>
+                                </form>
+                                <form th:action="@{'/admin/users/' + ${user.id} + '/enabled'}" method="post" class="d-inline"
+                                      th:with="isActive=${user.enabled == null or user.enabled},
+                                               isSelf=${user.id.equals(currentUserId)},
+                                               isLastAdmin=${user.role.name() == 'ADMIN' and (user.enabled == null or user.enabled) and activeAdminCount <= 1}">
+                                    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                                    <input type="hidden" name="enabled" th:value="${isActive} ? 'false' : 'true'"/>
+                                    <button type="submit" class="btn btn-sm"
+                                            th:classappend="${isActive} ? 'btn-outline-danger' : 'btn-outline-success'"
+                                            th:disabled="${isActive and (isSelf or isLastAdmin)}"
+                                            th:title="${isActive and isSelf} ? 'You cannot deactivate your own account' : (${isActive and isLastAdmin} ? 'Cannot deactivate the last active admin' : '')">
+                                        <span th:if="${isActive}"><i class="bi bi-slash-circle me-1"></i>Deactivate</span>
+                                        <span th:unless="${isActive}"><i class="bi bi-check-circle me-1"></i>Reactivate</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${users.isEmpty()}">
+                        <td colspan="6" class="text-center text-muted py-4">No users found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

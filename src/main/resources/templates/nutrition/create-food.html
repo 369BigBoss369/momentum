@@ -1,0 +1,3330 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Create Custom Food</title>
+    <!-- Select2 CSS - Load before custom styles -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <!-- INLINE STYLE TO HIDE AOS DEBUG IMMEDIATELY - RUNS BEFORE ANYTHING -->
+    <style id="aos-disabler-inline">
+        /* Override CSS variable for primary gradient to be green on this page */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+        }
+        
+        /* Hide ALL possible AOS debug indicators - runs immediately */
+        .aos-debug,
+        [class*="aos-debug"],
+        [id*="aos-debug"],
+        body > div:first-child,
+        body > div[style*="position: fixed"],
+        body > div[style*="z-index"],
+        /* Hide ANY small element at the top of the page that might be a debug indicator */
+        body > div[style*="top"][style*="left"],
+        body > div[style*="top: 0"],
+        body > div[style*="top:0"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            position: absolute !important;
+            left: -9999px !important;
+            top: -9999px !important;
+        }
+        
+    </style>
+    <!-- Additional inline style that runs immediately -->
+    <style>
+        /* Hide any fixed position element that's small and might be a debug indicator */
+        body > div[style*="position:fixed"][style*="z-index"] {
+            display: none !important;
+        }
+    </style>
+    <script>
+        // COMPLETELY DISABLE AOS - MUST RUN BEFORE AOS LOADS
+        (function() {
+            // Step 1: Create a stub AOS object BEFORE the real AOS loads
+            window.AOS = {
+                init: function() { 
+                    console.log('[AOS] Init blocked on create-food page');
+                    return; 
+                },
+                refresh: function() { return; },
+                refreshHard: function() { return; },
+                destroy: function() { return; },
+                // Disable debug mode
+                debug: false
+            };
+            
+            // Step 2: Monitor and override AOS if it gets loaded
+            let aosCheckInterval = setInterval(function() {
+                if (typeof window.AOS !== 'undefined' && window.AOS !== null) {
+                    // AOS was loaded - disable it completely
+                    try {
+                        // Disable debug mode
+                        if (window.AOS.debug !== undefined) {
+                            window.AOS.debug = false;
+                        }
+                        // Try to destroy it
+                        if (typeof window.AOS.destroy === 'function') {
+                            window.AOS.destroy();
+                        }
+                    } catch (e) {
+                        // Ignore errors
+                    }
+                    
+                    // Replace with our stub
+                    window.AOS = {
+                        init: function() { return; },
+                        refresh: function() { return; },
+                        refreshHard: function() { return; },
+                        destroy: function() { return; },
+                        debug: false
+                    };
+                    
+                    clearInterval(aosCheckInterval);
+                }
+            }, 10);
+            
+            // Stop checking after 5 seconds
+            setTimeout(function() {
+                clearInterval(aosCheckInterval);
+            }, 5000);
+            
+            // Step 3: Intercept script loading to prevent AOS from executing
+            const originalAppendChild = Node.prototype.appendChild;
+            Node.prototype.appendChild = function(child) {
+                if (child.tagName === 'SCRIPT' && child.src && child.src.includes('aos.js')) {
+                    console.log('[AOS] Script loading intercepted and blocked');
+                    // Don't append the script - this prevents it from loading
+                    return child;
+                }
+                return originalAppendChild.call(this, child);
+            };
+            
+            const originalInsertBefore = Node.prototype.insertBefore;
+            Node.prototype.insertBefore = function(newNode, referenceNode) {
+                if (newNode.tagName === 'SCRIPT' && newNode.src && newNode.src.includes('aos.js')) {
+                    console.log('[AOS] Script insertion intercepted and blocked');
+                    return newNode;
+                }
+                return originalInsertBefore.call(this, newNode, referenceNode);
+            };
+            
+            // Remove AOS CSS and JS from DOM when they load
+            function removeAOSResources() {
+                // Remove AOS CSS link - CRITICAL: This prevents AOS styles from applying
+                const aosCSSLinks = document.querySelectorAll('link[href*="aos.css"], link[href*="aos@"]');
+                aosCSSLinks.forEach(function(link) {
+                    // Remove the link element
+                    if (link.parentNode) {
+                        link.parentNode.removeChild(link);
+                    }
+                    link.remove();
+                });
+                
+                // Remove AOS JS script - CRITICAL: This prevents AOS from executing
+                const aosJSScripts = document.querySelectorAll('script[src*="aos.js"], script[src*="aos@"]');
+                aosJSScripts.forEach(function(script) {
+                    // Remove event listeners if any
+                    script.onload = null;
+                    script.onerror = null;
+                    // Remove the script element
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    script.remove();
+                });
+                
+                // Also disable any AOS-related stylesheets that might be loaded
+                Array.from(document.styleSheets).forEach(function(sheet) {
+                    try {
+                        if (sheet.href && sheet.href.includes('aos')) {
+                            sheet.disabled = true;
+                        }
+                    } catch (e) {
+                        // Cross-origin stylesheets can't be accessed
+                    }
+                });
+                
+                // Completely override AOS if it somehow got loaded
+                if (typeof window.AOS !== 'undefined') {
+                    // Disable debug mode first
+                    try {
+                        if (window.AOS.debug !== undefined) {
+                            window.AOS.debug = false;
+                        }
+                        // Destroy any existing AOS instances
+                        if (typeof window.AOS.destroy === 'function') {
+                            window.AOS.destroy();
+                        }
+                    } catch (e) {
+                        // Ignore errors
+                    }
+                    
+                    // Replace with stub
+                    window.AOS = {
+                        init: function() { return; },
+                        refresh: function() { return; },
+                        refreshHard: function() { return; },
+                        destroy: function() { return; },
+                        debug: false
+                    };
+                    
+                    // Also try to remove AOS from window completely
+                    try {
+                        delete window.AOS;
+                        window.AOS = {
+                            init: function() { return; },
+                            refresh: function() { return; },
+                            refreshHard: function() { return; },
+                            destroy: function() { return; },
+                            debug: false
+                        };
+                    } catch (e) {
+                        // Ignore
+                    }
+                }
+                
+                // Remove any AOS debug indicators immediately
+                const debugIndicators = document.querySelectorAll('.aos-debug, [class*="aos-debug"], [id*="aos-debug"]');
+                debugIndicators.forEach(function(el) {
+                    el.remove();
+                });
+                
+                // Check for purple circles in card-body and entire document
+                function removePurpleCircles(container) {
+                    if (!container) return;
+                    const children = Array.from(container.children || []);
+                    const allDescendants = Array.from(container.querySelectorAll('*') || []);
+                    
+                    [...children, ...allDescendants].forEach(function(el) {
+                        if (!el || !el.parentNode) return;
+                        try {
+                            const style = window.getComputedStyle(el);
+                            const bg = style.backgroundColor;
+                            const rect = el.getBoundingClientRect();
+                            const text = (el.textContent || '').trim();
+                            if ((bg.includes('102, 126, 234') || bg.includes('118, 75, 162')) &&
+                                rect.width < 120 && rect.height < 120 && /^\d+$/.test(text)) {
+                                el.remove();
+                            }
+                        } catch (e) {
+                            // Ignore
+                        }
+                    });
+                }
+                
+                removePurpleCircles(document.body);
+                const cardBody = document.querySelector('.card-body');
+                if (cardBody) {
+                    removePurpleCircles(cardBody);
+                }
+            }
+            
+            // Run immediately
+            removeAOSResources();
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', removeAOSResources);
+            }
+            
+            // Also run repeatedly to catch resources that load late
+            const removeInterval = setInterval(function() {
+                removeAOSResources();
+            }, 50);
+            
+            setTimeout(function() {
+                clearInterval(removeInterval);
+            }, 10000);
+            
+            // Also run after delays to catch late-loading resources
+            setTimeout(removeAOSResources, 0);
+            setTimeout(removeAOSResources, 100);
+            setTimeout(removeAOSResources, 500);
+            setTimeout(removeAOSResources, 1000);
+            setTimeout(removeAOSResources, 2000);
+        })();
+    </script>
+    <style>
+        .nutrition-theme {
+            --primary-color: #11998e;
+            --gradient-primary: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .nutrition-theme .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+        }
+        
+        .nutrition-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #0f857a 0%, #2dd970 100%);
+        }
+        
+        .page-header-nutrition {
+            background: var(--gradient-primary);
+            padding: 2rem;
+            border-radius: 1rem;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        
+        .nav-tabs .nav-link {
+            color: #11998e;
+            position: relative;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: #11998e;
+        }
+        
+        /* Green underline on hover for nav tabs (nutrition theme) */
+        .nav-tabs .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .nav-tabs .nav-link:hover::after,
+        .nav-tabs .nav-link.active::after {
+            width: 100%;
+        }
+        
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-section h6 {
+            color: #11998e;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        /* Disable card hover lift effect completely to prevent covering navbar */
+        .card:hover {
+            transform: none !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* Ingredient Modal Styles - Matching food-tracker exactly */
+        #ingredientModalBackdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        #ingredientModalBackdrop.show {
+            opacity: 1;
+        }
+        
+        #ingredientModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1050;
+            overflow-x: hidden;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        #ingredientModal.show {
+            opacity: 1;
+        }
+        
+        #ingredientModal .modal-dialog {
+            position: relative;
+            width: auto;
+            margin: 1.75rem auto;
+            max-width: 600px;
+            pointer-events: none;
+            transform: scale(1);
+        }
+        
+        #ingredientModal.show .modal-dialog {
+            pointer-events: auto;
+            transform: scale(1);
+        }
+        
+        /* Food Type List Styles - Matching food-tracker exactly */
+        .food-type-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+        }
+        
+        .food-type-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border: 2px solid transparent;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #fff;
+        }
+        
+        .food-type-item:hover {
+            background-color: #f8f9fa;
+            border-color: #11998e;
+        }
+        
+        .food-type-item.selected {
+            background-color: #e7f5f3;
+            border-color: #11998e;
+        }
+        
+        .food-type-item img {
+            width: 50px;
+            height: 50px;
+            max-width: 50px;
+            max-height: 50px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .food-type-item .food-type-name {
+            flex: 1;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .food-type-item.selected .food-type-name {
+            color: #11998e;
+            font-weight: 600;
+        }
+        
+        .food-type-category {
+            margin-top: 1.5rem;
+        }
+        
+        .food-type-category:first-child {
+            margin-top: 0;
+        }
+        
+        .food-type-category-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Select2 custom styles */
+        .select2-food-image {
+            width: 32px !important;
+            height: 32px !important;
+            max-width: 32px !important;
+            max-height: 32px !important;
+            min-width: 32px !important;
+            min-height: 32px !important;
+            object-fit: cover !important;
+            border-radius: 4px !important;
+            flex-shrink: 0 !important;
+        }
+        
+        /* Ensure Select2 dropdown images are properly sized */
+        .select2-results__option img.select2-food-image,
+        .select2-results__option .select2-food-image,
+        .select2-container .select2-food-image {
+            width: 32px !important;
+            height: 32px !important;
+            max-width: 32px !important;
+            max-height: 32px !important;
+            min-width: 32px !important;
+            min-height: 32px !important;
+            object-fit: cover !important;
+            border-radius: 4px !important;
+        }
+        
+        /* Ingredient list image styles */
+        .ingredient-image {
+            width: 50px !important;
+            height: 50px !important;
+            max-width: 50px !important;
+            max-height: 50px !important;
+            min-width: 50px !important;
+            min-height: 50px !important;
+            object-fit: cover !important;
+            border-radius: 0.375rem !important;
+            flex-shrink: 0 !important;
+        }
+        
+        /* Target ingredient images in list items specifically */
+        li.list-group-item .ingredient-image,
+        #ingredientsList .ingredient-image,
+        .list-group-item .d-flex .ingredient-image {
+            width: 50px !important;
+            height: 50px !important;
+            max-width: 50px !important;
+            max-height: 50px !important;
+            min-width: 50px !important;
+            min-height: 50px !important;
+            object-fit: cover !important;
+            border-radius: 0.375rem !important;
+        }
+    </style>
+</head>
+<body class="nutrition-theme">
+    <div layout:fragment="content">
+        <!-- Ingredient Modal Backdrop -->
+        <div class="modal-backdrop" id="ingredientModalBackdrop" style="display: none;"></div>
+        
+        <!-- Ingredient Modal -->
+        <div class="modal fade" id="ingredientModal" tabindex="-1" aria-labelledby="ingredientModalLabel" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="ingredientModalLabel">
+                            <i class="bi bi-plus-circle-fill me-2"></i>Add Ingredient
+                        </h5>
+                        <button type="button" class="btn-close" id="closeIngredientModalBtn" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="ingredientForm" novalidate>
+                            <!-- Food Type Selection View -->
+                            <div id="ingredientFoodTypeSelectionView">
+                                <div class="mb-3">
+                                    <label class="form-label">Select Food Type <span class="text-danger">*</span></label>
+                                    <div class="food-type-list" id="ingredientFoodTypeList">
+                                        <!-- Products -->
+                                        <div class="food-type-category">
+                                            <div class="food-type-category-title">Products</div>
+                                            <div th:each="productType : ${productTypes}" class="food-type-item" 
+                                                 th:data-type="'PRODUCT'"
+                                                 th:data-value="${productType.name()}"
+                                                 th:data-name="${productType.displayName}">
+                                                <img th:src="@{'/images/products/' + ${#strings.toLowerCase(productType.name())} + '.png'}" 
+                                                     th:alt="${productType.displayName}"
+                                                     width="50"
+                                                     height="50"
+                                                     style="width: 50px !important; height: 50px !important; max-width: 50px !important; max-height: 50px !important; object-fit: cover; border-radius: 0.375rem; margin-right: 1rem; flex-shrink: 0;"
+                                                     onerror="this.src='/images/products/vegetable.png'">
+                                                <span class="food-type-name" th:text="${productType.displayName}">Food Type</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Composite Foods -->
+                                        <div class="food-type-category">
+                                            <div class="food-type-category-title">Composite Foods</div>
+                                            <div th:each="compositeType : ${compositeFoodTypes}" class="food-type-item" 
+                                                 th:data-type="'COMPOSITE'"
+                                                 th:data-value="${compositeType.name()}"
+                                                 th:data-name="${compositeType.displayName}">
+                                                <img th:src="@{'/images/composites/' + ${#strings.toLowerCase(compositeType.name())} + '.png'}" 
+                                                     th:alt="${compositeType.displayName}"
+                                                     width="50"
+                                                     height="50"
+                                                     style="width: 50px !important; height: 50px !important; max-width: 50px !important; max-height: 50px !important; object-fit: cover; border-radius: 0.375rem; margin-right: 1rem; flex-shrink: 0;"
+                                                     onerror="this.src='/images/composites/meals_and_side_dishes.png'">
+                                                <span class="food-type-name" th:text="${compositeType.displayName}">Food Type</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Food Selection View -->
+                            <div id="ingredientFoodSelectionView" style="display: none;">
+                                <div class="mb-4">
+                                    <label class="form-label">
+                                        <i class="bi bi-search me-2"></i>Search and Select Food
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-control" id="foodSelect" required style="width: 100%;">
+                                        <option value="">Type to search foods...</option>
+                                    </select>
+                                    <input type="hidden" id="selectedIngredientFoodId" required>
+                                    <div class="invalid-feedback">Please select a food.</div>
+                                </div>
+                                
+                                <div class="mb-4" id="ingredientAmountSection" style="display: none;">
+                                    <label class="form-label" for="ingredientAmount">
+                                        <i class="bi bi-calculator me-2"></i>Amount (grams)
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" class="form-control" id="ingredientAmount" min="1" step="0.1" placeholder="Enter amount in grams" required>
+                                    <div class="invalid-feedback">Please enter an amount (minimum 1 gram).</div>
+                                </div>
+                                
+                                <div class="mb-4" id="ingredientCookedSection" style="display: none;">
+                                    <label class="form-label" for="cookedFoodSelect">
+                                        <i class="bi bi-fire me-2"></i>Cooked State (Optional)
+                                    </label>
+                                    <select class="form-control" id="cookedFoodSelect" style="width: 100%;">
+                                        <option value="">Select cooked food</option>
+                                    </select>
+                                    <small class="form-text text-muted">Select the cooked version if different from the raw ingredient.</small>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" id="ingredientBackToTypesBtn" style="display: none;">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Types
+                        </button>
+                        <div class="ms-auto">
+                            <button type="button" class="btn btn-primary" id="confirmAddIngredientBtn" disabled>
+                                <i class="bi bi-check-circle me-1"></i>Add Ingredient
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Inline styles for ingredient modal - Applied immediately -->
+        <style id="ingredientModalStyles">
+            /* Force styles with maximum specificity */
+            #ingredientModal.show .modal-dialog {
+                transform: scale(1) !important;
+                transition: transform 0.3s ease-out !important;
+            }
+            
+            #ingredientModal .modal-dialog {
+                transform: scale(0.8) !important;
+                transition: transform 0.3s ease-out !important;
+            }
+            
+            #ingredientFoodTypeList .food-type-item {
+                transition: all 0.2s ease !important;
+            }
+            
+            #ingredientFoodTypeList .food-type-item:hover {
+                background-color: #f8f9fa !important;
+                border-color: #11998e !important;
+                transform: translateX(3px) !important;
+                box-shadow: 0 2px 8px rgba(17, 153, 142, 0.15) !important;
+            }
+            
+            #ingredientFoodTypeList .food-type-item.selected {
+                background-color: #e7f5f3 !important;
+                border-color: #11998e !important;
+                border-width: 2px !important;
+                transform: translateX(3px) !important;
+                box-shadow: 0 2px 12px rgba(17, 153, 142, 0.2) !important;
+            }
+            
+            #ingredientFoodTypeList .food-type-item:hover .food-type-name {
+                color: #11998e !important;
+            }
+            
+            #ingredientFoodTypeList .food-type-item.selected .food-type-name {
+                color: #11998e !important;
+                font-weight: 600 !important;
+            }
+            
+            #ingredientFoodTypeList .food-type-item:hover img {
+                transform: scale(1.05) !important;
+            }
+            
+            #ingredientFoodTypeList .food-type-item.selected img {
+                transform: scale(1.05) !important;
+            }
+            
+            #ingredientModal .modal-footer .btn-primary:hover {
+                transform: translateY(-1px) !important;
+                box-shadow: 0 4px 8px rgba(17, 153, 142, 0.3) !important;
+            }
+            
+            #ingredientModal .modal-footer .btn-secondary:hover {
+                transform: translateY(-1px) !important;
+            }
+            
+            /* Back to Types button styling */
+            #ingredientModal .modal-footer #ingredientBackToTypesBtn {
+                transition: all 0.2s ease;
+                border-color: #6c757d;
+                color: #6c757d;
+            }
+            
+            #ingredientModal .modal-footer #ingredientBackToTypesBtn:hover {
+                background-color: #6c757d;
+                border-color: #6c757d;
+                color: #fff;
+                transform: translateX(-2px);
+                box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+            }
+            
+            #ingredientModal .modal-footer #ingredientBackToTypesBtn i {
+                transition: transform 0.2s ease;
+            }
+            
+            #ingredientModal .modal-footer #ingredientBackToTypesBtn:hover i {
+                transform: translateX(-2px);
+            }
+        </style>
+
+        <div class="container mt-4">
+            <!-- Page Header -->
+    <div class="page-header-nutrition">
+        <h2 class="mb-0">
+            <i class="bi bi-plus-circle me-2"></i>
+            <span th:if="${editMode} == true">Edit Food</span>
+            <span th:if="${editMode == null or !editMode}">Create Custom Food</span>
+        </h2>
+        <p class="mb-0 mt-2" th:if="${editMode == true}">
+            Update the details of your custom food item.
+        </p>
+        <p class="mb-0 mt-2" th:if="${editMode == null or !editMode}">
+            Add your own products, composite foods, or recipes to the database
+        </p>
+    </div>
+
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs mb-4" id="foodTypeTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            th:classappend="${activeTab} == 'product' or activeTab == null ? ' active' : ''"
+                            id="product-tab" data-bs-toggle="tab" data-bs-target="#product" type="button" role="tab">
+                        <i class="bi bi-box-seam me-1"></i>Product
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" th:classappend="${activeTab} == 'composite' ? ' active' : ''"
+                            id="composite-tab" data-bs-toggle="tab" data-bs-target="#composite" type="button" role="tab">
+                        <i class="bi bi-layers me-1"></i>Composite Food
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" th:classappend="${activeTab} == 'recipe' ? ' active' : ''"
+                            id="recipe-tab" data-bs-toggle="tab" data-bs-target="#recipe" type="button" role="tab">
+                        <i class="bi bi-book me-1"></i>Recipe
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="foodTypeTabsContent">
+                <!-- Product Tab -->
+                <div class="tab-pane fade" th:classappend="${activeTab} == 'product' or activeTab == null ? ' show active' : ''" id="product" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <div th:if="${productError}" th:text="${productError}" class="alert alert-danger mb-3"></div>
+                            
+                            <form th:action="${editMode} == true ? @{|/nutrition/products/${foodId}/edit|} : @{/nutrition/create-food/product}"
+                                  th:method="${editMode} == true ? 'put' : 'post'"
+                                  th:object="${createProductDTO}">
+                                <!-- Basic Information -->
+                                <div class="form-section">
+                                    <h6><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="productName" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="productName" th:field="*{name}" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''" required>
+                                            <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="productType" class="form-label">Product Type <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="productType" th:field="*{type}" th:classappend="${#fields.hasErrors('type')} ? 'is-invalid' : ''" required>
+                                                <option value="">Select Product Type</option>
+                                                <option th:each="type : ${T(com.momentum.nutrition.model.enums.ProductType).values()}" 
+                                                        th:value="${type}" 
+                                                        th:text="${type.displayName}"></option>
+                                            </select>
+                                            <div th:if="${#fields.hasErrors('type')}" th:errors="*{type}" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="imagePath" class="form-label">Image URL</label>
+                                            <input type="text" class="form-control" id="imagePath" th:field="*{imagePath}" th:classappend="${#fields.hasErrors('imagePath')} ? 'is-invalid' : ''" placeholder="https://example.com/image.jpg">
+                                            <div th:if="${#fields.hasErrors('imagePath')}" th:errors="*{imagePath}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="servingSize" class="form-label">Serving Size (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="servingSize" th:field="*{servingSize}" th:classappend="${#fields.hasErrors('servingSize')} ? 'is-invalid' : ''" required>
+                                            <div th:if="${#fields.hasErrors('servingSize')}" th:errors="*{servingSize}" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label d-block mb-2">
+                                                <i class="bi bi-share me-1"></i>Product Visibility
+                                                <span th:if="${editMode and moderationStatus != null and moderationStatus.name() == 'PENDING'}" class="badge bg-warning text-dark ms-2">
+                                                    <i class="bi bi-hourglass-split me-1"></i>Pending Approval
+                                                </span>
+                                                <span th:if="${editMode and moderationStatus != null and moderationStatus.name() == 'REJECTED'}" class="badge bg-danger ms-2">
+                                                    <i class="bi bi-x-circle me-1"></i>Rejected
+                                                </span>
+                                            </label>
+                                            <div class="public-recipe-toggle-wrapper">
+                                                <div class="toggle-switch-container">
+                                                    <input type="checkbox" id="productIsPublic" th:field="*{isPublic}" class="toggle-switch-input" style="display: none !important; visibility: hidden !important; position: absolute !important; opacity: 0 !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
+                                                    <label for="productIsPublic" class="toggle-switch-label" style="position: relative; display: inline-block; width: 60px; height: 34px; cursor: pointer;">
+                                                        <span class="toggle-switch-slider" style="position: absolute; top: 0; left: 0; width: 60px; height: 34px; background-color: #ccc; border-radius: 34px; display: block;">
+                                                            <span class="toggle-switch-knob" style="position: absolute; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.3s;"></span>
+                                                        </span>
+                                                    </label>
+                                                    <span class="toggle-label-text">
+                                                        <span class="toggle-text-private">
+                                                            <i class="bi bi-lock-fill me-1"></i>Private
+                                                        </span>
+                                                        <span class="toggle-text-public">
+                                                            <i class="bi bi-globe me-1"></i>Public
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                                <small class="form-text text-muted d-block mt-2 toggle-description">
+                                                    <span class="toggle-desc-private">Only you can view and use this product</span>
+                                                    <span class="toggle-desc-public">Other users can view and use this product</span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Macronutrients -->
+                                <div class="form-section">
+                                    <h6><i class="bi bi-calculator me-2"></i>Macronutrients</h6>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="calories" class="form-label">Calories <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="calories" th:field="*{calories}" th:classappend="${#fields.hasErrors('calories')} ? 'is-invalid' : ''" min="0" required>
+                                            <div th:if="${#fields.hasErrors('calories')}" th:errors="*{calories}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="protein" class="form-label">Protein (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="protein" th:field="*{protein}" th:classappend="${#fields.hasErrors('protein')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('protein')}" th:errors="*{protein}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="carbohydrates" class="form-label">Carbohydrates (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="carbohydrates" th:field="*{carbohydrates}" th:classappend="${#fields.hasErrors('carbohydrates')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('carbohydrates')}" th:errors="*{carbohydrates}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="fat" class="form-label">Fat (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="fat" th:field="*{fat}" th:classappend="${#fields.hasErrors('fat')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('fat')}" th:errors="*{fat}" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="sugar" class="form-label">Sugar (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="sugar" th:field="*{sugar}" th:classappend="${#fields.hasErrors('sugar')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('sugar')}" th:errors="*{sugar}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="fiber" class="form-label">Fiber (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="fiber" th:field="*{fiber}" th:classappend="${#fields.hasErrors('fiber')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('fiber')}" th:errors="*{fiber}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="saturatedFat" class="form-label">Saturated Fat (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="saturatedFat" th:field="*{saturatedFat}" th:classappend="${#fields.hasErrors('saturatedFat')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('saturatedFat')}" th:errors="*{saturatedFat}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="sodium" class="form-label">Sodium (mg) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="sodium" th:field="*{sodium}" th:classappend="${#fields.hasErrors('sodium')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('sodium')}" th:errors="*{sodium}" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Additional Nutrients -->
+                                <div class="form-section">
+                                    <h6><i class="bi bi-heart-pulse me-2"></i>Additional Nutrients (Optional)</h6>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="glycemicIndex" class="form-label">Glycemic Index</label>
+                                            <input type="number" class="form-control" id="glycemicIndex" th:field="*{glycemicIndex}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="glycemicLoad" class="form-label">Glycemic Load</label>
+                                            <input type="number" class="form-control" id="glycemicLoad" th:field="*{glycemicLoad}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="monoUnsaturated" class="form-label">Monounsaturated Fat (g)</label>
+                                            <input type="number" class="form-control" id="monoUnsaturated" th:field="*{monoUnsaturated}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="polyUnsaturated" class="form-label">Polyunsaturated Fat (g)</label>
+                                            <input type="number" class="form-control" id="polyUnsaturated" th:field="*{polyUnsaturated}" step="0.1" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="transFat" class="form-label">Trans Fat (g)</label>
+                                            <input type="number" class="form-control" id="transFat" th:field="*{transFat}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="cholesterol" class="form-label">Cholesterol (mg)</label>
+                                            <input type="number" class="form-control" id="cholesterol" th:field="*{cholesterol}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="potassium" class="form-label">Potassium (mg)</label>
+                                            <input type="number" class="form-control" id="potassium" th:field="*{potassium}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="calcium" class="form-label">Calcium (mg)</label>
+                                            <input type="number" class="form-control" id="calcium" th:field="*{calcium}" step="0.1" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="iron" class="form-label">Iron (mg)</label>
+                                            <input type="number" class="form-control" id="iron" th:field="*{iron}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="caffeine" class="form-label">Caffeine (mg)</label>
+                                            <input type="number" class="form-control" id="caffeine" th:field="*{caffeine}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="alcohol" class="form-label">Alcohol (g)</label>
+                                            <input type="number" class="form-control" id="alcohol" th:field="*{alcohol}" step="0.1" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-4">
+                                    <a th:href="@{/nutrition/food-tracker}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle me-1"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        <span th:if="${editMode} == true">Save Product</span>
+                                        <span th:if="${editMode == null or !editMode}">Create Product</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Composite Food Tab -->
+                <div class="tab-pane fade" th:classappend="${activeTab} == 'composite' ? ' show active' : ''" id="composite" role="tabpanel" aria-labelledby="composite-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <div th:if="${compositeFoodError}" th:text="${compositeFoodError}" class="alert alert-danger mb-3"></div>
+                            
+                            <form th:object="${createCompositeFoodDTO}"
+                                  th:method="${editMode} == true ? 'put' : 'post'"
+                                  th:action="${editMode} == true ? @{|/nutrition/composites/${foodId}/edit|} : @{/nutrition/create-food/composite-food}">
+                                <!-- Basic Information -->
+                                <div class="form-section">
+                                    <h6><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="compositeFoodName" class="form-label">Composite Food Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="compositeFoodName" th:field="*{name}" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''" required>
+                                            <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="compositeFoodType" class="form-label">Composite Food Type <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="compositeFoodType" th:field="*{type}" th:classappend="${#fields.hasErrors('type')} ? 'is-invalid' : ''" required>
+                                                <option value="">Select Composite Food Type</option>
+                                                <option th:each="type : ${T(com.momentum.nutrition.model.enums.CompositeFoodType).values()}"
+                                                        th:value="${type}"
+                                                        th:text="${type.displayName}"></option>
+                                            </select>
+                                            <div th:if="${#fields.hasErrors('type')}" th:errors="*{type}" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="compositeImagePath" class="form-label">Image URL</label>
+                                            <input type="text" class="form-control" id="compositeImagePath" th:field="*{imagePath}" th:classappend="${#fields.hasErrors('imagePath')} ? 'is-invalid' : ''" placeholder="https://example.com/image.jpg">
+                                            <div th:if="${#fields.hasErrors('imagePath')}" th:errors="*{imagePath}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="compositeServingSize" class="form-label">Serving Size (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="compositeServingSize" th:field="*{servingSize}" th:classappend="${#fields.hasErrors('servingSize')} ? 'is-invalid' : ''" required>
+                                            <div th:if="${#fields.hasErrors('servingSize')}" th:errors="*{servingSize}" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label d-block mb-2">
+                                                <i class="bi bi-share me-1"></i>Composite Food Visibility
+                                                <span th:if="${editMode and moderationStatus != null and moderationStatus.name() == 'PENDING'}" class="badge bg-warning text-dark ms-2">
+                                                    <i class="bi bi-hourglass-split me-1"></i>Pending Approval
+                                                </span>
+                                                <span th:if="${editMode and moderationStatus != null and moderationStatus.name() == 'REJECTED'}" class="badge bg-danger ms-2">
+                                                    <i class="bi bi-x-circle me-1"></i>Rejected
+                                                </span>
+                                            </label>
+                                            <div class="public-recipe-toggle-wrapper">
+                                                <div class="toggle-switch-container">
+                                                    <input type="checkbox" id="compositeFoodIsPublic" th:field="*{isPublic}" class="toggle-switch-input" style="display: none !important; visibility: hidden !important; position: absolute !important; opacity: 0 !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
+                                                    <label for="compositeFoodIsPublic" class="toggle-switch-label" style="position: relative; display: inline-block; width: 60px; height: 34px; cursor: pointer;">
+                                                        <span class="toggle-switch-slider" style="position: absolute; top: 0; left: 0; width: 60px; height: 34px; background-color: #ccc; border-radius: 34px; display: block;">
+                                                            <span class="toggle-switch-knob" style="position: absolute; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.3s;"></span>
+                                                        </span>
+                                                    </label>
+                                                    <span class="toggle-label-text">
+                                                        <span class="toggle-text-private">
+                                                            <i class="bi bi-lock-fill me-1"></i>Private
+                                                        </span>
+                                                        <span class="toggle-text-public">
+                                                            <i class="bi bi-globe me-1"></i>Public
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                                <small class="form-text text-muted d-block mt-2 toggle-description">
+                                                    <span class="toggle-desc-private">Only you can view and use this composite food</span>
+                                                    <span class="toggle-desc-public">Other users can view and use this composite food</span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Macronutrients -->
+                                <div class="form-section">
+                                    <h6><i class="bi bi-calculator me-2"></i>Macronutrients</h6>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeCalories" class="form-label">Calories <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="compositeCalories" th:field="*{calories}" th:classappend="${#fields.hasErrors('calories')} ? 'is-invalid' : ''" min="0" required>
+                                            <div th:if="${#fields.hasErrors('calories')}" th:errors="*{calories}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeProtein" class="form-label">Protein (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="compositeProtein" th:field="*{protein}" th:classappend="${#fields.hasErrors('protein')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('protein')}" th:errors="*{protein}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeCarbohydrates" class="form-label">Carbohydrates (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="compositeCarbohydrates" th:field="*{carbohydrates}" th:classappend="${#fields.hasErrors('carbohydrates')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('carbohydrates')}" th:errors="*{carbohydrates}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeFat" class="form-label">Fat (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="compositeFat" th:field="*{fat}" th:classappend="${#fields.hasErrors('fat')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('fat')}" th:errors="*{fat}" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeSugar" class="form-label">Sugar (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="compositeSugar" th:field="*{sugar}" th:classappend="${#fields.hasErrors('sugar')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('sugar')}" th:errors="*{sugar}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeFiber" class="form-label">Fiber (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="compositeFiber" th:field="*{fiber}" th:classappend="${#fields.hasErrors('fiber')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('fiber')}" th:errors="*{fiber}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeSaturatedFat" class="form-label">Saturated Fat (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="compositeSaturatedFat" th:field="*{saturatedFat}" th:classappend="${#fields.hasErrors('saturatedFat')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('saturatedFat')}" th:errors="*{saturatedFat}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeSodium" class="form-label">Sodium (mg) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="compositeSodium" th:field="*{sodium}" th:classappend="${#fields.hasErrors('sodium')} ? 'is-invalid' : ''" step="0.1" min="0" required>
+                                            <div th:if="${#fields.hasErrors('sodium')}" th:errors="*{sodium}" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Additional Nutrients -->
+                                <div class="form-section">
+                                    <h6><i class="bi bi-heart-pulse me-2"></i>Additional Nutrients (Optional)</h6>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeGlycemicIndex" class="form-label">Glycemic Index</label>
+                                            <input type="number" class="form-control" id="compositeGlycemicIndex" th:field="*{glycemicIndex}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeGlycemicLoad" class="form-label">Glycemic Load</label>
+                                            <input type="number" class="form-control" id="compositeGlycemicLoad" th:field="*{glycemicLoad}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeMonoUnsaturated" class="form-label">Monounsaturated Fat (g)</label>
+                                            <input type="number" class="form-control" id="compositeMonoUnsaturated" th:field="*{monoUnsaturated}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositePolyUnsaturated" class="form-label">Polyunsaturated Fat (g)</label>
+                                            <input type="number" class="form-control" id="compositePolyUnsaturated" th:field="*{polyUnsaturated}" step="0.1" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeTransFat" class="form-label">Trans Fat (g)</label>
+                                            <input type="number" class="form-control" id="compositeTransFat" th:field="*{transFat}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeCholesterol" class="form-label">Cholesterol (mg)</label>
+                                            <input type="number" class="form-control" id="compositeCholesterol" th:field="*{cholesterol}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositePotassium" class="form-label">Potassium (mg)</label>
+                                            <input type="number" class="form-control" id="compositePotassium" th:field="*{potassium}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeCalcium" class="form-label">Calcium (mg)</label>
+                                            <input type="number" class="form-control" id="compositeCalcium" th:field="*{calcium}" step="0.1" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeIron" class="form-label">Iron (mg)</label>
+                                            <input type="number" class="form-control" id="compositeIron" th:field="*{iron}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeCaffeine" class="form-label">Caffeine (mg)</label>
+                                            <input type="number" class="form-control" id="compositeCaffeine" th:field="*{caffeine}" step="0.1" min="0">
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="compositeAlcohol" class="form-label">Alcohol (g)</label>
+                                            <input type="number" class="form-control" id="compositeAlcohol" th:field="*{alcohol}" step="0.1" min="0">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-4">
+                                    <a th:href="@{/nutrition/food-tracker}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle me-1"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        <span th:if="${editMode} == true">Save Composite Food</span>
+                                        <span th:if="${editMode == null or !editMode}">Create Composite Food</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recipe Tab -->
+                <div class="tab-pane fade" th:classappend="${activeTab} == 'recipe' ? ' show active' : ''" id="recipe" role="tabpanel" aria-labelledby="recipe-tab">
+                    <div class="card">
+                        <div class="card-body">
+                            <div th:if="${recipeError}" th:text="${recipeError}" class="alert alert-danger mb-3"></div>
+                            
+                            <form th:object="${createRecipeDTO}"
+                                  th:method="${editMode} == true ? 'put' : 'post'"
+                                  th:action="${editMode} == true ? @{|/nutrition/recipes/${foodId}/edit|} : @{/nutrition/create-food/recipe}"
+                                  id="recipeForm">
+                                <!-- Basic Information -->
+                                <div class="form-section">
+                                    <h6><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="recipeName" class="form-label">Recipe Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="recipeName" th:field="*{title}" th:classappend="${#fields.hasErrors('title')} ? 'is-invalid' : ''" required>
+                                            <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="recipeType" class="form-label">Recipe Type <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="recipeType" th:field="*{type}" th:classappend="${#fields.hasErrors('type')} ? 'is-invalid' : ''" required>
+                                                <option value="">Select Recipe Type</option>
+                                                <option th:each="type : ${T(com.momentum.nutrition.model.enums.CompositeFoodType).values()}"
+                                                        th:value="${type}"
+                                                        th:text="${type.displayName}"></option>
+                                            </select>
+                                            <div th:if="${#fields.hasErrors('type')}" th:errors="*{type}" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="recipeImagePath" class="form-label">Image URL</label>
+                                            <input type="text" class="form-control" id="recipeImagePath" th:field="*{imagePath}" th:classappend="${#fields.hasErrors('imagePath')} ? 'is-invalid' : ''" placeholder="https://example.com/image.jpg">
+                                            <div th:if="${#fields.hasErrors('imagePath')}" th:errors="*{imagePath}" class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="recipeServingSize" class="form-label">Serving Size (g) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="recipeServingSize" th:field="*{servingSize}" th:classappend="${#fields.hasErrors('servingSize')} ? 'is-invalid' : ''" required>
+                                            <div th:if="${#fields.hasErrors('servingSize')}" th:errors="*{servingSize}" class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label d-block mb-2">
+                                                <i class="bi bi-share me-1"></i>Recipe Visibility
+                                                <span th:if="${editMode and moderationStatus != null and moderationStatus.name() == 'PENDING'}" class="badge bg-warning text-dark ms-2">
+                                                    <i class="bi bi-hourglass-split me-1"></i>Pending Approval
+                                                </span>
+                                                <span th:if="${editMode and moderationStatus != null and moderationStatus.name() == 'REJECTED'}" class="badge bg-danger ms-2">
+                                                    <i class="bi bi-x-circle me-1"></i>Rejected
+                                                </span>
+                                            </label>
+                                            <div class="public-recipe-toggle-wrapper">
+                                                <div class="toggle-switch-container">
+                                                    <input type="checkbox" id="recipeIsPublic" th:field="*{isPublic}" class="toggle-switch-input" style="display: none !important; visibility: hidden !important; position: absolute !important; opacity: 0 !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; border: none !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important;">
+                                                    <label for="recipeIsPublic" class="toggle-switch-label" style="position: relative; display: inline-block; width: 60px; height: 34px; cursor: pointer;">
+                                                        <span class="toggle-switch-slider" style="position: absolute; top: 0; left: 0; width: 60px; height: 34px; background-color: #ccc; border-radius: 34px; display: block;">
+                                                            <span class="toggle-switch-knob" style="position: absolute; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.3s;"></span>
+                                                        </span>
+                                                    </label>
+                                                    <span class="toggle-label-text">
+                                                        <span class="toggle-text-private">
+                                                            <i class="bi bi-lock-fill me-1"></i>Private
+                                                        </span>
+                                                        <span class="toggle-text-public">
+                                                            <i class="bi bi-globe me-1"></i>Public
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                                <small class="form-text text-muted d-block mt-2 toggle-description">
+                                                    <span class="toggle-desc-private">Only you can view and use this recipe</span>
+                                                    <span class="toggle-desc-public">Other users can view and use this recipe</span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Ingredients -->
+                                <div class="form-section">
+                                    <h6><i class="bi bi-box-seam me-2"></i>Ingredients</h6>
+                                    <p class="text-muted small mb-3">
+                                        Add ingredients to your recipe. Each ingredient can be a base food or a prepared variant.
+                                    </p>
+                                
+                                    <ul id="ingredientsList" class="list-group mb-3">
+                                        <!-- Existing ingredients (editing) -->
+                                        <li th:each="ingredient, iter : *{ingredients}" class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <img th:if="${ingredient.imagePath != null}"
+                                                     th:src="${ingredient.imagePath}"
+                                                     alt="Ingredient image"
+                                                     class="ingredient-image me-2"
+                                                     onerror="this.style.display='none';">
+                                                <div>
+                                                    <strong th:text="${ingredient.foodName}">Ingredient Name</strong>
+                                                    <span class="text-muted small" th:text="${ingredient.servingSize + ' g'}">(100 g)</span>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-danger btn-sm removeIngredientBtn">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                
+                                            <!-- Hidden fields for binding -->
+                                            <input type="hidden" th:field="*{ingredients[__${iter.index}__].foodId}">
+                                            <input type="hidden" th:field="*{ingredients[__${iter.index}__].servingSize}">
+                                        </li>
+                                    </ul>
+                                
+                                    <button type="button" class="btn btn-primary btn-sm d-inline-flex align-items-center mt-2 add-ingredient-btn">
+                                        <i class="bi bi-plus-circle me-1"></i>Add Ingredient
+                                    </button>
+                                </div>
+           
+                                <!-- Steps -->
+                                <div class="form-section">
+                                    <h6><i class="bi bi-list-ol me-2"></i>Cooking Steps</h6>
+                                    <p class="text-muted small mb-3">Add step-by-step instructions for preparing this recipe.</p>
+                                    <div id="stepsList">
+                                        <!-- Existing steps (editing) -->
+                                        <div th:each="step, iter : *{steps}"
+                                             class="step-item mb-4 p-3 border rounded">
+                                            <div class="d-flex justify-content-end align-items-center mb-3">
+                                                <button type="button" class="btn btn-outline-danger btn-sm removeStepBtn">
+                                                    <i class="bi bi-x"></i> Remove
+                                                </button>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Step Title <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control step-title"
+                                                       th:field="*{steps[__${iter.index}__].title}"
+                                                       maxlength="200" required
+                                                       placeholder="e.g., Prepare the ingredients">
+                                                <small class="form-text text-muted">Brief title for this step (max 200 characters)</small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Description <span class="text-danger">*</span></label>
+                                                <textarea class="form-control step-description"
+                                                          th:field="*{steps[__${iter.index}__].description}"
+                                                          rows="3" maxlength="1000" required
+                                                          placeholder="Detailed instructions for this step"></textarea>
+                                                <small class="form-text text-muted">Detailed instructions (max 1000 characters)</small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Image URL (Optional)</label>
+                                                <input type="url" class="form-control step-image"
+                                                       th:field="*{steps[__${iter.index}__].imageUrl}"
+                                                       placeholder="https://example.com/step-image.jpg">
+                                                <small class="form-text text-muted">URL to an image for this step</small>
+                                            </div>
+                                            <input type="hidden"
+                                                   th:field="*{steps[__${iter.index}__].stepNumber}">
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-primary btn-sm" id="addStepBtn">
+                                        <i class="bi bi-plus-circle me-1"></i>Add Step
+                                    </button>
+                                </div>
+
+                                <!-- Nutrition Info -->
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Note:</strong> Nutrition values will be automatically calculated from the ingredients you add. 
+                                    The calculation will sum up nutrition values based on the amount of each ingredient used.
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-4">
+                                    <a th:href="@{/nutrition/food-tracker}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle me-1"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        <span th:if="${editMode} == true">Save Recipe</span>
+                                        <span th:if="${editMode == null or !editMode}">Create Recipe</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* COMPLETELY DISABLE AOS AND HIDE ALL DEBUG INDICATORS */
+        /* Hide AOS debug indicators by class/id */
+        .aos-debug,
+        [class*="aos-debug"],
+        [id*="aos-debug"],
+        [id="aos-debug"],
+        /* Hide AOS pseudo-elements */
+        [data-aos]::before,
+        [data-aos]::after,
+        .aos-debug::before,
+        .aos-debug::after,
+        /* Hide any element with purple/violet background (AOS debug colors) */
+        div[style*="rgb(102, 126, 234)"],
+        div[style*="rgb(118, 75, 162)"],
+        div[style*="667eea"],
+        div[style*="764ba2"],
+        span[style*="rgb(102, 126, 234)"],
+        span[style*="rgb(118, 75, 162)"],
+        /* Hide small circular elements at top of page with numbers */
+        body > div:first-child[style*="position: fixed"],
+        body > div:first-child[style*="z-index"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            position: absolute !important;
+            left: -9999px !important;
+            top: -9999px !important;
+            max-width: 0 !important;
+            max-height: 0 !important;
+        }
+        
+        /* Hide any purple circles or badges that might be AOS indicators */
+        .card-body::before,
+        .card-body::after,
+        .form-section::before,
+        .form-section::after,
+        #stepsList::before,
+        #stepsList::after {
+            display: none !important;
+        }
+        
+        
+        /* Toggle Switch - Classic Oval Style */
+        .public-recipe-toggle-wrapper {
+            margin-top: 0.5rem;
+        }
+        
+        .toggle-switch-container {
+            display: flex !important;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .toggle-switch-input {
+            display: none !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            position: absolute !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+        }
+        
+        input[type="checkbox"].toggle-switch-input {
+            display: none !important;
+        }
+        
+        input.toggle-switch-input[type="checkbox"] {
+            display: none !important;
+        }
+        
+        /* Override Bootstrap checkbox styles */
+        .toggle-switch-container input[type="checkbox"],
+        .toggle-switch-container .form-check-input,
+        .toggle-switch-container input.form-check-input {
+            display: none !important;
+            visibility: hidden !important;
+            position: absolute !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .toggle-switch-label {
+            position: relative;
+            display: inline-block !important;
+            width: 60px !important;
+            height: 34px !important;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            background: none !important;
+        }
+        
+        label.toggle-switch-label {
+            display: inline-block !important;
+        }
+        
+        .toggle-switch-slider {
+            position: absolute !important;
+            cursor: pointer !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 60px !important;
+            height: 34px !important;
+            background-color: #ccc !important;
+            transition: 0.3s !important;
+            border-radius: 34px !important;
+            -webkit-transition: 0.3s !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 10 !important;
+            box-sizing: border-box !important;
+        }
+        
+        span.toggle-switch-slider {
+            display: block !important;
+            background-color: #ccc !important;
+        }
+        
+        .toggle-switch-knob {
+            position: absolute !important;
+            height: 26px !important;
+            width: 26px !important;
+            left: 4px !important;
+            bottom: 4px !important;
+            background-color: white !important;
+            transition: transform 0.3s !important;
+            -webkit-transition: transform 0.3s !important;
+            border-radius: 50% !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+            display: block !important;
+            z-index: 2 !important;
+        }
+        
+        .toggle-switch-input:checked + .toggle-switch-label .toggle-switch-slider {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+        }
+        
+        .toggle-switch-input:checked + .toggle-switch-label .toggle-switch-knob {
+            -webkit-transform: translateX(26px) !important;
+            -ms-transform: translateX(26px) !important;
+            transform: translateX(26px) !important;
+        }
+        
+        /* Alternative selector in case the above doesn't work */
+        #recipeIsPublic:checked ~ .toggle-switch-label .toggle-switch-knob,
+        #recipeIsPublic:checked + .toggle-switch-label .toggle-switch-knob {
+            -webkit-transform: translateX(26px) !important;
+            -ms-transform: translateX(26px) !important;
+            transform: translateX(26px) !important;
+        }
+        
+        #recipeIsPublic:checked ~ .toggle-switch-label .toggle-switch-slider,
+        #recipeIsPublic:checked + .toggle-switch-label .toggle-switch-slider {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+        }
+        
+        /* Product toggle switch styles */
+        #productIsPublic:checked ~ .toggle-switch-label .toggle-switch-knob,
+        #productIsPublic:checked + .toggle-switch-label .toggle-switch-knob {
+            -webkit-transform: translateX(26px) !important;
+            -ms-transform: translateX(26px) !important;
+            transform: translateX(26px) !important;
+        }
+        
+        #productIsPublic:checked ~ .toggle-switch-label .toggle-switch-slider,
+        #productIsPublic:checked + .toggle-switch-label .toggle-switch-slider {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+        }
+        
+        #productIsPublic:checked ~ .toggle-label-text .toggle-text-private {
+            display: none;
+        }
+        
+        #productIsPublic:checked ~ .toggle-label-text .toggle-text-public {
+            display: inline-flex;
+        }
+        
+        #productIsPublic:checked ~ .toggle-description .toggle-desc-private {
+            display: none;
+        }
+        
+        #productIsPublic:checked ~ .toggle-description .toggle-desc-public {
+            display: inline;
+        }
+        
+        /* Composite Food toggle switch styles */
+        #compositeFoodIsPublic:checked ~ .toggle-switch-label .toggle-switch-knob,
+        #compositeFoodIsPublic:checked + .toggle-switch-label .toggle-switch-knob {
+            -webkit-transform: translateX(26px) !important;
+            -ms-transform: translateX(26px) !important;
+            transform: translateX(26px) !important;
+        }
+        
+        #compositeFoodIsPublic:checked ~ .toggle-switch-label .toggle-switch-slider,
+        #compositeFoodIsPublic:checked + .toggle-switch-label .toggle-switch-slider {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+        }
+        
+        #compositeFoodIsPublic:checked ~ .toggle-label-text .toggle-text-private {
+            display: none;
+        }
+        
+        #compositeFoodIsPublic:checked ~ .toggle-label-text .toggle-text-public {
+            display: inline-flex;
+        }
+        
+        #compositeFoodIsPublic:checked ~ .toggle-description .toggle-desc-private {
+            display: none;
+        }
+        
+        #compositeFoodIsPublic:checked ~ .toggle-description .toggle-desc-public {
+            display: inline;
+        }
+        
+        .toggle-switch-label:hover .toggle-switch-slider {
+            box-shadow: 0 0 0 4px rgba(17, 153, 142, 0.1);
+        }
+        
+        .toggle-label-text {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            margin-left: 0.5rem;
+        }
+        
+        .toggle-text-private {
+            display: inline-flex;
+            align-items: center;
+            color: #6c757d;
+            font-family: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .toggle-text-private i {
+            font-size: 1.1rem;
+            margin-right: 0.5rem;
+            opacity: 0.9;
+        }
+        
+        .toggle-text-public {
+            display: none;
+            align-items: center;
+            color: #11998e;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-shadow: 0 1px 2px rgba(17, 153, 142, 0.1);
+        }
+        
+        .toggle-text-public i {
+            font-size: 1.1rem;
+            margin-right: 0.5rem;
+            opacity: 1;
+        }
+        
+        .toggle-switch-input:checked ~ .toggle-label-text .toggle-text-private {
+            display: none;
+        }
+        
+        .toggle-switch-input:checked ~ .toggle-label-text .toggle-text-public {
+            display: inline-flex;
+        }
+        
+        .toggle-switch-input:checked ~ .toggle-label-text {
+            color: #11998e;
+        }
+        
+        .toggle-label-text:hover {
+            transform: translateX(2px);
+        }
+        
+        .toggle-description {
+            margin-top: 0.75rem;
+            padding-left: 0.25rem;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-desc-private {
+            display: inline;
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-desc-public {
+            display: none;
+            color: #11998e;
+            font-weight: 500;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-switch-input:checked ~ .toggle-description .toggle-desc-private {
+            display: none;
+        }
+        
+        .toggle-switch-input:checked ~ .toggle-description .toggle-desc-public {
+            display: inline;
+        }
+        
+        /* Error Alert Styles */
+        .alert-danger {
+            border-left: 4px solid #dc3545;
+            background-color: #f8d7da;
+            border-color: #f5c2c7;
+            color: #842029;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.1);
+        }
+        
+        .alert-danger .bi-exclamation-triangle-fill {
+            color: #dc3545;
+        }
+        
+        .alert-warning {
+            border-left: 4px solid #ffc107;
+            background-color: #fff3cd;
+            border-color: #ffecb5;
+            color: #664d03;
+            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.1);
+        }
+        
+        .alert-warning .alert-heading {
+            color: #856404;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        
+        .alert-warning .bi-exclamation-circle {
+            color: #ffc107;
+        }
+        
+        .alert-warning ul {
+            margin-top: 0.5rem;
+        }
+        
+        .alert-warning ul li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .alert {
+            border-radius: 0.5rem;
+            padding: 1rem 1.25rem;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* FINAL OVERRIDE - Force correct image size in ingredient modal - MUST BE LAST */
+        body #ingredientModal .food-type-list .food-type-item img,
+        body #ingredientModal #ingredientFoodTypeList .food-type-item img,
+        body #ingredientModal #ingredientFoodTypeSelectionView .food-type-list .food-type-item img,
+        body #ingredientModal .food-type-category .food-type-item img,
+        body #ingredientModal div.food-type-category div.food-type-item img {
+            width: 50px !important;
+            height: 50px !important;
+            min-width: 50px !important;
+            min-height: 50px !important;
+            max-width: 50px !important;
+            max-height: 50px !important;
+            object-fit: cover !important;
+            border-radius: 0.375rem !important;
+            margin-right: 1rem !important;
+            flex-shrink: 0 !important;
+            display: block !important;
+            box-sizing: border-box !important;
+            aspect-ratio: 1 / 1 !important;
+        }
+        
+        /* Also override any inline styles that might be set */
+        body #ingredientModal .food-type-item img[style*="width"],
+        body #ingredientModal .food-type-item img[style*="height"] {
+            width: 50px !important;
+            height: 50px !important;
+            max-width: 50px !important;
+            max-height: 50px !important;
+        }
+        
+        /* ULTRA SPECIFIC - Target images directly in ingredientFoodTypeList */
+        #ingredientFoodTypeList img,
+        #ingredientFoodTypeList .food-type-category img,
+        #ingredientFoodTypeList .food-type-category .food-type-item img,
+        div#ingredientFoodTypeList img,
+        div#ingredientFoodTypeList div.food-type-category img,
+        div#ingredientFoodTypeList div.food-type-category div.food-type-item img {
+            width: 50px !important;
+            height: 50px !important;
+            min-width: 50px !important;
+            min-height: 50px !important;
+            max-width: 50px !important;
+            max-height: 50px !important;
+            object-fit: cover !important;
+            border-radius: 0.375rem !important;
+            margin-right: 1rem !important;
+            flex-shrink: 0 !important;
+            display: block !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Hide the automatic "Step X" headings in the steps editor */
+        .step-item .step-number {
+            display: none !important;
+        }
+        
+    </style>
+
+    <div layout:fragment="scripts">
+        <script>
+            // NUCLEAR OPTION: KILL AOS COMPLETELY - RUNS FIRST, AFTER LAYOUT SCRIPTS
+            (function() {
+                'use strict';
+                
+                let aosKilled = false; // Track if we've already killed AOS
+                
+                function killAOSCompletely() {
+                    try {
+                        // Only try to kill AOS if we haven't already locked it down
+                        if (!aosKilled) {
+                            // 1. Delete AOS from window if it exists
+                            if (window.AOS) {
+                                try {
+                                    if (typeof window.AOS.destroy === 'function') {
+                                        window.AOS.destroy();
+                                    }
+                                } catch(e) {}
+                                try {
+                                    delete window.AOS;
+                                } catch(e) {}
+                            }
+                            
+                            // 2. Replace with stub (non-configurable so AOS can't override it)
+                            try {
+                                Object.defineProperty(window, 'AOS', {
+                                    value: {
+                                        init: function() { return null; },
+                                        refresh: function() { return null; },
+                                        refreshHard: function() { return null; },
+                                        destroy: function() { return null; },
+                                        debug: false
+                                    },
+                                    writable: false,
+                                    configurable: false,
+                                    enumerable: true
+                                });
+                                aosKilled = true; // Mark as killed - don't try again
+                            } catch(e) {
+                                // If defineProperty fails (already defined as non-configurable), that's fine
+                                // Just mark as killed and continue
+                                aosKilled = true;
+                            }
+                        }
+                        
+                        // 3. Remove AOS scripts
+                        document.querySelectorAll('script[src*="aos"]').forEach(function(s) {
+                            try { s.remove(); } catch(e) {}
+                        });
+                        
+                        // 4. Remove AOS CSS
+                        document.querySelectorAll('link[href*="aos"]').forEach(function(l) {
+                            try { l.remove(); } catch(e) {}
+                        });
+                        
+                        // 5. Kill ALL purple circles - check EVERY element
+                        const allElements = document.querySelectorAll('*');
+                        let killedCount = 0;
+                        
+                        allElements.forEach(function(el) {
+                            if (!el || !el.parentNode) return;
+                            
+                            try {
+                                const style = window.getComputedStyle(el);
+                                const bg = style.backgroundColor || '';
+                                const rect = el.getBoundingClientRect();
+                                const text = (el.textContent || '').trim();
+                                const classes = (el.className || '').toString();
+                                const id = (el.id || '').toString();
+                                const position = style.position || '';
+                                const zIndex = parseInt(style.zIndex) || 0;
+                                
+                                // More lenient detection - any small element with purple background
+                                const isPurple = bg.includes('102, 126, 234') || 
+                                               bg.includes('118, 75, 162') ||
+                                               bg.includes('667eea') ||
+                                               bg.includes('764ba2');
+                                const isSmall = rect.width > 0 && rect.width < 200 && rect.height > 0 && rect.height < 200;
+                                const hasNumber = /^\d+$/.test(text);
+                                const isAOSRelated = classes.includes('aos') || id.includes('aos');
+                                
+                                // Kill if: purple+small+number OR small+number+topCenter OR AOS-related
+                                if ((isPurple && isSmall && hasNumber) ||
+                                    (isSmall && hasNumber && (position === 'fixed' || zIndex > 1000)) ||
+                                    isAOSRelated) {
+                                    // Force hide and remove
+                                    el.style.setProperty('display', 'none', 'important');
+                                    el.style.setProperty('visibility', 'hidden', 'important');
+                                    el.style.setProperty('opacity', '0', 'important');
+                                    el.style.setProperty('width', '0', 'important');
+                                    el.style.setProperty('height', '0', 'important');
+                                    el.style.setProperty('position', 'absolute', 'important');
+                                    el.style.setProperty('left', '-9999px', 'important');
+                                    el.style.setProperty('pointer-events', 'none', 'important');
+                                    
+                                    try {
+                                        el.remove();
+                                        killedCount++;
+                                    } catch(e) {
+                                        try {
+                                            if (el.parentNode) {
+                                                el.parentNode.removeChild(el);
+                                                killedCount++;
+                                            }
+                                        } catch(e2) {}
+                                    }
+                                }
+                            } catch(e) {
+                                // Ignore errors accessing computed styles
+                            }
+                        });
+                        
+                    } catch(e) {
+                        // Silently ignore errors - don't spam console
+                    }
+                }
+                
+                // Run immediately once
+                killAOSCompletely();
+                
+                // Run once after DOM is ready
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        killAOSCompletely();
+                    }, { once: true });
+                }
+                
+                // Run once after page loads
+                window.addEventListener('load', function() {
+                    killAOSCompletely();
+                }, { once: true });
+                
+                // Run periodically but less frequently (every 100ms for 3 seconds only)
+                let runCount = 0;
+                const maxRuns = 30; // 30 runs * 100ms = 3 seconds
+                const killInt = setInterval(function() {
+                    killAOSCompletely();
+                    runCount++;
+                    if (runCount >= maxRuns) {
+                        clearInterval(killInt);
+                    }
+                }, 100);
+                
+                // MutationObserver - only watch for new elements, run cleanup less frequently
+                if (typeof MutationObserver !== 'undefined') {
+                    let mutationTimeout;
+                    const observer = new MutationObserver(function() {
+                        // Debounce - only run cleanup after mutations stop for 50ms
+                        clearTimeout(mutationTimeout);
+                        mutationTimeout = setTimeout(killAOSCompletely, 50);
+                    });
+                    
+                    const observeTarget = document.body || document.documentElement;
+                    if (observeTarget) {
+                        observer.observe(observeTarget, {
+                            childList: true, 
+                            subtree: true, 
+                            attributes: true, 
+                            attributeFilter: ['style', 'class', 'id']
+                        });
+                    }
+                }
+            })();
+            
+            // Force green underline for Nutrition dropdown via JavaScript
+            (function() {
+                function applyGreenUnderline() {
+                    const nutritionDropdown = document.querySelector('#mainNav .navbar-nav.me-auto > li.nav-item.dropdown:nth-of-type(2) > a.nav-link.dropdown-toggle');
+                    if (nutritionDropdown) {
+                        // Ensure the ::after pseudo-element has green color
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            #mainNav .navbar-nav.me-auto > li.nav-item.dropdown:nth-of-type(2) > a.nav-link.dropdown-toggle::after {
+                                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+                                background-image: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+                            }
+                            #mainNav .navbar-nav.me-auto > li.nav-item.dropdown:nth-of-type(2) > a.nav-link.dropdown-toggle:hover::after,
+                            #mainNav .navbar-nav.me-auto > li.nav-item.dropdown:nth-of-type(2) > a.nav-link.dropdown-toggle.show::after {
+                                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+                                background-image: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                }
+                
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', applyGreenUnderline);
+                } else {
+                    applyGreenUnderline();
+                }
+                
+                // Also try after a delay to catch late-loading navbar
+                setTimeout(applyGreenUnderline, 100);
+                setTimeout(applyGreenUnderline, 500);
+            })();
+            
+            // PREVENT AOS INITIALIZATION ON THIS PAGE
+            (function() {
+                const isCreateFoodPage = window.location.pathname.includes('/nutrition/create-food');
+                
+                if (!isCreateFoodPage) {
+                    return; // Not on create-food page, don't interfere
+                }
+                
+                // Method 1: Override AOS.init before it's called
+                if (typeof AOS !== 'undefined') {
+                    const originalInit = AOS.init;
+                    AOS.init = function(options) {
+                        // Don't initialize AOS on the create-food page
+                        console.log('AOS.init blocked on create-food page');
+                        return; // Return undefined, don't initialize
+                    };
+                }
+                
+                // Method 2: Wait for AOS to load and override
+                const checkAOS = setInterval(function() {
+                    if (typeof AOS !== 'undefined') {
+                        clearInterval(checkAOS);
+                        const originalInit = AOS.init;
+                        AOS.init = function(options) {
+                            console.log('AOS.init blocked on create-food page (delayed)');
+                            return; // Don't initialize
+                        };
+                        
+                        // Also destroy AOS if it was already initialized
+                        try {
+                            if (AOS.refresh) {
+                                // Disable AOS by removing all observers
+                                AOS.refresh = function() { return; };
+                            }
+                            if (AOS.refreshHard) {
+                                AOS.refreshHard = function() { return; };
+                            }
+                        } catch (e) {
+                            // Ignore errors
+                        }
+                    }
+                }, 10);
+                
+                // Stop checking after 5 seconds
+                setTimeout(function() {
+                    clearInterval(checkAOS);
+                }, 5000);
+                
+                // Method 3: After DOMContentLoaded, destroy AOS if it was initialized
+                function destroyAOS() {
+                    if (typeof AOS === 'undefined') return;
+                    
+                    try {
+                        // Remove all AOS attributes from elements
+                        const elementsWithAOS = document.querySelectorAll('[data-aos]');
+                        elementsWithAOS.forEach(function(el) {
+                            el.removeAttribute('data-aos');
+                        });
+                        
+                        // Disable AOS methods
+                        if (AOS.refresh) AOS.refresh = function() { return; };
+                        if (AOS.refreshHard) AOS.refreshHard = function() { return; };
+                        if (AOS.init) AOS.init = function() { return; };
+                        
+                    } catch (e) {
+                        // Ignore errors
+                    }
+                }
+                
+                // Try to destroy AOS after page loads
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', destroyAOS);
+                } else {
+                    destroyAOS();
+                }
+                
+                // Also try after a delay (in case AOS initializes late)
+                setTimeout(destroyAOS, 100);
+                setTimeout(destroyAOS, 500);
+                setTimeout(destroyAOS, 1000);
+            })();
+            
+            (function() {
+                let modalInitialized = false;
+                let stepsInitialized = false;
+                let ingredientIndex = 0;
+                
+                function initIngredientModal() {
+                    const modal = document.getElementById('ingredientModal');
+                    const backdrop = document.getElementById('ingredientModalBackdrop');
+                    const openBtn = document.querySelector('.add-ingredient-btn');
+                    const closeBtn = document.getElementById('closeIngredientModalBtn');
+                    const cancelBtn = document.getElementById('cancelIngredientModalBtn');
+                    const confirmBtn = document.getElementById('confirmAddIngredientBtn');
+                    const ingredientForm = document.getElementById('ingredientForm');
+                    const foodSelect = document.getElementById('foodSelect');
+                    const amountInput = document.getElementById('ingredientAmount');
+                    const ingredientsList = document.getElementById('ingredientsList');
+                    const cookedFoodSelect = document.getElementById('cookedFoodSelect');
+                    
+                    // New elements for two-step selection
+                    const foodTypeSelectionView = document.getElementById('ingredientFoodTypeSelectionView');
+                    const foodSelectionView = document.getElementById('ingredientFoodSelectionView');
+                    const foodTypeList = document.getElementById('ingredientFoodTypeList');
+                    const backToTypesBtn = document.getElementById('ingredientBackToTypesBtn');
+                    const amountSection = document.getElementById('ingredientAmountSection');
+                    const cookedSection = document.getElementById('ingredientCookedSection');
+                    const selectedIngredientFoodIdInput = document.getElementById('selectedIngredientFoodId');
+                    
+                    let selectedFoodType = null;
+                    let selectedFoodData = null;
+                    
+                    // Initialize ingredient index, counting only ingredients with form fields
+                    if (ingredientsList && ingredientIndex === 0) {
+                        const existingIngredients = document.querySelectorAll("#ingredientsList li");
+                        existingIngredients.forEach(li => {
+                            // Only count ingredients that have form fields (real ingredients, not examples)
+                            const foodIdInput = li.querySelector('input[name*="foodId"]:not([name*="cookedFoodId"])');
+                            if (foodIdInput) {
+                                ingredientIndex++;
+                            }
+                        });
+                    }
+                    
+                    // Initialize modal only if modal elements exist and not already initialized
+                    if (modal && backdrop && openBtn && !modalInitialized) {
+                        modalInitialized = true;
+                    
+                    function showModal() {
+                        selectedFoodType = null;
+                        selectedFoodData = null;
+                        
+                        // Reset form validation state
+                        if (ingredientForm) {
+                            ingredientForm.classList.remove('was-validated');
+                            ingredientForm.reset();
+                        }
+                        
+                        // Disable Add Ingredient button initially
+                        if (confirmBtn) {
+                            confirmBtn.disabled = true;
+                        }
+                        
+                        // Clear Select2
+                        if ($('#foodSelect').data('select2')) {
+                            $('#foodSelect').select2('destroy');
+                        }
+                        if ($('#cookedFoodSelect').data('select2')) {
+                            $('#cookedFoodSelect').select2('destroy');
+                        }
+                        $('#foodSelect').html('<option value="">Type to search foods...</option>');
+                        $('#cookedFoodSelect').html('<option value="">Select cooked food</option>');
+                        
+                        // Show type selection view, hide food selection view
+                        if (foodTypeSelectionView) {
+                            foodTypeSelectionView.style.display = 'block';
+                        }
+                        if (foodSelectionView) {
+                            foodSelectionView.style.display = 'none';
+                        }
+                        if (backToTypesBtn) {
+                            backToTypesBtn.style.display = 'none';
+                        }
+                        if (amountSection) {
+                            amountSection.style.display = 'none';
+                        }
+                        if (cookedSection) {
+                            cookedSection.style.display = 'none';
+                        }
+                        
+                        // Clear visual selections
+                        if (foodTypeList) {
+                            const selectedItems = foodTypeList.querySelectorAll('.food-type-item.selected');
+                            selectedItems.forEach(item => item.classList.remove('selected'));
+                        }
+                        
+                        backdrop.style.display = 'block';
+                        modal.style.display = 'block';
+                        document.body.style.overflow = 'hidden';
+                        backdrop.classList.add('show');
+                        modal.classList.add('show');
+                        
+                        // Apply hover effects via JavaScript - GUARANTEED TO WORK
+                        function setupHoverEffects() {
+                            if (!foodTypeList) return;
+                            const items = foodTypeList.querySelectorAll('.food-type-item');
+                            items.forEach(item => {
+                                // Skip if already has listeners
+                                if (item.dataset.hoverSetup === 'true') return;
+                                item.dataset.hoverSetup = 'true';
+                                
+                                item.addEventListener('mouseenter', function() {
+                                    this.style.backgroundColor = '#f8f9fa';
+                                    this.style.borderColor = '#11998e';
+                                    this.style.transform = 'translateX(3px)';
+                                    this.style.boxShadow = '0 2px 8px rgba(17, 153, 142, 0.15)';
+                                    this.style.transition = 'all 0.2s ease';
+                                    const img = this.querySelector('img');
+                                    if (img) {
+                                        img.style.transform = 'scale(1.05)';
+                                        img.style.transition = 'transform 0.2s ease';
+                                    }
+                                    const name = this.querySelector('.food-type-name');
+                                    if (name) {
+                                        name.style.color = '#11998e';
+                                        name.style.transition = 'color 0.2s ease';
+                                    }
+                                });
+                                
+                                item.addEventListener('mouseleave', function() {
+                                    if (!this.classList.contains('selected')) {
+                                        this.style.backgroundColor = '#fff';
+                                        this.style.borderColor = 'transparent';
+                                        this.style.transform = '';
+                                        this.style.boxShadow = '';
+                                        const img = this.querySelector('img');
+                                        if (img) {
+                                            img.style.transform = '';
+                                        }
+                                        const name = this.querySelector('.food-type-name');
+                                        if (name) {
+                                            name.style.color = '#333';
+                                        }
+                                    } else {
+                                        // Keep selected styles
+                                        this.style.backgroundColor = '#e7f5f3';
+                                        this.style.borderColor = '#11998e';
+                                        this.style.transform = 'translateX(3px)';
+                                        this.style.boxShadow = '0 2px 12px rgba(17, 153, 142, 0.2)';
+                                        const name = this.querySelector('.food-type-name');
+                                        if (name) {
+                                            name.style.color = '#11998e';
+                                            name.style.fontWeight = '600';
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                        
+                        setTimeout(setupHoverEffects, 50);
+                        setTimeout(setupHoverEffects, 200);
+                        
+                        // Force image sizes immediately and on load
+                        function forceAllImageSizes() {
+                            if (!foodTypeList) return;
+                            const images = foodTypeList.querySelectorAll('img');
+                            images.forEach(img => {
+                                // Set sizes immediately
+                                img.style.setProperty('width', '50px', 'important');
+                                img.style.setProperty('height', '50px', 'important');
+                                img.style.setProperty('max-width', '50px', 'important');
+                                img.style.setProperty('max-height', '50px', 'important');
+                                img.style.setProperty('min-width', '50px', 'important');
+                                img.style.setProperty('min-height', '50px', 'important');
+                                img.style.setProperty('object-fit', 'cover', 'important');
+                                img.style.setProperty('flex-shrink', '0', 'important');
+                                
+                                // Also listen for when image loads and re-apply
+                                if (!img.dataset.sizeFixed) {
+                                    img.dataset.sizeFixed = 'true';
+                                    img.addEventListener('load', function() {
+                                        this.style.setProperty('width', '50px', 'important');
+                                        this.style.setProperty('height', '50px', 'important');
+                                        this.style.setProperty('max-width', '50px', 'important');
+                                        this.style.setProperty('max-height', '50px', 'important');
+                                    }, { once: true });
+                                }
+                            });
+                        }
+                        
+                        // Force immediately
+                        forceAllImageSizes();
+                        
+                        // Force multiple times to catch async loading
+                        setTimeout(forceAllImageSizes, 10);
+                        setTimeout(forceAllImageSizes, 50);
+                        setTimeout(forceAllImageSizes, 100);
+                        setTimeout(forceAllImageSizes, 200);
+                        setTimeout(forceAllImageSizes, 500);
+                        setTimeout(forceAllImageSizes, 1000);
+                        
+                        // Also use MutationObserver to catch any new images
+                        if (foodTypeList && !foodTypeList.dataset.observerAdded) {
+                            foodTypeList.dataset.observerAdded = 'true';
+                            const observer = new MutationObserver(function(mutations) {
+                                forceAllImageSizes();
+                            });
+                            observer.observe(foodTypeList, { 
+                                childList: true, 
+                                subtree: true,
+                                attributes: true,
+                                attributeFilter: ['src', 'style']
+                            });
+                        }
+                    }
+                    
+                    function hideModal() {
+                        // Restore body overflow immediately
+                        document.body.style.overflow = '';
+                        // Remove show classes and hide immediately (no transition)
+                        backdrop.classList.remove('show');
+                        modal.classList.remove('show');
+                        backdrop.style.display = 'none';
+                        modal.style.display = 'none';
+                        backdrop.style.pointerEvents = '';
+                        modal.style.pointerEvents = '';
+                        
+                        // Reset state
+                        selectedFoodType = null;
+                        selectedFoodData = null;
+                        
+                        // Clear Select2
+                        if ($('#foodSelect').data('select2')) {
+                            $('#foodSelect').select2('destroy');
+                        }
+                        if ($('#cookedFoodSelect').data('select2')) {
+                            $('#cookedFoodSelect').select2('destroy');
+                        }
+                        
+                        // Reset views
+                        if (foodTypeSelectionView) {
+                            foodTypeSelectionView.style.display = 'block';
+                        }
+                        if (foodSelectionView) {
+                            foodSelectionView.style.display = 'none';
+                        }
+                        if (backToTypesBtn) {
+                            backToTypesBtn.style.display = 'none';
+                        }
+                    }
+                    
+                    // Open modal
+                    openBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+                        showModal();
+                    });
+                    
+                    // Close modal buttons
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', hideModal);
+                    }
+                    
+                    // Close on backdrop click
+                    backdrop.addEventListener('click', function(e) {
+                        if (e.target === backdrop) {
+                            hideModal();
+                        }
+                    });
+                    
+                    // Close on ESC key
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'Escape' && modal.classList.contains('show')) {
+                            hideModal();
+                        }
+                    });
+                    
+                    // Set up image size enforcement on page load
+                    function enforceImageSizesOnLoad() {
+                        if (!foodTypeList) return;
+                        
+                        function forceImageSizes() {
+                            const images = foodTypeList.querySelectorAll('img');
+                            images.forEach(img => {
+                                // Force sizes via inline styles
+                                img.style.setProperty('width', '50px', 'important');
+                                img.style.setProperty('height', '50px', 'important');
+                                img.style.setProperty('max-width', '50px', 'important');
+                                img.style.setProperty('max-height', '50px', 'important');
+                                img.style.setProperty('min-width', '50px', 'important');
+                                img.style.setProperty('min-height', '50px', 'important');
+                                img.style.setProperty('object-fit', 'cover', 'important');
+                                img.style.setProperty('flex-shrink', '0', 'important');
+                                
+                                // Add load listener if not already added
+                                if (!img.dataset.sizeListenerAdded) {
+                                    img.dataset.sizeListenerAdded = 'true';
+                                    img.addEventListener('load', function() {
+                                        this.style.setProperty('width', '50px', 'important');
+                                        this.style.setProperty('height', '50px', 'important');
+                                        this.style.setProperty('max-width', '50px', 'important');
+                                        this.style.setProperty('max-height', '50px', 'important');
+                                    }, { once: false });
+                                }
+                            });
+                        }
+                        
+                        // Force immediately
+                        forceImageSizes();
+                        
+                        // Set up MutationObserver to catch any changes
+                        if (!foodTypeList.dataset.observerAdded) {
+                            foodTypeList.dataset.observerAdded = 'true';
+                            const observer = new MutationObserver(function() {
+                                forceImageSizes();
+                            });
+                            observer.observe(foodTypeList, { 
+                                childList: true, 
+                                subtree: true,
+                                attributes: true,
+                                attributeFilter: ['src', 'style', 'width', 'height']
+                            });
+                        }
+                    }
+                    
+                    // Run on page load
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', enforceImageSizesOnLoad);
+                    } else {
+                        enforceImageSizesOnLoad();
+                    }
+                    
+                    // Also run after a short delay to catch late-loading images
+                    setTimeout(enforceImageSizesOnLoad, 100);
+                    setTimeout(enforceImageSizesOnLoad, 500);
+                    
+                    // Food type selection handler
+                    if (foodTypeList) {
+                        foodTypeList.addEventListener('click', function(e) {
+                            const foodTypeItem = e.target.closest('.food-type-item');
+                            if (foodTypeItem) {
+                                // Remove previous selection
+                                const selectedItems = foodTypeList.querySelectorAll('.food-type-item.selected');
+                                selectedItems.forEach(item => item.classList.remove('selected'));
+                                
+                                // Add selection to clicked item
+                                foodTypeItem.classList.add('selected');
+                                
+                                // Store selected food type data
+                                selectedFoodType = {
+                                    type: foodTypeItem.dataset.type,
+                                    value: foodTypeItem.dataset.value,
+                                    name: foodTypeItem.dataset.name
+                                };
+                                
+                                // Initialize Select2 for this type
+                                initializeIngredientSelect2(selectedFoodType.type, selectedFoodType.value);
+                            }
+                        });
+                    }
+                    
+                    // Back to types button handler
+                    if (backToTypesBtn) {
+                        backToTypesBtn.addEventListener('click', function() {
+                            // Show food type selection view, hide food selection view
+                            if (foodTypeSelectionView) {
+                                foodTypeSelectionView.style.display = 'block';
+                            }
+                            if (foodSelectionView) {
+                                foodSelectionView.style.display = 'none';
+                            }
+                            
+                            // Hide back button
+                            backToTypesBtn.style.display = 'none';
+                            
+                            // Clear food selection
+                            selectedFoodData = null;
+                            if (selectedIngredientFoodIdInput) {
+                                selectedIngredientFoodIdInput.value = '';
+                            }
+                            
+                            // Disable Add Ingredient button when going back to types
+                            if (confirmBtn) {
+                                confirmBtn.disabled = true;
+                            }
+                            
+                            // Clear Select2
+                            if ($('#foodSelect').data('select2')) {
+                                $('#foodSelect').val(null).trigger('change');
+                            }
+                            if ($('#cookedFoodSelect').data('select2')) {
+                                $('#cookedFoodSelect').val(null).trigger('change');
+                            }
+                            
+                            // Clear amount
+                            if (amountInput) {
+                                amountInput.value = '';
+                            }
+                            if (amountSection) {
+                                amountSection.style.display = 'none';
+                            }
+                            if (cookedSection) {
+                                cookedSection.style.display = 'none';
+                            }
+                        });
+                    }
+                    
+                    // Initialize Select2 for ingredient search with food type filtering
+                    function initializeIngredientSelect2(type, foodTypeValue) {
+                        // Destroy existing Select2 if any
+                        if ($('#foodSelect').data('select2')) {
+                            $('#foodSelect').select2('destroy');
+                        }
+                        
+                        // Clear and reset the select
+                        $('#foodSelect').html('<option value="">Type to search foods...</option>');
+                        
+                        // Initialize Select2 with AJAX
+                        $('#foodSelect').select2({
+                            theme: 'bootstrap-5',
+                            placeholder: 'Type to search foods...',
+                            allowClear: true,
+                            minimumInputLength: 2,
+                            dropdownParent: $('#ingredientModal'),
+                            ajax: {
+                                url: '/api/v1/nutrition/foods',
+                                dataType: 'json',
+                                delay: 300,
+                                data: function (params) {
+                                    return {
+                                        query: params.term,
+                                        type: type,
+                                        foodType: foodTypeValue,
+                                        limit: 50
+                                    };
+                                },
+                                processResults: function (data) {
+                                    console.log('Loaded foods:', data);
+                                    return {
+                                        results: data.map(function(food) {
+                                            return {
+                                                id: food.id,
+                                                text: food.name,
+                                                imagePath: food.imagePath || '/images/products/vegetable.png',
+                                                calories: food.calories || 0,
+                                                carbohydrates: food.carbohydrates || 0,
+                                                protein: food.protein || 0,
+                                                fat: food.fat || 0
+                                            };
+                                        })
+                                    };
+                                },
+                                cache: true
+                            },
+                            templateResult: formatFoodResult,
+                            templateSelection: formatFoodSelection
+                        });
+                        
+                        // Show food selection view
+                        if (foodTypeSelectionView) {
+                            foodTypeSelectionView.style.display = 'none';
+                        }
+                        if (foodSelectionView) {
+                            foodSelectionView.style.display = 'block';
+                        }
+                        if (backToTypesBtn) {
+                            backToTypesBtn.style.display = 'block';
+                        }
+                        
+                        // Handle food selection
+                        $('#foodSelect').on('select2:select', function(e) {
+                            const selectedFood = e.params.data;
+                            console.log('Selected food:', selectedFood);
+                            
+                            // Store selected food data
+                            selectedIngredientFoodIdInput.value = selectedFood.id;
+                            selectedFoodData = {
+                                id: selectedFood.id,
+                                name: selectedFood.text,
+                                imagePath: selectedFood.imagePath,
+                                calories: selectedFood.calories,
+                                carbs: selectedFood.carbohydrates,
+                                protein: selectedFood.protein,
+                                fat: selectedFood.fat
+                            };
+                            
+                            // Store imagePath in data attribute
+                            if (selectedFood.imagePath) {
+                                $('#foodSelect option:selected').attr('data-image', selectedFood.imagePath);
+                            }
+                            
+                            // Show amount and cooked sections
+                            if (amountSection) {
+                                amountSection.style.display = 'block';
+                                if (amountInput) {
+                                    amountInput.focus();
+                                }
+                            }
+                            if (cookedSection) {
+                                cookedSection.style.display = 'block';
+                                // Initialize cookedFoodSelect with general search
+                                initializeCookedFoodSelect2();
+                            }
+                            
+                            // Enable Add Ingredient button when food is selected
+                            if (confirmBtn) {
+                                confirmBtn.disabled = false;
+                            }
+                        });
+                        
+                        // Handle clearing selection
+                        $('#foodSelect').on('select2:clear', function() {
+                            selectedIngredientFoodIdInput.value = '';
+                            selectedFoodData = null;
+                            if (amountSection) {
+                                amountSection.style.display = 'none';
+                            }
+                            if (cookedSection) {
+                                cookedSection.style.display = 'none';
+                            }
+                            
+                            // Disable Add Ingredient button when food is cleared
+                            if (confirmBtn) {
+                                confirmBtn.disabled = true;
+                            }
+                        });
+                    }
+                    
+                    // Initialize Select2 for cooked food search (searches all foods)
+                    function initializeCookedFoodSelect2() {
+                        if ($('#cookedFoodSelect').data('select2')) {
+                            return; // Already initialized
+                        }
+                        
+                        $('#cookedFoodSelect').select2({
+                            theme: 'bootstrap-5',
+                            placeholder: 'Type to search cooked foods...',
+                            allowClear: true,
+                            minimumInputLength: 2,
+                            dropdownParent: $('#ingredientModal'),
+                            ajax: {
+                                url: '/api/v1/nutrition/foods',
+                                dataType: 'json',
+                                delay: 300,
+                                data: function (params) {
+                                    return {
+                                        query: params.term,
+                                        limit: 50
+                                    };
+                                },
+                                processResults: function (data) {
+                                    return {
+                                        results: data.map(function(food) {
+                                            return {
+                                                id: food.id,
+                                                text: food.name,
+                                                imagePath: food.imagePath || '/images/products/vegetable.png'
+                                            };
+                                        })
+                                    };
+                                },
+                                cache: true
+                            },
+                            templateResult: formatFoodResult,
+                            templateSelection: formatFoodSelection
+                        });
+                    }
+                    
+                    // Format functions for Select2
+                    function formatFoodResult(food) {
+                        if (!food.id) {
+                            return food.text;
+                        }
+                        const imageUrl = food.imagePath || '/images/products/vegetable.png';
+                        const $container = $(
+                            `<span class="d-flex align-items-center">
+                                <img src="${imageUrl}" class="select2-food-image me-2" onerror="this.src='/images/products/vegetable.png'"/>
+                                <span>${food.text}</span>
+                            </span>`
+                        );
+                        return $container;
+                    }
+                    
+                    function formatFoodSelection(food) {
+                        // Also save imagePath to data attribute
+                        if (food.element && food.imagePath) {
+                            $(food.element).attr('data-image', food.imagePath);
+                        }
+                        return food.text;
+                    }
+                    
+                    // Add ingredient
+                    if (confirmBtn && ingredientForm && foodSelect && amountInput && ingredientsList) {
+                        confirmBtn.addEventListener('click', function() {
+                            // If button is disabled, do nothing
+                            if (this.disabled) {
+                                return;
+                            }
+                            
+                            // Validate food selection
+                            if (!selectedFoodData || !selectedIngredientFoodIdInput.value) {
+                                // Disable button if no food selected
+                                this.disabled = true;
+                                return;
+                            }
+                            
+                            // Validate amount
+                            if (!amountInput.value || parseFloat(amountInput.value) <= 0) {
+                                alert('Please enter a valid amount (minimum 1 gram).');
+                                amountInput.focus();
+                                return;
+                            }
+                            
+                            // Form is valid, proceed
+                            const foodId = selectedFoodData.id;
+                            const foodName = selectedFoodData.name;
+                            const foodImagePath = selectedFoodData.imagePath;
+
+                            const amount = amountInput.value;
+
+                            // Cooked food (optional) - also from Select2 data
+                            const cookedFoodId = cookedFoodSelect && cookedFoodSelect.value ? cookedFoodSelect.value : '';
+                            let cookedFoodName = '';
+                            let cookedFoodImagePath = '';
+
+                            if (cookedFoodId) {
+                                const cookedFoodData = $('#cookedFoodSelect').select2('data');
+                                const selectedCookedFood = cookedFoodData && cookedFoodData.length > 0 ? cookedFoodData[0] : null;
+                                cookedFoodName = selectedCookedFood ? selectedCookedFood.text : '';
+                                // Get imagePath from the data-image attribute or from the selectedCookedFood object
+                                cookedFoodImagePath = (selectedCookedFood && selectedCookedFood.imagePath) ? selectedCookedFood.imagePath :
+                                                      ($('#cookedFoodSelect option:selected').attr('data-image') || '');
+                            }
+                            
+                            // Determine which image to show (always use uncooked/base ingredient image)
+                            const displayImagePath = foodImagePath;
+                            
+                            // Build image HTML (mirror the default example structure)
+                            let imageHtml = '';
+                            if (displayImagePath) {
+                                imageHtml = `
+                                    <img src="${displayImagePath}" alt="${foodName}" 
+                                         class="ingredient-image me-2"
+                                         onerror="this.style.display='none';">
+                                `;
+                            } else {
+                                imageHtml = '';
+                            }
+                            
+                            // Build display text
+                            let displayText = `<strong>${foodName}</strong>`;
+                            if (cookedFoodName) {
+                                displayText += ` <span class="text-muted">(cooked: ${cookedFoodName})</span>`;
+                            }
+                            displayText += ` <span class="text-muted small">(${amount} g)</span>`;
+                    
+                            const li = document.createElement("li");
+                            li.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+                            li.innerHTML = `
+                                <div class="d-flex align-items-center">
+                                    ${imageHtml}
+                                    <div>
+                                        ${displayText}
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-danger btn-sm removeIngredientBtn">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                    
+                                <input type="hidden" name="ingredients[${ingredientIndex}].foodId" value="${foodId}">
+                                <input type="hidden" name="ingredients[${ingredientIndex}].servingSize" value="${amount}">
+                                ${cookedFoodId ? `<input type="hidden" name="ingredients[${ingredientIndex}].cookedFoodId" value="${cookedFoodId}">` : ''}
+                            `;
+                    
+                            ingredientsList.appendChild(li);
+                            ingredientIndex++;
+                    
+                            // Reset form and hide modal
+                            hideModal();
+                        });
+                    }
+                    } // End of modal initialization block
+                    
+                    // Remove ingredient (works independently of modal) - only initialize once
+                    if (ingredientsList && !ingredientsList.hasAttribute('data-remove-handler-added')) {
+                        ingredientsList.setAttribute('data-remove-handler-added', 'true');
+                        ingredientsList.addEventListener("click", function(e) {
+                            // Check if click is on remove button or its child (icon)
+                            const btn = e.target.closest(".removeIngredientBtn");
+                            if (btn) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                const li = btn.closest("li");
+                                if (li) {
+                                    li.remove();
+                                    
+                                    // Reindex remaining ingredients (only those with form fields)
+                                    let index = 0;
+                                    const items = ingredientsList.querySelectorAll('li');
+                                    items.forEach((item) => {
+                                        // Only reindex ingredients that have form fields
+                                        const foodIdInput = item.querySelector('input[name*="foodId"]:not([name*="cookedFoodId"])');
+                                        if (foodIdInput) {
+                                            const amountInput = item.querySelector('input[name*="servingSize"]');
+                                            const cookedFoodIdInput = item.querySelector('input[name*="cookedFoodId"]');
+                                            foodIdInput.name = `ingredients[${index}].foodId`;
+                                            if (amountInput) {
+                                                amountInput.name = `ingredients[${index}].servingSize`;
+                                            }
+                                            if (cookedFoodIdInput) {
+                                                cookedFoodIdInput.name = `ingredients[${index}].cookedFoodId`;
+                                            }
+                                            index++;
+                                        }
+                                    });
+                                    ingredientIndex = index;
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Steps functionality (works independently) - only initialize once
+                    const stepsList = document.getElementById('stepsList');
+                    const addStepBtn = document.getElementById('addStepBtn');
+                    
+                    if (stepsList && addStepBtn && !stepsInitialized) {
+                        stepsInitialized = true;
+                        
+                        let stepNumber = stepsList.querySelectorAll('.step-item').length + 1;
+                        
+                        function renumberSteps() {
+                            const stepItems = stepsList.querySelectorAll('.step-item');
+                            stepItems.forEach((item, index) => {
+                                const stepNum = index + 1;
+                                const stepNumberInput = item.querySelector('input[name*="stepNumber"]');
+                                if (stepNumberInput) {
+                                    stepNumberInput.value = stepNum;
+                                    stepNumberInput.name = `steps[${index}].stepNumber`;
+                                }
+                                // Also update other field names
+                                const titleInput = item.querySelector('.step-title');
+                                const descInput = item.querySelector('.step-description');
+                                const imageInput = item.querySelector('.step-image');
+                                if (titleInput) titleInput.name = `steps[${index}].title`;
+                                if (descInput) descInput.name = `steps[${index}].description`;
+                                if (imageInput) imageInput.name = `steps[${index}].imageUrl`;
+                            });
+                        }
+                        
+                        addStepBtn.addEventListener('click', function() {
+                            const stepItem = document.createElement('div');
+                            stepItem.classList.add('step-item', 'mb-4', 'p-3', 'border', 'rounded');
+                            const currentIndex = stepNumber - 1;
+                            stepItem.innerHTML = `
+                                <div class="d-flex justify-content-end align-items-center mb-3">
+                                    <button type="button" class="btn btn-outline-danger btn-sm removeStepBtn">
+                                        <i class="bi bi-x"></i> Remove
+                                    </button>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Step Title <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control step-title" name="steps[${currentIndex}].title" 
+                                           maxlength="200" required placeholder="e.g., Prepare the ingredients">
+                                    <small class="form-text text-muted">Brief title for this step (max 200 characters)</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Description <span class="text-danger">*</span></label>
+                                    <textarea class="form-control step-description" name="steps[${currentIndex}].description" 
+                                              rows="3" maxlength="1000" required 
+                                              placeholder="Detailed instructions for this step"></textarea>
+                                    <small class="form-text text-muted">Detailed instructions (max 1000 characters)</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Image URL (Optional)</label>
+                                    <input type="url" class="form-control step-image" name="steps[${currentIndex}].imageUrl" 
+                                           placeholder="https://example.com/step-image.jpg">
+                                    <small class="form-text text-muted">URL to an image for this step</small>
+                                </div>
+                                <input type="hidden" name="steps[${currentIndex}].stepNumber" value="${stepNumber}">
+                            `;
+                            stepsList.appendChild(stepItem);
+                            stepNumber++;
+                            
+                            // IMMEDIATELY remove AOS debug indicator after adding step
+                            function removeAOSDebugImmediately() {
+                                // Check card-body for purple circles
+                                const cardBody = document.querySelector('.card-body');
+                                if (cardBody) {
+                                    // Get all children and check for purple circles
+                                    const allChildren = Array.from(cardBody.children);
+                                    allChildren.forEach(function(child) {
+                                        const style = window.getComputedStyle(child);
+                                        const bgColor = style.backgroundColor;
+                                        const rect = child.getBoundingClientRect();
+                                        const text = (child.textContent || '').trim();
+                                        const isPurple = bgColor.includes('rgb(102, 126, 234)') || 
+                                                       bgColor.includes('rgb(118, 75, 162)') ||
+                                                       bgColor.includes('667eea') ||
+                                                       bgColor.includes('764ba2');
+                                        const isSmallCircle = rect.width < 80 && rect.height < 80;
+                                        const hasNumber = /^\d+$/.test(text);
+                                        
+                                        // Remove if it's a purple circle with a number at the top center
+                                        if (isPurple && isSmallCircle && hasNumber) {
+                                            child.style.display = 'none !important';
+                                            child.style.visibility = 'hidden !important';
+                                            child.style.opacity = '0 !important';
+                                            child.remove();
+                                        }
+                                    });
+                                    
+                                    // Also check all descendants
+                                    const allDescendants = cardBody.querySelectorAll('*');
+                                    allDescendants.forEach(function(el) {
+                                        if (el === cardBody) return;
+                                        const style = window.getComputedStyle(el);
+                                        const bgColor = style.backgroundColor;
+                                        const rect = el.getBoundingClientRect();
+                                        const text = (el.textContent || '').trim();
+                                        const isPurple = bgColor.includes('rgb(102, 126, 234)') || 
+                                                       bgColor.includes('rgb(118, 75, 162)') ||
+                                                       bgColor.includes('667eea') ||
+                                                       bgColor.includes('764ba2');
+                                        const isSmallCircle = rect.width < 80 && rect.height < 80;
+                                        const hasNumber = /^\d+$/.test(text);
+                                        const isTopCenter = rect.top < 150 && 
+                                                           Math.abs(rect.left + rect.width/2 - window.innerWidth/2) < 200;
+                                        
+                                        if ((isPurple && isSmallCircle && hasNumber) || 
+                                            (isSmallCircle && hasNumber && isTopCenter)) {
+                                            el.style.display = 'none !important';
+                                            el.style.visibility = 'hidden !important';
+                                            el.style.opacity = '0 !important';
+                                            el.remove();
+                                        }
+                                    });
+                                }
+                                
+                                // Also check document.body for AOS debug elements
+                                const bodyChildren = Array.from(document.body.children);
+                                bodyChildren.forEach(function(child) {
+                                    if (child.classList.contains('aos-debug') || 
+                                        child.id === 'aos-debug' ||
+                                        (child.style && child.style.position === 'fixed' && 
+                                         child.style.zIndex && parseInt(child.style.zIndex) > 1000)) {
+                                        const text = (child.textContent || '').trim();
+                                        const rect = child.getBoundingClientRect();
+                                        if (rect.width < 80 && rect.height < 80 && /^\d+$/.test(text)) {
+                                            child.remove();
+                                        }
+                                    }
+                                });
+                            }
+                            
+                            // Remove immediately
+                            removeAOSDebugImmediately();
+                            
+                            // Also remove on next animation frame (after DOM updates)
+                            requestAnimationFrame(function() {
+                                removeAOSDebugImmediately();
+                                // And one more time after a tiny delay
+                                setTimeout(removeAOSDebugImmediately, 10);
+                            });
+                        });
+                        
+                        // Remove step
+                        stepsList.addEventListener('click', function(e) {
+                            if (e.target.closest('.removeStepBtn')) {
+                                e.target.closest('.step-item').remove();
+                                renumberSteps();
+                                stepNumber = stepsList.querySelectorAll('.step-item').length + 1;
+                            }
+                        });
+                    }
+                }
+                
+                // Wait for everything to load with retry mechanism
+                let retryCount = 0;
+                const maxRetries = 10;
+                
+                function tryInit() {
+                    const modal = document.getElementById('ingredientModal');
+                    const backdrop = document.getElementById('ingredientModalBackdrop');
+                    const openBtn = document.querySelector('.add-ingredient-btn');
+                    
+                    if (modal && backdrop && openBtn) {
+                        initIngredientModal();
+                    } else if (retryCount < maxRetries) {
+                        retryCount++;
+                        setTimeout(tryInit, 200);
+                    }
+                }
+                
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        setTimeout(tryInit, 100);
+                    });
+                } else {
+                    setTimeout(tryInit, 100);
+                }
+                
+                // Also try after window load as backup
+                window.addEventListener('load', function() {
+                    setTimeout(function() {
+                        const modal = document.getElementById('ingredientModal');
+                        const backdrop = document.getElementById('ingredientModalBackdrop');
+                        const openBtn = document.querySelector('.add-ingredient-btn');
+                        if (modal && backdrop && openBtn) {
+                            initIngredientModal();
+                        }
+                    }, 500);
+                });
+                
+                // Initialize public recipe toggle
+                function initPublicRecipeToggle() {
+                    const toggle = document.getElementById('recipeIsPublic');
+                    const toggleContainer = toggle ? toggle.closest('.public-recipe-toggle-wrapper') : null;
+                    const descPrivate = toggleContainer ? toggleContainer.querySelector('.toggle-desc-private') : null;
+                    const descPublic = toggleContainer ? toggleContainer.querySelector('.toggle-desc-public') : null;
+                    const knob = toggleContainer ? toggleContainer.querySelector('.toggle-switch-knob') : null;
+                    const slider = toggleContainer ? toggleContainer.querySelector('.toggle-switch-slider') : null;
+                    
+                    if (toggle) {
+                        function updateToggleState() {
+                            const isChecked = toggle.checked;
+                            
+                            // Update description text
+                            if (descPrivate && descPublic) {
+                                if (isChecked) {
+                                    descPrivate.style.display = 'none';
+                                    descPublic.style.display = 'inline';
+                                } else {
+                                    descPrivate.style.display = 'inline';
+                                    descPublic.style.display = 'none';
+                                }
+                            }
+                            
+                            // Update label text (Private/Public)
+                            const textPrivate = toggleContainer ? toggleContainer.querySelector('.toggle-text-private') : null;
+                            const textPublic = toggleContainer ? toggleContainer.querySelector('.toggle-text-public') : null;
+                            if (textPrivate && textPublic) {
+                                if (isChecked) {
+                                    textPrivate.style.display = 'none';
+                                    textPublic.style.display = 'inline-flex';
+                                } else {
+                                    textPrivate.style.display = 'inline-flex';
+                                    textPublic.style.display = 'none';
+                                }
+                            }
+                            
+                            // Move the knob
+                            if (knob) {
+                                if (isChecked) {
+                                    knob.style.transform = 'translateX(26px)';
+                                    knob.style.webkitTransform = 'translateX(26px)';
+                                    knob.style.msTransform = 'translateX(26px)';
+                                } else {
+                                    knob.style.transform = 'translateX(0)';
+                                    knob.style.webkitTransform = 'translateX(0)';
+                                    knob.style.msTransform = 'translateX(0)';
+                                }
+                            }
+                            
+                            // Update slider background
+                            if (slider) {
+                                if (isChecked) {
+                                    slider.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+                                } else {
+                                    slider.style.background = '#ccc';
+                                }
+                            }
+                        }
+                        
+                        // Set initial state
+                        updateToggleState();
+                        
+                        // Update on change
+                        toggle.addEventListener('change', updateToggleState);
+                        
+                        // Also update on click (in case change event doesn't fire)
+                        toggle.addEventListener('click', function() {
+                            setTimeout(updateToggleState, 10);
+                        });
+                    }
+                }
+                
+                // Initialize public product toggle
+                function initPublicProductToggle() {
+                    const toggle = document.getElementById('productIsPublic');
+                    const toggleContainer = toggle ? toggle.closest('.public-recipe-toggle-wrapper') : null;
+                    const descPrivate = toggleContainer ? toggleContainer.querySelector('.toggle-desc-private') : null;
+                    const descPublic = toggleContainer ? toggleContainer.querySelector('.toggle-desc-public') : null;
+                    const knob = toggleContainer ? toggleContainer.querySelector('.toggle-switch-knob') : null;
+                    const slider = toggleContainer ? toggleContainer.querySelector('.toggle-switch-slider') : null;
+                    
+                    if (toggle) {
+                        function updateToggleState() {
+                            const isChecked = toggle.checked;
+                            
+                            // Update description text
+                            if (descPrivate && descPublic) {
+                                if (isChecked) {
+                                    descPrivate.style.display = 'none';
+                                    descPublic.style.display = 'inline';
+                                } else {
+                                    descPrivate.style.display = 'inline';
+                                    descPublic.style.display = 'none';
+                                }
+                            }
+                            
+                            // Update label text (Private/Public)
+                            const textPrivate = toggleContainer ? toggleContainer.querySelector('.toggle-text-private') : null;
+                            const textPublic = toggleContainer ? toggleContainer.querySelector('.toggle-text-public') : null;
+                            if (textPrivate && textPublic) {
+                                if (isChecked) {
+                                    textPrivate.style.display = 'none';
+                                    textPublic.style.display = 'inline-flex';
+                                } else {
+                                    textPrivate.style.display = 'inline-flex';
+                                    textPublic.style.display = 'none';
+                                }
+                            }
+                            
+                            // Move the knob
+                            if (knob) {
+                                if (isChecked) {
+                                    knob.style.transform = 'translateX(26px)';
+                                    knob.style.webkitTransform = 'translateX(26px)';
+                                    knob.style.msTransform = 'translateX(26px)';
+                                } else {
+                                    knob.style.transform = 'translateX(0)';
+                                    knob.style.webkitTransform = 'translateX(0)';
+                                    knob.style.msTransform = 'translateX(0)';
+                                }
+                            }
+                            
+                            // Update slider background
+                            if (slider) {
+                                if (isChecked) {
+                                    slider.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+                                } else {
+                                    slider.style.background = '#ccc';
+                                }
+                            }
+                        }
+                        
+                        // Set initial state
+                        updateToggleState();
+                        
+                        // Update on change
+                        toggle.addEventListener('change', updateToggleState);
+                        
+                        // Also update on click (in case change event doesn't fire)
+                        toggle.addEventListener('click', function() {
+                            setTimeout(updateToggleState, 10);
+                        });
+                    }
+                }
+                
+                // Initialize public composite food toggle
+                function initPublicCompositeFoodToggle() {
+                    const toggle = document.getElementById('compositeFoodIsPublic');
+                    const toggleContainer = toggle ? toggle.closest('.public-recipe-toggle-wrapper') : null;
+                    const descPrivate = toggleContainer ? toggleContainer.querySelector('.toggle-desc-private') : null;
+                    const descPublic = toggleContainer ? toggleContainer.querySelector('.toggle-desc-public') : null;
+                    const knob = toggleContainer ? toggleContainer.querySelector('.toggle-switch-knob') : null;
+                    const slider = toggleContainer ? toggleContainer.querySelector('.toggle-switch-slider') : null;
+                    
+                    if (toggle) {
+                        function updateToggleState() {
+                            const isChecked = toggle.checked;
+                            
+                            // Update description text
+                            if (descPrivate && descPublic) {
+                                if (isChecked) {
+                                    descPrivate.style.display = 'none';
+                                    descPublic.style.display = 'inline';
+                                } else {
+                                    descPrivate.style.display = 'inline';
+                                    descPublic.style.display = 'none';
+                                }
+                            }
+                            
+                            // Update label text (Private/Public)
+                            const textPrivate = toggleContainer ? toggleContainer.querySelector('.toggle-text-private') : null;
+                            const textPublic = toggleContainer ? toggleContainer.querySelector('.toggle-text-public') : null;
+                            if (textPrivate && textPublic) {
+                                if (isChecked) {
+                                    textPrivate.style.display = 'none';
+                                    textPublic.style.display = 'inline-flex';
+                                } else {
+                                    textPrivate.style.display = 'inline-flex';
+                                    textPublic.style.display = 'none';
+                                }
+                            }
+                            
+                            // Move the knob
+                            if (knob) {
+                                if (isChecked) {
+                                    knob.style.transform = 'translateX(26px)';
+                                    knob.style.webkitTransform = 'translateX(26px)';
+                                    knob.style.msTransform = 'translateX(26px)';
+                                } else {
+                                    knob.style.transform = 'translateX(0)';
+                                    knob.style.webkitTransform = 'translateX(0)';
+                                    knob.style.msTransform = 'translateX(0)';
+                                }
+                            }
+                            
+                            // Update slider background
+                            if (slider) {
+                                if (isChecked) {
+                                    slider.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+                                } else {
+                                    slider.style.background = '#ccc';
+                                }
+                            }
+                        }
+                        
+                        // Set initial state
+                        updateToggleState();
+                        
+                        // Update on change
+                        toggle.addEventListener('change', updateToggleState);
+                        
+                        // Also update on click (in case change event doesn't fire)
+                        toggle.addEventListener('click', function() {
+                            setTimeout(updateToggleState, 10);
+                        });
+                    }
+                }
+                
+                // Initialize toggles when DOM is ready
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        initPublicRecipeToggle();
+                        initPublicProductToggle();
+                        initPublicCompositeFoodToggle();
+                    });
+                } else {
+                    initPublicRecipeToggle();
+                    initPublicProductToggle();
+                    initPublicCompositeFoodToggle();
+                }
+            })();
+            
+            // ULTRA-AGGRESSIVE AOS DEBUG INDICATOR REMOVAL
+            (function() {
+                function destroyAOSDebug() {
+                    // Method 1: Remove by class/id
+                    document.querySelectorAll('.aos-debug, [class*="aos-debug"], [id*="aos-debug"]').forEach(function(el) {
+                        el.remove();
+                    });
+                    
+                    // Method 2: Find and remove purple circles anywhere in the DOM
+                    function findAndRemovePurpleCircles(container) {
+                        if (!container) return;
+                        
+                        const allElements = container.querySelectorAll('*');
+                        const directChildren = Array.from(container.children || []);
+                        
+                        [...allElements, ...directChildren, container].forEach(function(el) {
+                            if (!el || !el.parentNode || el === document.body || el === document.documentElement) return;
+                            
+                            try {
+                                const style = window.getComputedStyle(el);
+                                const bg = style.backgroundColor;
+                                const rect = el.getBoundingClientRect();
+                                const text = (el.textContent || '').trim();
+                                const classes = (el.className || '').toString();
+                                const id = (el.id || '').toString();
+                                const position = style.position;
+                                const zIndex = parseInt(style.zIndex) || 0;
+                                
+                                // Check for purple background
+                                const isPurple = bg.includes('102, 126, 234') || 
+                                               bg.includes('118, 75, 162') ||
+                                               bg.includes('667eea') ||
+                                               bg.includes('764ba2') ||
+                                               bg.includes('rgb(102, 126, 234)') ||
+                                               bg.includes('rgb(118, 75, 162)');
+                                
+                                // Check if it's a small circle
+                                const isSmall = rect.width > 0 && rect.width < 120 && rect.height > 0 && rect.height < 120;
+                                
+                                // Check if it has only a number as text
+                                const hasOnlyNumber = /^\d+$/.test(text);
+                                
+                                // Check if it's positioned at top center of viewport or card
+                                const isTopCenter = (rect.top < 200 && Math.abs(rect.left + rect.width/2 - window.innerWidth/2) < 200) ||
+                                                   (rect.top < 300 && position === 'fixed');
+                                
+                                // Remove if it matches debug indicator criteria
+                                if ((isPurple && isSmall && hasOnlyNumber) ||
+                                    (isSmall && hasOnlyNumber && isTopCenter && (classes.includes('aos') || id.includes('aos'))) ||
+                                    classes.includes('aos-debug') ||
+                                    id === 'aos-debug' ||
+                                    (isSmall && hasOnlyNumber && position === 'fixed' && zIndex > 1000)) {
+                                    // Force removal
+                                    el.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; width: 0 !important; height: 0 !important; position: absolute !important; left: -9999px !important;';
+                                    try {
+                                        el.remove();
+                                    } catch (e) {
+                                        // If remove fails, parent might remove it
+                                        if (el.parentNode) {
+                                            try {
+                                                el.parentNode.removeChild(el);
+                                            } catch (e2) {
+                                                // Ignore
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                // Ignore errors
+                            }
+                        });
+                    }
+                    
+                    // Check entire document
+                    findAndRemovePurpleCircles(document.body);
+                    findAndRemovePurpleCircles(document.documentElement);
+                    
+                    // Specifically check card-body
+                    const cardBody = document.querySelector('.card-body');
+                    if (cardBody) {
+                        findAndRemovePurpleCircles(cardBody);
+                        
+                        // Also check first child of card-body specifically
+                        const firstChild = cardBody.firstElementChild;
+                        if (firstChild) {
+                            const style = window.getComputedStyle(firstChild);
+                            const bg = style.backgroundColor;
+                            const rect = firstChild.getBoundingClientRect();
+                            const text = (firstChild.textContent || '').trim();
+                            if ((bg.includes('102, 126, 234') || bg.includes('118, 75, 162')) &&
+                                rect.width < 120 && rect.height < 120 && /^\d+$/.test(text)) {
+                                firstChild.remove();
+                            }
+                        }
+                    }
+                }
+                
+                // Run immediately and continuously
+                destroyAOSDebug();
+                
+                // Run every 10ms for the first 5 seconds (very aggressive)
+                const aggressiveInterval = setInterval(destroyAOSDebug, 10);
+                setTimeout(function() {
+                    clearInterval(aggressiveInterval);
+                }, 5000);
+                
+                // Then run every 50ms for another 25 seconds
+                const normalInterval = setInterval(destroyAOSDebug, 50);
+                setTimeout(function() {
+                    clearInterval(normalInterval);
+                }, 30000);
+                
+                // Also run on various events
+                ['DOMContentLoaded', 'load', 'scroll', 'resize', 'click', 'mousedown', 'mouseup', 'keydown'].forEach(function(eventName) {
+                    document.addEventListener(eventName, destroyAOSDebug, true);
+                });
+                
+                // MutationObserver - watch for ANY new elements
+                if (typeof MutationObserver !== 'undefined') {
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.addedNodes.length > 0) {
+                                destroyAOSDebug();
+                                // Double-check after animation frame
+                                requestAnimationFrame(function() {
+                                    destroyAOSDebug();
+                                    setTimeout(destroyAOSDebug, 10);
+                                });
+                            }
+                            if (mutation.type === 'attributes' && 
+                                (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
+                                destroyAOSDebug();
+                            }
+                        });
+                    });
+                    
+                    const observeTarget = document.body || document.documentElement;
+                    if (observeTarget) {
+                        observer.observe(observeTarget, {
+                            childList: true,
+                            subtree: true,
+                            attributes: true,
+                            attributeFilter: ['style', 'class', 'id']
+                        });
+                    }
+                }
+            })();
+        </script>
+        
+        <!-- Select2 JavaScript -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        
+        <!-- Select2 initialization is now handled dynamically in the modal based on food type selection -->
+    </div>
+</body>
+</html>
+

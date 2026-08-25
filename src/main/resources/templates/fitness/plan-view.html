@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title th:text="${plan.name} + ' - Plan Details'">Plan Details</title>
+    <style>
+        .fitness-theme {
+            --primary-color: #4facfe;
+            --gradient-primary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .fitness-theme .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+        }
+
+        .fitness-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #3d8bfe 0%, #00d9fe 100%);
+        }
+
+        .plan-header {
+            background: var(--gradient-primary);
+            padding: 2rem;
+            border-radius: 1rem;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .plan-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+        }
+
+        .plan-details {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .workout-summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .card-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .plan-details::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .plan-details h3 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+
+        .plan-details h3 i {
+            margin-right: 0.75rem;
+            font-size: 1.8rem;
+        }
+
+        .plan-details .table {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .plan-details .table th {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .plan-details .table td {
+            border: none;
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .plan-details .badge {
+            font-size: 0.85rem;
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+        }
+
+        .day-item {
+            padding: 2rem;
+            margin-bottom: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid transparent;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .day-item:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+            border-color: var(--primary-color);
+        }
+
+        .day-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 1rem 0 0 1rem;
+        }
+
+        .day-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .day-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .day-stat {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .day-stat:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .day-stat i {
+            margin-right: 0.75rem;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .day-stat strong {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-right: 0.25rem;
+        }
+
+        .day-stat span {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .workout-stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .workout-stat-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 1.25rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .workout-stat-badge:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .workout-stat-badge i {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .workout-stat-badge .stat-number {
+            font-weight: 700;
+            margin-left: 0.25rem;
+            margin-right: 0.8rem;
+        }
+
+        .empty-plan {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6c757d;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .empty-plan i {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.4;
+            color: var(--primary-color);
+        }
+
+        .empty-plan h4 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+
+        .empty-plan p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .workout-item {
+            margin-bottom: 1rem;
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .workout-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .workout-item:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(4px);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .workout-item:hover::before {
+            opacity: 1;
+        }
+
+        .workout-name {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .workout-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .workout-meta > span {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(79, 172, 254, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid rgba(79, 172, 254, 0.2);
+        }
+
+        .workout-meta > span > span {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+
+        .workout-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .workout-header:hover {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .workout-toggle {
+            margin-left: auto;
+            padding-left: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .workout-item.expanded .workout-toggle .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .workout-exercises {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 0.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(5px);
+        }
+
+        .exercise-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .exercise-detail {
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0.375rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .exercise-detail {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .exercise-detail:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateX(4px);
+        }
+
+        .exercise-image-section {
+            flex-shrink: 0;
+            width: 80px;
+            height: 80px;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            border: 2px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .exercise-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .exercise-image:hover {
+            transform: scale(1.05);
+        }
+
+        .exercise-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .exercise-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .exercise-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .exercise-type {
+            background: rgba(79, 172, 254, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .exercise-stat {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .exercise-stat i {
+            font-size: 0.9rem;
+            margin-right: 0.25rem;
+        }
+
+        .exercise-muscle-groups {
+            margin-top: 0.75rem;
+        }
+
+        .muscle-group-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.375rem;
+        }
+
+        .muscle-group-tag {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            border: none;
+            box-shadow: 0 2px 4px rgba(79, 172, 254, 0.2);
+        }
+
+        .no-exercises {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 1rem;
+        }
+
+        /* Day badge colors */
+        .day-badge.ACTIVE {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important;
+            color: white;
+            border: none;
+        }
+
+        .day-badge.REST {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%) !important;
+            color: white;
+            border: none;
+        }
+
+        .day-badge.RECOVERY {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+            color: white;
+            border: none;
+        }
+
+        .workout-meta span i {
+            color: var(--primary-color);
+            margin-right: 0.25rem;
+        }
+    </style>
+</head>
+<body class="fitness-theme">
+    <div layout:fragment="content">
+        <div class="container">
+            <!-- Back Button -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="/fitness/exercises" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Plans
+                    </a>
+                </div>
+            </div>
+
+            <!-- Plan Header -->
+            <div class="plan-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 th:text="${plan.name}" class="mb-3">Plan Name</h1>
+                        <div th:if="${plan.description}" class="mb-3">
+                            <p th:text="${plan.description}" class="lead">Plan description</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div th:if="${isOwner or plan.isPublic}" class="d-flex flex-column flex-sm-row gap-2 justify-content-end align-items-stretch align-items-sm-center">
+                            <button th:if="${!isOwner and ((plan.isPublic and (plan.moderationStatus == null or plan.moderationStatus.name() == 'APPROVED')) or isInLibrary)}" class="btn btn-lg flex-fill flex-sm-auto" type="button"
+                                    th:classappend="${isInLibrary} ? 'btn-danger' : 'btn-light'"
+                                    th:attr="data-plan-id=${plan.id},data-in-library=${isInLibrary}"
+                                    onclick="togglePlanLibrary(this)"
+                                    style="transition: all 0.3s ease; border-radius: 8px;"
+                                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';"
+                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
+                                    onmousedown="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.2)';"
+                                    onmouseup="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)';">
+                                <i class="bi me-2" th:classappend="${isInLibrary} ? 'bi-bookmark-dash' : 'bi-bookmark-plus'"></i>
+                                <span th:text="${isInLibrary} ? 'Remove from Library' : 'Add to Library'"></span>
+                            </button>
+
+                            <button class="btn btn-success btn-lg d-flex align-items-center justify-content-center gap-2 px-4 py-2 shadow-sm flex-fill flex-sm-auto start-plan-btn"
+                                    th:attr="data-plan-id=${plan.id}"
+                                    onclick="confirmStartPlan(this)"
+                                    style="border: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);"
+                                    onmouseover="this.style.transform='translateY(-3px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(40, 167, 69, 0.4)'; this.style.background='linear-gradient(135deg, #218838 0%, #1aa085 100%)';"
+                                    onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'; this.style.background='linear-gradient(135deg, #28a745 0%, #20c997 100%)';"
+                                    onmousedown="this.style.transform='translateY(-1px) scale(0.98)'; this.style.boxShadow='0 4px 15px rgba(40, 167, 69, 0.6)';"
+                                    onmouseup="this.style.transform='translateY(-3px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(40, 167, 69, 0.4)';">
+                                <i class="bi bi-play-circle-fill fs-5"></i>
+                                <span class="fw-semibold">Start This Plan</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan Details -->
+            <div class="plan-details">
+                <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Plan Information</h3>
+
+                <h5>Plan Overview</h5>
+                <div class="workout-summary-cards">
+                    <div class="summary-card">
+                        <div class="card-icon">
+                            <i class="bi bi-activity"></i>
+                        </div>
+                        <div class="card-value" th:text="${plan.type.displayName}">Plan Type</div>
+                        <div class="card-label">Type</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-icon">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                        <div class="card-value" th:text="${plan.planDays != null ? plan.planDays.size() : 0}">0</div>
+                        <div class="card-label">Days</div>
+                    </div>
+                        <div class="summary-card">
+                        <div class="card-icon">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+                        <div class="card-value" th:text="${totalWorkouts}">0</div>
+                        <div class="card-label">Total Workouts</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day List -->
+            <div class="plan-info" th:if="${plan.planDays != null and !plan.planDays.isEmpty()}">
+                <h3 class="mb-4"><i class="bi bi-calendar-week me-2"></i>Training Schedule</h3>
+
+                <div th:each="planDay : ${plan.planDays}" class="day-item">
+                    <div class="d-flex align-items-start">
+                        <div class="day-number" th:text="${planDay.dayNumber}">1</div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="mb-2">Day <span th:text="${planDay.dayNumber}">1</span></h5>
+                                    <span class="badge fs-6 px-3 py-2 fw-semibold day-badge"
+                                          th:classappend="${planDay.type.name()}"
+                                          th:text="${planDay.type}">REST</span>
+                                </div>
+                            </div>
+
+                            <!-- Show workouts for non-rest days -->
+                            <div th:if="${planDay.type != T(com.momentum.fitness.model.enums.PlanDayType).REST}">
+                                <div th:if="${planDay.workouts != null and !planDay.workouts.isEmpty()}" th:each="workout : ${planDay.workouts}" class="workout-item">
+                                    <div class="workout-header">
+                                        <div>
+                                            <div class="workout-name" th:text="${workout.name}">Workout Name</div>
+                                            <div class="workout-meta">
+                                                <span><i class="bi bi-activity me-1"></i><span th:text="${workout.type.displayName}">Workout Type</span></span>
+                                                <span><i class="bi bi-list-check me-1"></i><span th:text="${workout.workoutExercises != null ? workout.workoutExercises.size() : 0}">0</span> exercises</span>
+                                            </div>
+                                        </div>
+                                        <div class="workout-toggle">
+                                            <i class="bi bi-chevron-down toggle-icon"></i>
+                                        </div>
+                                    </div>
+                                    <div class="workout-exercises" style="display: none;">
+                                        <div th:if="${workout.workoutExercises != null and !workout.workoutExercises.isEmpty()}" class="exercise-list">
+                                            <div th:each="exercise : ${workout.workoutExercises}" class="exercise-detail">
+                                                <div class="exercise-image-section">
+                                                    <img th:src="${exercise.exercise.imageUrl != null ? exercise.exercise.imageUrl : '/images/exercises/default.png'}"
+                                                         alt="Exercise Image"
+                                                         class="exercise-image"
+                                                         onerror="this.src='/images/exercises/default.png'">
+                                                </div>
+                                                <div class="exercise-info">
+                                                    <div class="exercise-name" th:text="${exercise.exercise.name}">Exercise Name</div>
+                                                    <div class="exercise-meta">
+                                                        <span class="exercise-type" th:text="${exercise.exercise.type.displayName}">Cardio</span>
+                                                        <span th:if="${exercise.reps != null}" class="exercise-stat">
+                                                            <span th:text="${exercise.reps + ' reps'}">10 reps</span>
+                                                        </span>
+                                                        <span th:if="${exercise.weight != null}" class="exercise-stat">
+                                                            <i class="bi bi-speedometer me-1"></i><span th:text="${exercise.weight}">50</span> kg
+                                                        </span>
+                                                        <span th:if="${exercise.duration != null}" class="exercise-stat">
+                                                            <i class="bi bi-clock me-1"></i><span th:text="${exercise.duration}">30</span> sec
+                                                        </span>
+                                                    </div>
+                                                    <div th:if="${exercise.exercise.muscleGroupTarget != null and !exercise.exercise.muscleGroupTarget.isEmpty()}" class="exercise-muscle-groups">
+                                                        <div class="muscle-group-tags">
+                                                            <span th:each="muscleGroup : ${exercise.exercise.muscleGroupTarget}" class="muscle-group-tag" th:text="${muscleGroup.muscle.displayName}">Chest</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div th:if="${workout.workoutExercises == null or workout.workoutExercises.isEmpty()}" class="no-exercises">
+                                            <i class="bi bi-info-circle me-1"></i>No exercises in this workout
+                                        </div>
+                                    </div>
+                                </div>
+                                <div th:if="${planDay.workouts == null or planDay.workouts.isEmpty()}" class="text-muted small">
+                                    <i class="bi bi-info-circle me-1"></i>No workouts assigned to this day yet.
+                                </div>
+                            </div>
+
+                            <!-- Rest day message -->
+                            <div th:if="${planDay.type == T(com.momentum.fitness.model.enums.PlanDayType).REST}" class="text-muted small">
+                                <i class="bi bi-moon-stars me-1"></i>Rest day - take it easy and recover!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="plan-details" th:if="${plan.planDays == null or plan.planDays.isEmpty()}">
+                <div class="empty-plan">
+                    <i class="bi bi-calendar-x"></i>
+                    <h4>No Training Days</h4>
+                    <p class="mb-0">This plan doesn't have any training days configured yet.</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="/fitness/exercises" class="btn btn-outline-secondary btn-lg px-4 py-2">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Plans
+                        </a>
+                        <div th:if="${isOwner}">
+                            <a th:href="@{/fitness/plans/{id}/edit(id=${plan.id})}" class="btn btn-primary btn-lg px-4 py-2">
+                                <i class="bi bi-pencil me-2"></i>Edit Plan
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Plan Confirmation Modal -->
+        <div class="modal fade" id="startPlanModal" tabindex="-1" aria-labelledby="startPlanModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-success text-white border-0">
+                        <h5 class="modal-title fw-bold" id="startPlanModalLabel">
+                            <i class="bi bi-play-circle-fill me-2"></i>Start Plan
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="text-center mb-3">
+                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                <i class="bi bi-calendar-check text-success" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <h6 class="fw-bold text-center mb-3">Ready to start your fitness journey?</h6>
+                        <p class="text-muted text-center mb-3">
+                            This will set <strong th:text="${plan.name}">this plan</strong> as your active plan and you can track your progress on the tracker page.
+                        </p>
+                        <div class="alert alert-warning border-0 py-3">
+                            <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                            <strong>Note:</strong> Starting this plan will restart your progress for any currently active plan.
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i>Cancel
+                        </button>
+                        <button type="button" class="btn btn-success px-4 modal-start-btn" id="confirmStartPlanBtn"
+                                style="border: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);"
+                                onmouseover="this.style.transform='translateY(-2px) scale(1.02)'; this.style.boxShadow='0 6px 20px rgba(40, 167, 69, 0.4)'; this.style.background='linear-gradient(135deg, #218838 0%, #1aa085 100%)';"
+                                onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='none'; this.style.background='linear-gradient(135deg, #28a745 0%, #20c997 100%)';"
+                                onmousedown="this.style.transform='translateY(0) scale(0.98)'; this.style.boxShadow='0 2px 8px rgba(40, 167, 69, 0.6)';"
+                                onmouseup="this.style.transform='translateY(-2px) scale(1.02)'; this.style.boxShadow='0 6px 20px rgba(40, 167, 69, 0.4)';">
+                            <i class="bi bi-play-circle-fill me-2"></i>Start Plan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners to all workout headers
+            const workoutHeaders = document.querySelectorAll('.workout-header');
+            workoutHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    toggleWorkoutExercises(this);
+                });
+            });
+        });
+
+        function toggleWorkoutExercises(headerElement) {
+            const workoutItem = headerElement.closest('.workout-item');
+            const exercisesSection = workoutItem.querySelector('.workout-exercises');
+
+            if (exercisesSection.style.display === 'none' || exercisesSection.style.display === '') {
+                exercisesSection.style.display = 'block';
+                workoutItem.classList.add('expanded');
+            } else {
+                exercisesSection.style.display = 'none';
+                workoutItem.classList.remove('expanded');
+            }
+        }
+
+        function togglePlanLibrary(button) {
+            const planId = button.dataset.planId;
+            const currentlyInLibrary = button.dataset.inLibrary === 'true';
+            const method = currentlyInLibrary ? 'DELETE' : 'PATCH';
+            const url = '/api/v1/fitness/plans/' + planId + '/library';
+
+            button.disabled = true;
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (window.csrfHeader && window.csrfToken) {
+                headers[window.csrfHeader] = window.csrfToken;
+            }
+
+            fetch(url, {
+                method: method,
+                headers: headers
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update library');
+                }
+                // Handle empty response body
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    return {}; // Return empty object for non-JSON responses
+                }
+            })
+            .then(data => {
+                // Toggle the button appearance and state
+                const icon = button.querySelector('i');
+                const label = button.querySelector('span');
+
+                if (currentlyInLibrary) {
+                    // Was in library, now removed - change to "Add to Library"
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-light');
+                    icon.classList.remove('bi-bookmark-dash');
+                    icon.classList.add('bi-bookmark-plus');
+                    label.textContent = 'Add to Library';
+                    button.dataset.inLibrary = 'false';
+                } else {
+                    // Was not in library, now added - change to "Remove from Library"
+                    button.classList.remove('btn-light');
+                    button.classList.add('btn-danger');
+                    icon.classList.remove('bi-bookmark-plus');
+                    icon.classList.add('bi-bookmark-dash');
+                    label.textContent = 'Remove from Library';
+                    button.dataset.inLibrary = 'true';
+                }
+            })
+            .catch(error => {
+                console.error('Error updating library:', error);
+                alert('Failed to update library. Please try again.');
+            })
+            .finally(() => {
+                button.disabled = false;
+            });
+        }
+
+        function confirmStartPlan(button) {
+            // Store the button reference for later use
+            window.startPlanButton = button;
+            // Show the confirmation modal
+            const modal = new bootstrap.Modal(document.getElementById('startPlanModal'));
+            modal.show();
+        }
+
+        function startPlan(planId) {
+            const url = '/api/v1/fitness/plans/' + planId + '/start';
+            const confirmBtn = document.getElementById('confirmStartPlanBtn');
+            const originalText = confirmBtn.innerHTML;
+
+            // Update button to show loading state
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Starting...';
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (window.csrfHeader && window.csrfToken) {
+                headers[window.csrfHeader] = window.csrfToken;
+            }
+
+            fetch(url, {
+                method: 'POST',
+                headers: headers
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to start plan');
+                }
+                return response.json().catch(() => ({})); // Handle empty response
+            })
+            .then(data => {
+                // Hide modal and redirect to tracker with success feedback
+                const modal = bootstrap.Modal.getInstance(document.getElementById('startPlanModal'));
+                modal.hide();
+
+                // Show success toast or redirect
+                showSuccessMessage();
+                setTimeout(() => {
+                    window.location.href = '/fitness/tracker';
+                }, 1500);
+            })
+            .catch(error => {
+                console.error('Error starting plan:', error);
+                // Show error in modal
+                showErrorInModal('Failed to start plan. Please try again.');
+            })
+            .finally(() => {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalText;
+            });
+        }
+
+        function showSuccessMessage() {
+            // Create and show a success toast
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-success border-0 position-fixed"
+                     style="top: 20px; right: 20px; z-index: 9999;" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body fw-semibold">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            Plan started successfully! Redirecting to tracker...
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', toastHtml);
+            const toast = new bootstrap.Toast(document.querySelector('.toast'));
+            toast.show();
+        }
+
+        function showErrorInModal(message) {
+            const modalBody = document.querySelector('#startPlanModal .modal-body');
+            const existingAlert = modalBody.querySelector('.alert-danger');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+
+            const alertHtml = `<div class="alert alert-danger border-0 mt-3">${message}</div>`;
+            modalBody.insertAdjacentHTML('beforeend', alertHtml);
+        }
+
+        // Add event listener for modal confirm button
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmBtn = document.getElementById('confirmStartPlanBtn');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function() {
+                    const planId = window.startPlanButton?.dataset?.planId;
+                    if (planId) {
+                        startPlan(planId);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

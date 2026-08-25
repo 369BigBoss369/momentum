@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title th:text="${food.name} + ' - Composite Food Details'">Composite Food Details</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .nutrition-theme {
+            --primary-color: #11998e;
+            --gradient-primary: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .recipe-header {
+            background: var(--gradient-primary);
+            padding: 2rem;
+            border-radius: 1rem;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        .recipe-image {
+            width: 100%;
+            max-width: 500px;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+        .nutrition-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+        }
+        .nutrition-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+        .nutrition-card .nutrition-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nutrition-card .nutrition-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        .nutrition-card .nutrition-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        .recipe-stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .recipe-stat-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 1.25rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .recipe-stat-badge i { margin-right: 0.5rem; }
+        .recipe-stat-badge .stat-number { font-weight: 700; margin: 0 0.8rem 0 0.25rem; }
+
+        .add-to-library-btn {
+            transition: all 0.3s ease;
+            background: white !important;
+            color: #212529 !important;
+            border: 1px solid #11998e !important;
+        }
+        .add-to-library-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+            color: white !important;
+            border-color: #11998e !important;
+            box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
+        }
+        #removeFromLibraryBtn {
+            transition: all 0.3s ease;
+            background: white !important;
+            color: #dc3545 !important;
+            border: 1px solid #dc3545 !important;
+        }
+        #removeFromLibraryBtn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%) !important;
+            color: white !important;
+            border-color: #dc3545 !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+    </style>
+</head>
+<body class="nutrition-theme">
+    <div layout:fragment="content">
+        <div class="container">
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="/nutrition/foods" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Foods
+                    </a>
+                </div>
+            </div>
+
+            <div class="recipe-header">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <img th:src="${food.imagePath}"
+                             th:alt="${food.name}"
+                             class="recipe-image"
+                             onerror="this.src='/images/composites/meals_and_side_dishes.png'">
+                    </div>
+                    <div class="col-md-8">
+                        <h1 th:text="${food.name}" class="mb-3">Product Name</h1>
+                        <div class="recipe-stats">
+                            <div class="recipe-stat-badge" th:if="${ownerUsername != null}">
+                                <i class="bi bi-person"></i>
+                                <span>Created by <strong th:text="${ownerUsername}">username</strong></span>
+                            </div>
+                            <div class="recipe-stat-badge" th:if="${food.type != null}">
+                                <i class="bi bi-tag"></i>
+                                <span th:text="${food.type.displayName}">Type</span>
+                            </div>
+                            <div class="recipe-stat-badge" th:if="${food.isPublic}">
+                                <i class="bi bi-globe"></i>
+                                <span th:if="${food.moderationStatus == null or food.moderationStatus.name() == 'APPROVED'}">Public</span>
+                                <span th:if="${food.moderationStatus != null and food.moderationStatus.name() == 'PENDING'}">
+                                    <i class="bi bi-hourglass-split"></i> Pending Approval
+                                </span>
+                                <span th:if="${food.moderationStatus != null and food.moderationStatus.name() == 'REJECTED'}">
+                                    <i class="bi bi-x-circle"></i> Rejected
+                                </span>
+                            </div>
+                            <div class="recipe-stat-badge" th:if="${sharedUsersCount != null}">
+                                <i class="bi bi-people"></i>
+                                <span class="stat-number" th:text="${sharedUsersCount}">0</span>
+                                <span>user<span th:if="${sharedUsersCount != 1}">s</span> using it</span>
+                            </div>
+                        </div>
+                        <div class="mt-3" th:if="${ownerUsername != null and !isInLibrary and food.isPublic and (food.moderationStatus == null or food.moderationStatus.name() == 'APPROVED')}">
+                            <button class="btn btn-lg add-to-library-btn" id="addToLibraryBtn" onclick="window.addToLibrary()">
+                                <i class="bi bi-bookmark-plus me-2"></i>Add to Library
+                            </button>
+                        </div>
+                        <div class="mt-3" th:if="${isInLibrary}">
+                            <button class="btn btn-lg" id="removeFromLibraryBtn" onclick="window.removeFromLibrary()">
+                                <i class="bi bi-bookmark-x me-2"></i>Remove from Library
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nutrition-info">
+                <h4 class="mb-4 text-center">
+                    <i class="bi bi-calculator me-2"></i>Nutritional Information (per 100g)
+                </h4>
+                <div class="row g-3">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon"><i class="bi bi-fire"></i></div>
+                            <div class="nutrition-value"><span th:text="${food.calories}">0</span> <span style="font-size:.85rem;color:#868e96;">kcal</span></div>
+                            <div class="nutrition-label">Calories</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon"><i class="fa-solid fa-apple-whole"></i></div>
+                            <div class="nutrition-value"><span th:text="${#numbers.formatDecimal(food.carbohydrates, 1, 1)}">0</span> <span style="font-size:.85rem;color:#868e96;">g</span></div>
+                            <div class="nutrition-label">Carbohydrates</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon"><i class="fa-solid fa-drumstick-bite"></i></div>
+                            <div class="nutrition-value"><span th:text="${#numbers.formatDecimal(food.protein, 1, 1)}">0</span> <span style="font-size:.85rem;color:#868e96;">g</span></div>
+                            <div class="nutrition-label">Protein</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon"><i class="fa-solid fa-bottle-droplet"></i></div>
+                            <div class="nutrition-value"><span th:text="${#numbers.formatDecimal(food.fat, 1, 1)}">0</span> <span style="font-size:.85rem;color:#868e96;">g</span></div>
+                            <div class="nutrition-label">Fat</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="/nutrition/foods" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Foods
+                        </a>
+                        <div th:if="${isOwner != null and isOwner}">
+                            <a th:href="@{/nutrition/composites/{id}/edit(id=${food.id})}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-pencil me-2"></i>Edit Composite Food
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div layout:fragment="scripts">
+    <script th:inline="javascript">
+        window.addToLibrary = function() {
+            const btn = document.getElementById('addToLibraryBtn');
+            const foodId = /*[[${food.id}]]*/ '';
+            const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Adding...';
+            fetch('/api/v1/nutrition/composites/' + foodId + '/library', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken }
+            }).then(response => {
+                if (response.ok) {
+                    setTimeout(() => { window.location.reload(); }, 500);
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-bookmark-plus me-2"></i>Add to Library';
+                }
+            });
+        };
+        window.removeFromLibrary = function() {
+            const btn = document.getElementById('removeFromLibraryBtn');
+            const foodId = /*[[${food.id}]]*/ '';
+            const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Removing...';
+            fetch('/api/v1/nutrition/composites/' + foodId + '/library', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken }
+            }).then(response => {
+                if (response.ok) {
+                    setTimeout(() => { window.location.reload(); }, 500);
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-bookmark-check me-2"></i>In Your Library';
+                }
+            });
+        };
+    </script>
+    </div>
+</body>
+</html>

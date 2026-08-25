@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Ingredient Modal Demo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 2rem;
+        }
+
+        #ingredientModalBackdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        #ingredientModalBackdrop.show {
+            opacity: 1;
+        }
+
+        #ingredientModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1050;
+            overflow-x: hidden;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        #ingredientModal.show {
+            opacity: 1;
+        }
+
+        .ingredient-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .ingredient-image-placeholder {
+            width: 50px;
+            height: 50px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            flex-shrink: 0;
+        }
+
+        .demo-card {
+            background: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+        }
+
+        #viewMealModalBackdrop,
+        #editMealModalBackdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2040;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        #viewMealModalBackdrop.show,
+        #editMealModalBackdrop.show {
+            opacity: 1;
+        }
+
+        #viewMealModal,
+        #editMealModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2050;
+            overflow-x: hidden;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        #viewMealModal.show,
+        #editMealModal.show {
+            opacity: 1;
+        }
+
+        #viewMealModal .modal-dialog,
+        #editMealModal .modal-dialog {
+            position: relative;
+            width: auto;
+            margin: 1.75rem auto;
+            max-width: 800px;
+            pointer-events: none;
+        }
+
+        #viewMealModal.show .modal-dialog,
+        #editMealModal.show .modal-dialog {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="demo-card">
+            <h2 class="mb-4">Add Ingredient Modal Demo</h2>
+            <p class="text-muted mb-4">
+                Click the button below to open the ingredient modal. This page contains the same logic used on
+                <code>create-food.html</code>.
+            </p>
+
+            <ul id="ingredientsList" class="list-group mb-3">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">Ingredients you add will appear here.</div>
+                </li>
+            </ul>
+
+            <button type="button" class="btn btn-primary btn-sm d-inline-flex align-items-center mt-2 add-ingredient-btn">
+                <i class="bi bi-plus-circle me-1"></i>Add Ingredient
+            </button>
+
+            <hr class="my-4">
+            <h4 class="mb-3">Meal Plan Demo Buttons</h4>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="demoViewMealBtn">
+                    <i class="bi bi-eye me-1"></i>View Meal
+                </button>
+                <button type="button" class="btn btn-outline-success btn-sm" id="demoEditMealBtn">
+                    <i class="bi bi-pencil me-1"></i>Edit Meal
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="demoAddMealBtn">
+                    <i class="bi bi-plus-circle me-1"></i>Add Meal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="ingredientModalBackdrop" style="display: none;"></div>
+
+    <div class="modal fade" id="ingredientModal" tabindex="-1" aria-labelledby="ingredientModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ingredientModalLabel">Add Ingredient</h5>
+                    <button type="button" class="btn-close" id="closeIngredientModalBtn" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="ingredientForm" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label" for="foodSelect">Food</label>
+                            <select class="form-select" id="foodSelect" required>
+                                <option value="">Select food</option>
+                                <option value="1" data-image="https://images.unsplash.com/photo-1604908177079-dc1c8eb1d9ef?w=200&h=200&fit=crop">Chicken Breast</option>
+                                <option value="2" data-image="https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=200&h=200&fit=crop">Broccoli</option>
+                                <option value="3" data-image="https://images.unsplash.com/photo-1502740479091-635887520276?w=200&h=200&fit=crop">Brown Rice</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a food.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="ingredientAmount">Amount (grams)</label>
+                            <input type="number" class="form-control" id="ingredientAmount" min="1" step="0.1" required placeholder="e.g. 150">
+                            <div class="invalid-feedback">Please enter an amount (minimum 1 gram).</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="cookedFoodSelect">Cooked State (optional)</label>
+                            <select class="form-select" id="cookedFoodSelect">
+                                <option value="">Select cooked food</option>
+                                <option value="101" data-image="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop">Grilled Chicken</option>
+                                <option value="102" data-image="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&h=200&fit=crop">Steamed Broccoli</option>
+                            </select>
+                            <small class="form-text text-muted">Select the cooked version if it differs from the raw ingredient.</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelIngredientModalBtn">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmAddIngredientBtn">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="viewMealModalBackdrop" style="display: none;"></div>
+
+    <div class="modal fade" id="viewMealModal" tabindex="-1" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewMealModalLabel">Meal Details</h5>
+                    <button type="button" class="btn-close" id="closeViewMealModalBtn" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-1" id="viewMealHeading">Meal</h6>
+                        <p class="text-muted mb-0" id="viewMealMeta">Date • Meal Type</p>
+                    </div>
+                    <hr>
+                    <h6 class="mb-3">Foods in this meal</h6>
+                    <div id="viewMealFoodsList" class="list-group mb-3">
+                        <div class="text-muted text-center py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">No foods in this meal.</p>
+                        </div>
+                    </div>
+                    <div class="row text-center" id="viewMealTotals">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-primary mb-1" id="viewTotalCalories">0</h5>
+                            <small class="text-muted">Calories</small>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-success mb-1" id="viewTotalProtein">0g</h5>
+                            <small class="text-muted">Protein</small>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-info mb-1" id="viewTotalCarbs">0g</h5>
+                            <small class="text-muted">Carbs</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="text-warning mb-1" id="viewTotalFat">0g</h5>
+                            <small class="text-muted">Fat</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelViewMealModalBtn">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="editMealModalBackdrop" style="display: none;"></div>
+
+    <div class="modal fade" id="editMealModal" tabindex="-1" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editMealModalLabel">Edit Meal</h5>
+                    <button type="button" class="btn-close" id="closeEditMealModalBtn" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-1" id="editMealHeading">Meal</h6>
+                        <p class="text-muted mb-0" id="editMealMeta">Date • Meal Type</p>
+                    </div>
+                    <hr>
+                    <h6 class="mb-3">Foods in this meal</h6>
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Food</th>
+                                    <th scope="col" class="text-center">Amount (g)</th>
+                                    <th scope="col" class="text-center">Calories</th>
+                                    <th scope="col" class="text-center">Protein</th>
+                                    <th scope="col" class="text-center">Carbs</th>
+                                    <th scope="col" class="text-center">Fat</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="editMealFoodsTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="row text-center mb-3" id="editMealTotals">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-primary mb-1" id="editTotalCalories">0</h5>
+                            <small class="text-muted">Calories</small>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-success mb-1" id="editTotalProtein">0g</h5>
+                            <small class="text-muted">Protein</small>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-info mb-1" id="editTotalCarbs">0g</h5>
+                            <small class="text-muted">Carbs</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="text-warning mb-1" id="editTotalFat">0g</h5>
+                            <small class="text-muted">Fat</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="mb-3">Add food to this meal</h6>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-6">
+                            <label for="editFoodSelect" class="form-label">Food</label>
+                            <select class="form-select" id="editFoodSelect">
+                                <option value="">Select food...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="editFoodAmount" class="form-label">Amount (grams)</label>
+                            <input type="number" min="1" step="1" class="form-control" id="editFoodAmount" placeholder="100">
+                        </div>
+                        <div class="col-md-3 d-grid">
+                            <button type="button" class="btn btn-primary" id="demoAddFoodToMealBtn">
+                                <i class="bi bi-plus-circle me-1"></i>Add Food
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelEditMealModalBtn">Cancel</button>
+                    <button type="button" class="btn btn-success" id="saveMealChangesBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            let modalInitialized = false;
+            let ingredientIndex = 0;
+
+            function initIngredientModal() {
+                const modal = document.getElementById('ingredientModal');
+                const backdrop = document.getElementById('ingredientModalBackdrop');
+                const openBtn = document.querySelector('.add-ingredient-btn');
+                const closeBtn = document.getElementById('closeIngredientModalBtn');
+                const cancelBtn = document.getElementById('cancelIngredientModalBtn');
+                const confirmBtn = document.getElementById('confirmAddIngredientBtn');
+                const ingredientForm = document.getElementById('ingredientForm');
+                const foodSelect = document.getElementById('foodSelect');
+                const amountInput = document.getElementById('ingredientAmount');
+                const cookedFoodSelect = document.getElementById('cookedFoodSelect');
+                const ingredientsList = document.getElementById('ingredientsList');
+
+                if (!(modal && backdrop && openBtn && ingredientsList)) {
+                    return;
+                }
+
+                if (modalInitialized) {
+                    return;
+                }
+                modalInitialized = true;
+
+                function showModal() {
+                    if (ingredientForm) {
+                        ingredientForm.classList.remove('was-validated');
+                        ingredientForm.reset();
+                    }
+                    backdrop.style.display = 'block';
+                    modal.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                    requestAnimationFrame(() => {
+                        backdrop.classList.add('show');
+                        modal.classList.add('show');
+                    });
+                }
+
+                function hideModal() {
+                    document.body.style.overflow = '';
+                    backdrop.classList.remove('show');
+                    modal.classList.remove('show');
+                    backdrop.style.pointerEvents = '';
+                    modal.style.pointerEvents = '';
+                    setTimeout(() => {
+                        backdrop.style.display = 'none';
+                        modal.style.display = 'none';
+                    }, 150);
+                }
+
+                openBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (e.stopImmediatePropagation) {
+                        e.stopImmediatePropagation();
+                    }
+                    showModal();
+                });
+
+                if (closeBtn) closeBtn.addEventListener('click', hideModal);
+                if (cancelBtn) cancelBtn.addEventListener('click', hideModal);
+
+                backdrop.addEventListener('click', function(e) {
+                    if (e.target === backdrop) {
+                        hideModal();
+                    }
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && modal.classList.contains('show')) {
+                        hideModal();
+                    }
+                });
+
+                if (confirmBtn && ingredientForm && foodSelect && amountInput) {
+                    confirmBtn.addEventListener('click', function() {
+                        if (!ingredientForm.checkValidity()) {
+                            ingredientForm.classList.add('was-validated');
+                            if (!foodSelect.validity.valid) {
+                                foodSelect.focus();
+                            } else if (!amountInput.validity.valid) {
+                                amountInput.focus();
+                            }
+                            return;
+                        }
+
+                        const foodId = foodSelect.value;
+                        const selectedOption = foodSelect.options[foodSelect.selectedIndex];
+                        const foodName = selectedOption ? selectedOption.text : '';
+                        const foodImagePath = selectedOption ? selectedOption.getAttribute('data-image') : '';
+                        const amount = amountInput.value;
+
+                        const cookedFoodId = cookedFoodSelect && cookedFoodSelect.value ? cookedFoodSelect.value : '';
+                        const cookedOption = cookedFoodSelect && cookedFoodSelect.value ? cookedFoodSelect.options[cookedFoodSelect.selectedIndex] : null;
+                        const cookedFoodName = cookedOption ? cookedOption.text : '';
+                        const cookedFoodImage = cookedOption ? cookedOption.getAttribute('data-image') : '';
+
+                        const displayImagePath = cookedFoodImage || foodImagePath;
+
+                        let imageHtml = '';
+                        if (displayImagePath) {
+                            imageHtml = `<img src=\"${displayImagePath}\" alt=\"${foodName}\" class=\"ingredient-image me-2\" onerror=\"this.style.display='none'\">`;
+                        } else {
+                            imageHtml = '<div class=\"ingredient-image-placeholder me-2\"><i class=\"bi bi-image\"></i></div>';
+                        }
+
+                        let displayText = `<strong>${foodName}</strong>`;
+                        if (cookedFoodName) {
+                            displayText += ` <span class=\"text-muted\">(cooked: ${cookedFoodName})</span>`;
+                        }
+                        displayText += ` <span class=\"text-muted small\">(${amount} g)</span>`;
+
+                        const li = document.createElement('li');
+                        li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                        li.innerHTML = `
+                            <div class=\"d-flex align-items-center\">
+                                ${imageHtml}
+                                <div>${displayText}</div>
+                            </div>
+                            <button type=\"button\" class=\"btn btn-outline-danger btn-sm removeIngredientBtn\">
+                                <i class=\"bi bi-x\"></i>
+                            </button>
+                            <input type=\"hidden\" name=\"ingredients[${ingredientIndex}].foodId\" value=\"${foodId}\">
+                            <input type=\"hidden\" name=\"ingredients[${ingredientIndex}].amount\" value=\"${amount}\">
+                            ${cookedFoodId ? `<input type=\"hidden\" name=\"ingredients[${ingredientIndex}].cookedFoodId\" value=\"${cookedFoodId}\">` : ''}
+                        `;
+
+                        if (ingredientIndex === 0 && ingredientsList.firstElementChild && ingredientsList.firstElementChild.classList.contains('list-group-item')) {
+                            ingredientsList.innerHTML = '';
+                        }
+
+                        ingredientsList.appendChild(li);
+                        ingredientIndex++;
+
+                        ingredientForm.reset();
+                        ingredientForm.classList.remove('was-validated');
+                        hideModal();
+                    });
+                }
+
+                if (ingredientsList && !ingredientsList.hasAttribute('data-remove-handler-added')) {
+                    ingredientsList.setAttribute('data-remove-handler-added', 'true');
+                    ingredientsList.addEventListener('click', function(e) {
+                        const btn = e.target.closest('.removeIngredientBtn');
+                        if (btn) {
+                            e.preventDefault();
+                            const li = btn.closest('li');
+                            if (li) {
+                                li.remove();
+                                const items = ingredientsList.querySelectorAll('li');
+                                let index = 0;
+                                items.forEach(item => {
+                                    const hiddenFood = item.querySelector('input[name*=\".foodId\"]');
+                                    const hiddenAmount = item.querySelector('input[name*=\".amount\"]');
+                                    const hiddenCooked = item.querySelector('input[name*=\".cookedFoodId\"]');
+                                    if (hiddenFood) hiddenFood.name = `ingredients[${index}].foodId`;
+                                    if (hiddenAmount) hiddenAmount.name = `ingredients[${index}].amount`;
+                                    if (hiddenCooked) hiddenCooked.name = `ingredients[${index}].cookedFoodId`;
+                                    if (hiddenFood || hiddenAmount) index++;
+                                });
+                                ingredientIndex = index;
+
+                                if (ingredientsList.children.length === 0) {
+                                    const emptyState = document.createElement('li');
+                                    emptyState.className = 'list-group-item d-flex justify-content-between align-items-center';
+                                    emptyState.innerHTML = '<div class=\"text-muted small\">Ingredients you add will appear here.</div>';
+                                    ingredientsList.appendChild(emptyState);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            let retryCount = 0;
+            const maxRetries = 10;
+
+            function tryInit() {
+                if (document.getElementById('ingredientModal') && document.querySelector('.add-ingredient-btn')) {
+                    initIngredientModal();
+                } else if (retryCount < maxRetries) {
+                    retryCount++;
+                    setTimeout(tryInit, 200);
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => setTimeout(tryInit, 100));
+            } else {
+                setTimeout(tryInit, 100);
+            }
+
+            window.addEventListener('load', () => {
+                setTimeout(tryInit, 300);
+            });
+        })();
+
+        (function() {
+            const mealTypeLabels = {
+                BREAKFAST: 'Breakfast',
+                LUNCH: 'Lunch',
+                DINNER: 'Dinner',
+                SNACK: 'Snack',
+                PRE_WORKOUT: 'Pre-Workout',
+                POST_WORKOUT: 'Post-Workout'
+            };
+
+            const foodsList = [
+                { id: '1', name: 'Chicken Breast', calories: 165, protein: 31, carbohydrates: 0, fat: 3.6 },
+                { id: '2', name: 'Brown Rice', calories: 111, protein: 2.6, carbohydrates: 23, fat: 0.9 },
+                { id: '3', name: 'Broccoli', calories: 34, protein: 2.8, carbohydrates: 7, fat: 0.4 },
+                { id: '4', name: 'Salmon', calories: 208, protein: 20, carbohydrates: 0, fat: 12 },
+                { id: '5', name: 'Greek Yogurt', calories: 59, protein: 10, carbohydrates: 3.6, fat: 0.4 }
+            ];
+
+            const weekMeals = {
+                '2025-01-01': {
+                    BREAKFAST: [
+                        { foodId: '1', amount: 120 },
+                        { foodId: '2', amount: 80 }
+                    ],
+                    LUNCH: [],
+                    DINNER: [],
+                    SNACK: [],
+                    PRE_WORKOUT: [],
+                    POST_WORKOUT: []
+                },
+                '2025-01-02': {
+                    BREAKFAST: [],
+                    LUNCH: [
+                        { foodId: '3', amount: 150 },
+                        { foodId: '4', amount: 100 }
+                    ],
+                    DINNER: [],
+                    SNACK: [],
+                    PRE_WORKOUT: [],
+                    POST_WORKOUT: []
+                }
+            };
+
+            let currentSelectedMeal = null;
+
+            function ensureDayStructure(dateStr) {
+                if (!weekMeals[dateStr]) {
+                    weekMeals[dateStr] = {
+                        BREAKFAST: [],
+                        LUNCH: [],
+                        DINNER: [],
+                        SNACK: [],
+                        PRE_WORKOUT: [],
+                        POST_WORKOUT: []
+                    };
+                }
+            }
+
+            function getMealFoods(dateStr, mealType) {
+                ensureDayStructure(dateStr);
+                weekMeals[dateStr][mealType] = weekMeals[dateStr][mealType] || [];
+                return weekMeals[dateStr][mealType];
+            }
+
+            function findFood(foodId) {
+                return foodsList.find(food => String(food.id) === String(foodId));
+            }
+
+            function formatMealHeading(dateStr, mealType) {
+                const date = new Date(dateStr + 'T00:00:00');
+                const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
+                const month = date.toLocaleDateString('en-US', { month: 'long' });
+                const day = date.getDate();
+                const year = date.getFullYear();
+                return {
+                    heading: `${weekday}, ${month} ${day}, ${year}`,
+                    meta: mealTypeLabels[mealType] || mealType
+                };
+            }
+
+            function calculateTotals(mealFoods) {
+                return mealFoods.reduce((totals, mealFood) => {
+                    const food = findFood(mealFood.foodId);
+                    if (!food) {
+                        return totals;
+                    }
+                    const multiplier = (mealFood.amount || 0) / 100;
+                    totals.calories += food.calories * multiplier;
+                    totals.protein += food.protein * multiplier;
+                    totals.carbs += food.carbohydrates * multiplier;
+                    totals.fat += food.fat * multiplier;
+                    return totals;
+                }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+            }
+
+            function renderViewMealModalContent(dateStr, mealType) {
+                const headingEl = document.getElementById('viewMealHeading');
+                const metaEl = document.getElementById('viewMealMeta');
+                const foodsContainer = document.getElementById('viewMealFoodsList');
+                const totalCaloriesEl = document.getElementById('viewTotalCalories');
+                const totalProteinEl = document.getElementById('viewTotalProtein');
+                const totalCarbsEl = document.getElementById('viewTotalCarbs');
+                const totalFatEl = document.getElementById('viewTotalFat');
+
+                const mealHeading = formatMealHeading(dateStr, mealType);
+                headingEl.textContent = mealHeading.meta;
+                metaEl.textContent = mealHeading.heading;
+                foodsContainer.innerHTML = '';
+
+                const mealFoods = getMealFoods(dateStr, mealType);
+
+                if (mealFoods.length === 0) {
+                    const emptyState = document.createElement('div');
+                    emptyState.className = 'text-muted text-center py-4';
+                    emptyState.innerHTML = `
+                        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">No foods in this meal.</p>
+                    `;
+                    foodsContainer.appendChild(emptyState);
+                } else {
+                    mealFoods.forEach(mealFood => {
+                        const food = findFood(mealFood.foodId);
+                        if (!food) return;
+                        const multiplier = (mealFood.amount || 0) / 100;
+                        const calories = Math.round(food.calories * multiplier);
+                        const protein = (food.protein * multiplier).toFixed(1);
+                        const carbs = (food.carbohydrates * multiplier).toFixed(1);
+                        const fat = (food.fat * multiplier).toFixed(1);
+
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${food.name}</strong>
+                                    <div class="text-muted small">${mealFood.amount || 0}g</div>
+                                </div>
+                                <div class="text-end small">
+                                    <div><strong>${calories}</strong> kcal</div>
+                                    <div>${protein}g P • ${carbs}g C • ${fat}g F</div>
+                                </div>
+                            </div>
+                        `;
+                        foodsContainer.appendChild(item);
+                    });
+                }
+
+                const totals = calculateTotals(mealFoods);
+                totalCaloriesEl.textContent = Math.round(totals.calories);
+                totalProteinEl.textContent = `${totals.protein.toFixed(1)}g`;
+                totalCarbsEl.textContent = `${totals.carbs.toFixed(1)}g`;
+                totalFatEl.textContent = `${totals.fat.toFixed(1)}g`;
+            }
+
+            function populateFoodSelectOptions() {
+                const select = document.getElementById('editFoodSelect');
+                if (!select) return;
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Select food...</option>';
+                foodsList.forEach(food => {
+                    const option = document.createElement('option');
+                    option.value = food.id;
+                    option.textContent = `${food.name} (${food.calories} kcal / 100g)`;
+                    select.appendChild(option);
+                });
+                if (currentValue) {
+                    select.value = currentValue;
+                }
+            }
+
+            function renderEditMealModalContent(dateStr, mealType) {
+                const headingEl = document.getElementById('editMealHeading');
+                const metaEl = document.getElementById('editMealMeta');
+                const tableBody = document.getElementById('editMealFoodsTableBody');
+                const totalCaloriesEl = document.getElementById('editTotalCalories');
+                const totalProteinEl = document.getElementById('editTotalProtein');
+                const totalCarbsEl = document.getElementById('editTotalCarbs');
+                const totalFatEl = document.getElementById('editTotalFat');
+
+                const mealHeading = formatMealHeading(dateStr, mealType);
+                headingEl.textContent = mealHeading.meta;
+                metaEl.textContent = mealHeading.heading;
+                tableBody.innerHTML = '';
+
+                const mealFoods = getMealFoods(dateStr, mealType);
+
+                if (mealFoods.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">No foods added yet.</p>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    mealFoods.forEach((mealFood, index) => {
+                        const food = findFood(mealFood.foodId);
+                        if (!food) return;
+                        const multiplier = (mealFood.amount || 0) / 100;
+                        const calories = Math.round(food.calories * multiplier);
+                        const protein = (food.protein * multiplier).toFixed(1);
+                        const carbs = (food.carbohydrates * multiplier).toFixed(1);
+                        const fat = (food.fat * multiplier).toFixed(1);
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${food.name}</td>
+                            <td class="text-center">${mealFood.amount || 0}</td>
+                            <td class="text-center">${calories}</td>
+                            <td class="text-center">${protein}</td>
+                            <td class="text-center">${carbs}</td>
+                            <td class="text-center">${fat}</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-danger" data-remove-index="${index}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+
+                const totals = calculateTotals(mealFoods);
+                totalCaloriesEl.textContent = Math.round(totals.calories);
+                totalProteinEl.textContent = `${totals.protein.toFixed(1)}g`;
+                totalCarbsEl.textContent = `${totals.carbs.toFixed(1)}g`;
+                totalFatEl.textContent = `${totals.fat.toFixed(1)}g`;
+            }
+
+            function showModal(modalId, backdropId) {
+                const modal = document.getElementById(modalId);
+                const backdrop = document.getElementById(backdropId);
+                if (!modal || !backdrop) return;
+                backdrop.style.display = 'block';
+                modal.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                requestAnimationFrame(() => {
+                    backdrop.classList.add('show');
+                    modal.classList.add('show');
+                });
+            }
+
+            function hideModal(modalId, backdropId) {
+                const modal = document.getElementById(modalId);
+                const backdrop = document.getElementById(backdropId);
+                if (!modal || !backdrop) return;
+                document.body.style.overflow = '';
+                backdrop.classList.remove('show');
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    backdrop.style.display = 'none';
+                    modal.style.display = 'none';
+                }, 150);
+            }
+
+            function openViewMealModal(dateStr, mealType) {
+                currentSelectedMeal = { date: dateStr, mealType };
+                renderViewMealModalContent(dateStr, mealType);
+                showModal('viewMealModal', 'viewMealModalBackdrop');
+            }
+
+            function openEditMealModal(dateStr, mealType) {
+                currentSelectedMeal = { date: dateStr, mealType };
+                populateFoodSelectOptions();
+                renderEditMealModalContent(dateStr, mealType);
+                showModal('editMealModal', 'editMealModalBackdrop');
+            }
+
+            function addFoodToCurrentMeal() {
+                if (!currentSelectedMeal) return;
+                const select = document.getElementById('editFoodSelect');
+                const amountInput = document.getElementById('editFoodAmount');
+                if (!select || !amountInput) return;
+
+                const foodId = select.value;
+                const amount = parseFloat(amountInput.value || '0');
+
+                if (!foodId || !amount || amount <= 0) {
+                    return;
+                }
+
+                const { date, mealType } = currentSelectedMeal;
+                const mealFoods = getMealFoods(date, mealType);
+                mealFoods.push({ foodId, amount });
+
+                amountInput.value = '';
+                select.value = '';
+
+                renderEditMealModalContent(date, mealType);
+            }
+
+            function removeFoodFromCurrentMeal(index) {
+                if (!currentSelectedMeal) return;
+                const { date, mealType } = currentSelectedMeal;
+                const mealFoods = getMealFoods(date, mealType);
+                if (index < 0 || index >= mealFoods.length) return;
+                mealFoods.splice(index, 1);
+                renderEditMealModalContent(date, mealType);
+            }
+
+            const viewBackdrop = document.getElementById('viewMealModalBackdrop');
+            if (viewBackdrop) {
+                viewBackdrop.addEventListener('click', function(e) {
+                    if (e.target === viewBackdrop) {
+                        hideModal('viewMealModal', 'viewMealModalBackdrop');
+                    }
+                });
+            }
+
+            const editBackdrop = document.getElementById('editMealModalBackdrop');
+            if (editBackdrop) {
+                editBackdrop.addEventListener('click', function(e) {
+                    if (e.target === editBackdrop) {
+                        hideModal('editMealModal', 'editMealModalBackdrop');
+                    }
+                });
+            }
+
+            const closeViewBtn = document.getElementById('closeViewMealModalBtn');
+            if (closeViewBtn) {
+                closeViewBtn.addEventListener('click', function() {
+                    hideModal('viewMealModal', 'viewMealModalBackdrop');
+                });
+            }
+
+            const cancelViewBtn = document.getElementById('cancelViewMealModalBtn');
+            if (cancelViewBtn) {
+                cancelViewBtn.addEventListener('click', function() {
+                    hideModal('viewMealModal', 'viewMealModalBackdrop');
+                });
+            }
+
+            const closeEditBtn = document.getElementById('closeEditMealModalBtn');
+            if (closeEditBtn) {
+                closeEditBtn.addEventListener('click', function() {
+                    hideModal('editMealModal', 'editMealModalBackdrop');
+                });
+            }
+
+            const cancelEditBtn = document.getElementById('cancelEditMealModalBtn');
+            if (cancelEditBtn) {
+                cancelEditBtn.addEventListener('click', function() {
+                    hideModal('editMealModal', 'editMealModalBackdrop');
+                });
+            }
+
+            const saveMealBtn = document.getElementById('saveMealChangesBtn');
+            if (saveMealBtn) {
+                saveMealBtn.addEventListener('click', function() {
+                    console.log('Meal saved:', currentSelectedMeal ? getMealFoods(currentSelectedMeal.date, currentSelectedMeal.mealType) : []);
+                    hideModal('editMealModal', 'editMealModalBackdrop');
+                });
+            }
+
+            const addFoodBtn = document.getElementById('demoAddFoodToMealBtn');
+            if (addFoodBtn) {
+                addFoodBtn.addEventListener('click', addFoodToCurrentMeal);
+            }
+
+            const tableBody = document.getElementById('editMealFoodsTableBody');
+            if (tableBody) {
+                tableBody.addEventListener('click', function(e) {
+                    const btn = e.target.closest('button[data-remove-index]');
+                    if (!btn) return;
+                    const index = parseInt(btn.getAttribute('data-remove-index'), 10);
+                    removeFoodFromCurrentMeal(index);
+                });
+            }
+
+            const viewBtn = document.getElementById('demoViewMealBtn');
+            if (viewBtn) {
+                viewBtn.addEventListener('click', function() {
+                    openViewMealModal('2025-01-01', 'BREAKFAST');
+                });
+            }
+
+            const editBtn = document.getElementById('demoEditMealBtn');
+            if (editBtn) {
+                editBtn.addEventListener('click', function() {
+                    openEditMealModal('2025-01-02', 'LUNCH');
+                });
+            }
+
+            const addMealBtn = document.getElementById('demoAddMealBtn');
+            if (addMealBtn) {
+                addMealBtn.addEventListener('click', function() {
+                    const todayStr = '2025-01-03';
+                    const mealType = 'DINNER';
+                    ensureDayStructure(todayStr);
+                    weekMeals[todayStr][mealType] = [];
+                    openEditMealModal(todayStr, mealType);
+                });
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const viewModal = document.getElementById('viewMealModal');
+                    const editModal = document.getElementById('editMealModal');
+                    if (viewModal && viewModal.classList.contains('show')) {
+                        hideModal('viewMealModal', 'viewMealModalBackdrop');
+                    }
+                    if (editModal && editModal.classList.contains('show')) {
+                        hideModal('editMealModal', 'editMealModalBackdrop');
+                    }
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
+

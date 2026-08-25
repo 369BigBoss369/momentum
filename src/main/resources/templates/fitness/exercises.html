@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Exercise Library</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <style>
+        .fitness-theme {
+            --primary-color: #4facfe;
+            --gradient-primary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .fitness-theme .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+        }
+
+        .fitness-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #3d8bfe 0%, #00d9fe 100%);
+        }
+
+        /* Search Banner Header */
+        .search-banner {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .search-banner h2 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .search-banner p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.95;
+            font-size: 1.1rem;
+        }
+
+        .search-banner .banner-icon {
+            font-size: 2.5rem;
+        }
+
+        /* Results Grid Styling */
+        #exerciseList.row,
+        #exerciseList {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        #exerciseList > div,
+        #exerciseList.row > div {
+            display: flex;
+            flex: 0 0 auto;
+            width: auto;
+            max-width: 100%;
+        }
+
+        /* 4 per row on large screens */
+        @media (min-width: 1200px) {
+            #exerciseList > .col-lg-3,
+            #exerciseList.row > .col-lg-3,
+            #exerciseList > div.col-lg-3,
+            #exerciseList.row > div.col-lg-3 {
+                width: 25% !important;
+                flex: 0 0 25% !important;
+                max-width: 25% !important;
+            }
+        }
+
+        /* 3 per row on medium-large screens */
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            #exerciseList > .col-lg-4,
+            #exerciseList.row > .col-lg-4,
+            #exerciseList > div.col-lg-4,
+            #exerciseList.row > div.col-lg-4 {
+                width: 33.333% !important;
+                flex: 0 0 33.333% !important;
+                max-width: 33.333% !important;
+            }
+        }
+
+        /* 2 per row on medium screens */
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            #exerciseList > .col-md-6,
+            #exerciseList.row > .col-md-6,
+            #exerciseList > div.col-md-6,
+            #exerciseList.row > div.col-md-6 {
+                width: 50% !important;
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+            }
+        }
+
+        /* 1 per row on small screens */
+        @media (max-width: 767.98px) {
+            #exerciseList > div[class*="col-"],
+            #exerciseList.row > div[class*="col-"] {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+            }
+        }
+
+        #exerciseList .card {
+            width: 100% !important;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #exerciseList .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .exercise-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 0.375rem 0.375rem 0 0;
+        }
+
+        .exercise-card-body {
+            padding: 1rem;
+        }
+
+        .exercise-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .exercise-type {
+            display: inline-block;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .exercise-meta {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .exercise-meta i {
+            margin-right: 0.25rem;
+        }
+
+        /* Loading state */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #activityTypeFilter option {
+            display: block;
+            background: white;
+            color: #212529;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0;
+            font-size: 1rem;
+            font-weight: 400;
+            text-transform: none;
+        }
+    </style>
+</head>
+<body class="fitness-theme">
+    <div layout:fragment="content">
+        <!-- CRITICAL: Load jQuery and Select2 FIRST so they're available -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+        <!-- Search Banner Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="search-banner">
+                    <h2>
+                        <i class="bi bi-search banner-icon"></i>
+                        Browse Exercises & Workouts
+                    </h2>
+                    <p>Find exercises and workout routines by name, type, or browse items created by you and the community.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <!-- Name / Owner -->
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="exerciseNameSearch" class="form-label">
+                                    <i class="bi bi-tag me-1"></i>Item Name
+                                </label>
+                                <input type="text" class="form-control" id="exerciseNameSearch"
+                                       placeholder="Search by exercise or workout name...">
+                                <small class="text-muted">Enter part or full item name to search</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="exerciseOwnerFilter" class="form-label">
+                                    <i class="bi bi-person me-1"></i>Owner
+                                </label>
+                                <select class="form-select" id="exerciseOwnerFilter">
+                                    <option value="all">All Items</option>
+                                    <option value="own">My Items</option>
+                                    <option value="others">Community Items</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Item Type / Activity Type Filter -->
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="itemTypeFilter" class="form-label">
+                                    <i class="bi bi-grid-3x3-gap me-1"></i>Item Type
+                                </label>
+                                <select class="form-select" id="itemTypeFilter">
+                                    <option value="EXERCISE" selected>Exercises</option>
+                                    <option value="WORKOUT">Workouts</option>
+                                    <option value="PLAN">Plans</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="activityTypeFilter" class="form-label">
+                                    <i class="bi bi-activity me-1"></i>Activity Type
+                                </label>
+                                <select class="form-select" id="activityTypeFilter">
+                                    <option value="all">All Types</option>
+                                    <!-- Exercise types accessed directly via Thymeleaf -->
+                                    <option th:each="exerciseType : ${T(com.momentum.fitness.model.enums.ExerciseType).values()}" th:value="${exerciseType.name()}" th:text="${exerciseType.displayName}" class="exercise-type"></option>
+                                    <!-- Workout types accessed directly via Thymeleaf -->
+                                    <option th:each="workoutType : ${T(com.momentum.fitness.model.enums.WorkoutType).values()}" th:value="${workoutType.name()}" th:text="${workoutType.displayName}" class="workout-type"></option>
+                                    <!-- Plan types accessed directly via Thymeleaf -->
+                                    <option th:each="planType : ${T(com.momentum.fitness.model.enums.PlanType).values()}" th:value="${planType.name()}" th:text="${planType.displayName}" class="plan-type"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Library Filter (shown only when Community Items is selected) -->
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3" id="libraryFilterGroup" style="display: none;">
+                                <label for="libraryFilter" class="form-label">
+                                    <i class="bi bi-bookmark me-1"></i>Library
+                                </label>
+                                <select class="form-select" id="libraryFilter">
+                                    <option value="">All Items</option>
+                                    <option value="true">In Library</option>
+                                    <option value="false">Not in Library</option>
+                                </select>
+                                <small class="text-muted">Filter items by library status.</small>
+                            </div>
+                        </div>
+                        <!-- Search Button -->
+                        <div class="row">
+                            <div class="col-12 text-end">
+                                <button class="btn btn-primary" id="searchBtn">
+                                    <i class="bi bi-search me-1"></i>Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Search Results</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Results List -->
+                        <div class="row" id="exerciseList" style="display: none;">
+                            <!-- Exercise/Workout items will be dynamically loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State (shown when no items found after search) -->
+        <div class="row mt-4" id="emptyState" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-activity text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="text-muted mt-3">No items found</h5>
+                        <p class="text-muted">Try adjusting your search criteria.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="row mt-4" id="loadingState" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="loading-spinner"></div>
+                        <h5 class="text-muted mt-3">Searching...</h5>
+                        <p class="text-muted">Finding exercises and workouts...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- JavaScript for search functionality -->
+        <script>
+            $(document).ready(function() {
+                // Initialize search functionality
+                initializeExerciseLibrary();
+
+                function initializeExerciseLibrary() {
+                    console.log('Initializing Exercise Library...');
+
+                    // Bind search button
+                    $('#searchBtn').on('click', performSearch);
+
+                    // Bind enter key on search input
+                    $('#exerciseNameSearch').on('keypress', function(e) {
+                        if (e.which === 13) { // Enter key
+                            performSearch();
+                        }
+                    });
+
+                    // Bind item type change to filter activity types
+                    $('#itemTypeFilter').on('change', function() {
+                        updateActivityTypeOptions();
+                    });
+
+                    // Bind owner filter change to show/hide library filter
+                    $('#exerciseOwnerFilter').on('change', function() {
+                        updateLibraryFilterVisibility();
+                    });
+
+                    // Initialize activity type options
+                    updateActivityTypeOptions();
+
+                    // Initialize library filter visibility
+                    updateLibraryFilterVisibility();
+
+                    // Perform initial search to show all items
+                    performSearch();
+                }
+
+                function updateActivityTypeOptions() {
+                    const itemType = $('#itemTypeFilter').val();
+                    const activityTypeSelect = $('#activityTypeFilter');
+
+                    // Reset to "All Types"
+                    activityTypeSelect.val('all');
+
+                    // Show/hide options based on item type
+                    if (itemType === 'EXERCISE') {
+                        $('.exercise-type').show();
+                        $('.workout-type').hide();
+                        $('.plan-type').hide();
+                    } else if (itemType === 'WORKOUT') {
+                        $('.exercise-type').hide();
+                        $('.workout-type').show();
+                        $('.plan-type').hide();
+                    } else if (itemType === 'PLAN') {
+                        $('.exercise-type').hide();
+                        $('.workout-type').hide();
+                        $('.plan-type').show();
+                    }
+                }
+
+                function updateLibraryFilterVisibility() {
+                    const ownerFilter = $('#exerciseOwnerFilter').val();
+                    const libraryGroup = $('#libraryFilterGroup');
+
+                    // Library filter only visible for Community Items (others)
+                    if (ownerFilter === 'others') {
+                        libraryGroup.show();
+                    } else {
+                        libraryGroup.hide();
+                        // Clear library filter value when hidden
+                        $('#libraryFilter').val('');
+                    }
+                }
+
+                function performSearch() {
+                    const nameQuery = $('#exerciseNameSearch').val().trim();
+                    const ownerFilter = $('#exerciseOwnerFilter').val();
+                    const itemType = $('#itemTypeFilter').val();
+                    const activityType = $('#activityTypeFilter').val();
+                    const libraryFilter = $('#libraryFilter').val();
+
+                    console.log('Performing search:', {
+                        nameQuery,
+                        ownerFilter,
+                        itemType,
+                        activityType,
+                        libraryFilter
+                    });
+
+                    // Show loading state
+                    $('#loadingState').show();
+                    $('#exerciseList').hide();
+                    $('#emptyState').hide();
+
+                    // Build API URL
+                    let apiUrl = '/api/v1/fitness/activities?';
+                    const params = new URLSearchParams();
+
+                    if (nameQuery) {
+                        params.append('query', nameQuery);
+                    }
+                    if (ownerFilter !== 'all') {
+                        params.append('owner', ownerFilter);
+                    }
+                    params.append('type', itemType);
+                    if (activityType !== 'all') {
+                        params.append('activityType', activityType);
+                    }
+                    if (libraryFilter && libraryFilter !== '') {
+                        params.append('inLibrary', libraryFilter);
+                        console.log('Added library filter:', libraryFilter);
+                    }
+
+                    apiUrl += params.toString();
+
+                    console.log('API URL:', apiUrl);
+
+                    // Make API call
+                    fetch(apiUrl)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Search failed: ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Search results:', data);
+                            displayResults(data);
+                        })
+                        .catch(error => {
+                            console.error('Search error:', error);
+                            showError('Search failed. Please try again.');
+                        })
+                        .finally(() => {
+                            $('#loadingState').hide();
+                        });
+                }
+
+                function displayResults(results) {
+                    const exerciseList = $('#exerciseList');
+                    exerciseList.empty();
+
+                    if (!results || results.length === 0) {
+                        $('#emptyState').show();
+                        exerciseList.hide();
+                        return;
+                    }
+
+                    // Group results by type for better organization
+                    const exercises = results.filter(item => item.type === 'EXERCISE');
+                    const workouts = results.filter(item => item.type === 'WORKOUT');
+                    const plans = results.filter(item => item.type === 'PLAN');
+
+                    // Display exercises first
+                    exercises.forEach(exercise => {
+                        const exerciseCard = createExerciseCard(exercise);
+                        exerciseList.append(exerciseCard);
+                    });
+
+                    // Display workouts
+                    workouts.forEach(workout => {
+                        const workoutCard = createWorkoutCard(workout);
+                        exerciseList.append(workoutCard);
+                    });
+
+                    // Display plans
+                    plans.forEach(plan => {
+                        const planCard = createPlanCard(plan);
+                        exerciseList.append(planCard);
+                    });
+
+                    $('#emptyState').hide();
+                    exerciseList.show();
+                }
+
+                function createExerciseCard(exercise) {
+                    const imageUrl = exercise.imageUrl || '/images/exercises/default.png';
+                    const typeDisplay = exercise.typeDisplayName || exercise.type;
+                    const isMyActivity = exercise.owner != null;
+                    const sharedUsers = exercise.sharedUsers || 0;
+                    const isInLibrary = exercise.inLibrary || false;
+                    const isPublic = exercise.isPublic || false;
+
+
+                    // Create badges following nutrition counterpart pattern
+                    const ownerBadge = isMyActivity
+                        ? '<span class="badge bg-success me-1"><i class="bi bi-person-check me-1"></i>My Activity</span>'
+                        : '<span class="badge bg-info me-1"><i class="bi bi-globe me-1"></i>Community Activity</span>';
+
+                    const visibilityBadge = isMyActivity
+                        ? (isPublic
+                            ? '<span class="badge bg-primary me-1"><i class="bi bi-unlock me-1"></i>Public</span>'
+                            : '<span class="badge bg-dark me-1"><i class="bi bi-lock me-1"></i>Private</span>')
+                        : '';
+
+                    const typeBadge = '<span class="badge me-1" style="background-color: #fd7e14; color: white;"><i class="bi bi-activity me-1"></i>' + typeDisplay + '</span>';
+
+                    const sharedUsersBadgeClass = isInLibrary ? 'bg-success' : 'bg-secondary';
+                    const sharedUsersBadge = isPublic ? '<span class="badge ' + sharedUsersBadgeClass + '"><i class="bi bi-people me-1"></i>' + sharedUsers + ' user' + (sharedUsers !== 1 ? 's' : '') + '</span>' : '';
+
+                    // Generate buttons HTML
+                    let buttonHtml = '';
+                    let viewButtonClass = 'mb-1'; // Consistent spacing
+                    buttonHtml += '<button class="btn btn-primary btn-sm w-100 ' + viewButtonClass + '" onclick="viewFitnessActivity(\'' + exercise.id + '\', \'exercise\')">View Details</button>';
+                    if (isMyActivity) {
+                        buttonHtml += '<button class="btn btn-outline-secondary btn-sm w-100" onclick="window.location.href=\'/fitness/exercises/' + exercise.id + '/edit\'">Edit</button>';
+                    }
+
+                    return `
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100">
+                                <img src="${imageUrl}" class="exercise-image card-img-top" alt="${exercise.name}"
+                                     onerror="this.src='/images/exercises/default.png'">
+                                <div class="exercise-card-body">
+                                    <h6 class="exercise-title">${exercise.name}</h6>
+                                    <div class="mb-2">${ownerBadge}${visibilityBadge}${typeBadge}${sharedUsersBadge}</div>
+                                </div>
+                                <div class="card-footer d-flex flex-column gap-1 ${isMyActivity ? '' : 'justify-content-center'}" style="width: 100%; ${isMyActivity ? '' : 'min-height: 7rem;'}">
+                                    ${buttonHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                function createWorkoutCard(workout) {
+
+                    const typeDisplay = workout.typeDisplayName || workout.type;
+                    const exerciseCount = workout.exerciseCount || 0;
+                    const isMyActivity = workout.owner != null;
+                    const sharedUsers = workout.sharedUsers || 0;
+                    const isInLibrary = workout.inLibrary || false;
+                    const isPublic = workout.isPublic || false;
+
+                    console.log('Final exerciseCount for display:', exerciseCount);
+
+                    // Create badges following nutrition counterpart pattern
+                    const ownerBadge = isMyActivity
+                        ? '<span class="badge bg-success me-1"><i class="bi bi-person-check me-1"></i>My Activity</span>'
+                        : '<span class="badge bg-info me-1"><i class="bi bi-globe me-1"></i>Community Activity</span>';
+
+                    const visibilityBadge = isMyActivity
+                        ? (isPublic
+                            ? '<span class="badge bg-primary me-1"><i class="bi bi-unlock me-1"></i>Public</span>'
+                            : '<span class="badge bg-dark me-1"><i class="bi bi-lock me-1"></i>Private</span>')
+                        : '';
+
+                    const typeBadge = '<span class="badge me-1" style="background-color: #fd7e14; color: white;"><i class="bi bi-activity me-1"></i>' + typeDisplay + '</span>';
+
+                    const sharedUsersBadgeClass = isInLibrary ? 'bg-success' : 'bg-secondary';
+                    const sharedUsersBadge = isPublic ? '<span class="badge ' + sharedUsersBadgeClass + '"><i class="bi bi-people me-1"></i>' + sharedUsers + ' user' + (sharedUsers !== 1 ? 's' : '') + '</span>' : '';
+
+                    // Generate buttons HTML
+                    let buttonHtml = '';
+                    let viewButtonClass = 'mb-1'; // Consistent spacing
+                    buttonHtml += '<button class="btn btn-primary btn-sm w-100 ' + viewButtonClass + '" onclick="viewFitnessActivity(\'' + workout.id + '\', \'workout\')">View Details</button>';
+                    if (isMyActivity) {
+                        buttonHtml += '<button class="btn btn-outline-secondary btn-sm w-100" onclick="window.location.href=\'/fitness/workouts/' + workout.id + '/edit\'">Edit</button>';
+                    }
+
+                    return `
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body exercise-card-body">
+                                    <h6 class="exercise-title">${workout.name}</h6>
+                                    <div class="mb-2">${ownerBadge}${visibilityBadge}${typeBadge}${sharedUsersBadge}</div>
+                                    <p class="text-muted small">${exerciseCount} exercises</p>
+                                </div>
+                                <div class="card-footer d-flex flex-column gap-1 ${isMyActivity ? '' : 'justify-content-center'}" style="width: 100%; ${isMyActivity ? '' : 'min-height: 7rem;'}">
+                                    ${buttonHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                function createPlanCard(plan) {
+                    const typeDisplay = plan.typeDisplayName || plan.type;
+                    const exerciseCount = plan.exerciseCount || 0;
+                    const isMyActivity = plan.owner != null;
+                    const sharedUsers = plan.sharedUsers || 0;
+                    const isInLibrary = plan.inLibrary || false;
+                    const isPublic = plan.isPublic || false;
+
+                    console.log('Final exerciseCount for plan display:', exerciseCount);
+
+                    // Create badges following nutrition counterpart pattern
+                    const ownerBadge = isMyActivity
+                        ? '<span class="badge bg-success me-1"><i class="bi bi-person-check me-1"></i>My Activity</span>'
+                        : '<span class="badge bg-info me-1"><i class="bi bi-globe me-1"></i>Community Activity</span>';
+
+                    const visibilityBadge = isMyActivity
+                        ? (isPublic
+                            ? '<span class="badge bg-primary me-1"><i class="bi bi-unlock me-1"></i>Public</span>'
+                            : '<span class="badge bg-dark me-1"><i class="bi bi-lock me-1"></i>Private</span>')
+                        : '';
+
+                    const typeBadge = plan.type === 'PLAN'
+                        ? '<span class="badge me-1" style="background-color: #fd7e14; color: white;"><i class="bi bi-activity me-1"></i>' + typeDisplay + '</span><span class="badge me-1" style="background-color: #6f42c1; color: white;"><i class="bi bi-calendar-check me-1"></i>' + exerciseCount + ' days</span>'
+                        : '<span class="badge me-1" style="background-color: #6f42c1; color: white;"><i class="bi bi-calendar-check me-1"></i>' + typeDisplay + '</span>';
+
+                    const sharedUsersBadgeClass = isInLibrary ? 'bg-success' : 'bg-secondary';
+                    const sharedUsersBadge = isPublic ? '<span class="badge ' + sharedUsersBadgeClass + '"><i class="bi bi-people me-1"></i>' + sharedUsers + ' user' + (sharedUsers !== 1 ? 's' : '') + '</span>' : '';
+
+                    // Generate buttons HTML
+                    let buttonHtml = '';
+                    let viewButtonClass = 'mb-1'; // Consistent spacing
+                    buttonHtml += '<button class="btn btn-primary btn-sm w-100 ' + viewButtonClass + '" onclick="viewFitnessActivity(\'' + plan.id + '\', \'plan\')">View Details</button>';
+                    if (isMyActivity) {
+                        buttonHtml += '<button class="btn btn-outline-secondary btn-sm w-100" onclick="window.location.href=\'/fitness/plans/' + plan.id + '/edit\'">Edit</button>';
+                    }
+
+                    return `
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body exercise-card-body">
+                                    <h6 class="exercise-title">${plan.name}</h6>
+                                    <div class="mb-2">${ownerBadge}${visibilityBadge}${typeBadge}${sharedUsersBadge}</div>
+                                </div>
+                                <div class="card-footer d-flex flex-column gap-1 ${isMyActivity ? '' : 'justify-content-center'}" style="width: 100%; ${isMyActivity ? '' : 'min-height: 7rem;'}">
+                                    ${buttonHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                function showError(message) {
+                    // Simple error display - could be enhanced with a toast notification
+                    alert(message);
+                }
+
+                // Define viewFitnessActivity globally for fitness activities
+                window.viewFitnessActivity = function(activityId, type) {
+                    if (type === 'exercise') {
+                        window.location.href = '/fitness/exercises/' + activityId;
+                    } else if (type === 'workout') {
+                        window.location.href = '/fitness/workouts/' + activityId;
+                    } else if (type === 'plan') {
+                        window.location.href = '/fitness/plans/' + activityId;
+                    }
+                };
+
+                window.toggleExerciseLibrary = function(exerciseId, button) {
+                    const currentlyInLibrary = button.dataset.inLibrary === 'true';
+                    const method = currentlyInLibrary ? 'DELETE' : 'PATCH';
+                    const url = '/api/v1/fitness/exercises/' + exerciseId + '/library';
+                    button.disabled = true;
+
+                    const headers = {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    };
+                    if (window.csrfHeader && window.csrfToken) {
+                        headers[window.csrfHeader] = window.csrfToken;
+                    }
+
+                    fetch(url, {
+                        method: method,
+                        credentials: 'same-origin',
+                        headers: headers
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Unable to update library status');
+                            }
+
+                            const newState = !currentlyInLibrary;
+                            button.dataset.inLibrary = newState;
+                            button.classList.remove('btn-outline-success', 'btn-outline-danger');
+                            button.classList.add(newState ? 'btn-outline-danger' : 'btn-outline-success');
+                            button.textContent = newState ? 'Remove from Library' : 'Add to Library';
+                        })
+                        .catch(error => {
+                            showError(error.message || 'Could not update library membership');
+                        })
+                        .finally(() => {
+                            button.disabled = false;
+                        });
+                };
+            });
+        </script>
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+

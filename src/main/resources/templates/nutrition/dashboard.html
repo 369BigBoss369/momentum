@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Hub</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <style>
+        .nutrition-theme {
+            --primary-color: #11998e;
+            --gradient-primary: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .page-header-nutrition {
+            background: var(--gradient-primary);
+            padding: 2rem;
+            border-radius: 1rem;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        
+        /* Override card header gradient for nutrition theme */
+        .nutrition-theme .card-header {
+            background: var(--gradient-primary) !important;
+        }
+        
+        .nutrition-theme .card-header.glass {
+            background: var(--gradient-primary) !important;
+        }
+        
+        /* Override Bootstrap primary button color for nutrition theme */
+        .nutrition-theme .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+        }
+        
+        .nutrition-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #0f857a 0%, #2dd970 100%);
+            transform: translateY(-2px);
+        }
+        
+        /* Pagination styling for nutrition theme */
+        .nutrition-theme .pagination .page-link {
+            color: #11998e;
+            border-color: #e0e0e0;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .nutrition-theme .pagination .page-link:hover:not(:disabled) {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: #11998e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(17, 153, 142, 0.3);
+        }
+        
+        .nutrition-theme .pagination .page-item.active .page-link,
+        .nutrition-theme .pagination .page-item:not(.disabled) .page-link:focus {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: #11998e;
+            box-shadow: 0 2px 4px rgba(17, 153, 142, 0.2);
+        }
+        
+        .nutrition-theme .pagination .page-item.disabled .page-link {
+            color: #adb5bd;
+            background-color: #f8f9fa;
+            border-color: #e0e0e0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .nutrition-theme .pagination .page-link i {
+            font-size: 0.9rem;
+        }
+        
+        /* Remove blur on hover for advanced nutrition section but keep lift animation */
+        #advancedNutrition .card {
+            backdrop-filter: none !important;
+        }
+        
+        #advancedNutrition .card:hover {
+            backdrop-filter: none !important;
+            filter: none !important;
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .nutrition-summary-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .nutrition-macros-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .nutrition-macro-item {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .nutrition-macros-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nutrition-macro-item {
+                width: 100%;
+            }
+        }
+        
+        /* Water glass styles */
+        .water-glass-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .water-glass {
+            position: relative;
+            width: 150px;
+            height: 300px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+            border: 8px solid rgba(255, 255, 255, 0.8);
+            border-radius: 0 0 50px 50px;
+            border-top: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(135, 206, 250, 0.3);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        
+        .water-glass::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            height: 15px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+            border-radius: 50%;
+            border: 8px solid rgba(255, 255, 255, 0.8);
+        }
+        
+        .water-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to bottom, rgba(135, 206, 250, 0.8) 0%, rgba(30, 144, 255, 0.9) 100%);
+            transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0 0 42px 42px;
+            overflow: visible;
+        }
+        
+        .water-wave {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            height: 40px;
+            background: linear-gradient(to bottom, 
+                rgba(255, 255, 255, 0.5) 0%, 
+                rgba(135, 206, 250, 0.9) 30%,
+                rgba(30, 144, 255, 0.95) 100%);
+            border-radius: 50%;
+            animation: waterSlosh 2s ease-in-out infinite;
+            transform-origin: center;
+            overflow: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease, animation 0.5s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Calm animation - very subtle */
+        #waterWave.calm {
+            animation: waterSloshCalm 4s ease-in-out infinite !important;
+        }
+        
+        #waterWave.calm::before {
+            animation: waterSloshCalm 4.5s ease-in-out infinite reverse !important;
+        }
+        
+        #waterWave.calm::after {
+            animation: waterSloshCalm 3.8s ease-in-out infinite !important;
+        }
+        
+        /* Full - completely stop animation and hide wave layers for flat surface */
+        #waterWave.full {
+            animation: none !important;
+            -webkit-animation: none !important;
+            -moz-animation: none !important;
+            -o-animation: none !important;
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        #waterWave.full::before {
+            animation: none !important;
+            -webkit-animation: none !important;
+            -moz-animation: none !important;
+            -o-animation: none !important;
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        #waterWave.full::after {
+            animation: none !important;
+            -webkit-animation: none !important;
+            -moz-animation: none !important;
+            -o-animation: none !important;
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        /* Also check parent class */
+        #waterFill.full #waterWave,
+        #waterFill.full #waterWave::before,
+        #waterFill.full #waterWave::after {
+            animation: none !important;
+            -webkit-animation: none !important;
+            -moz-animation: none !important;
+            -o-animation: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+        
+        /* Empty - hide water fill but keep element for smooth transitions */
+        #waterFill.empty {
+            height: 0% !important;
+        }
+        
+        #waterFill.empty #waterWave,
+        #waterFill.empty #waterWave::before,
+        #waterFill.empty #waterWave::after {
+            opacity: 0;
+            visibility: hidden;
+            animation: none !important;
+        }
+        
+        .water-wave::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: -5px;
+            right: -5px;
+            height: 20px;
+            background: linear-gradient(to bottom, 
+                rgba(255, 255, 255, 0.4) 0%, 
+                rgba(135, 206, 250, 0.85) 50%,
+                rgba(30, 144, 255, 0.9) 100%);
+            border-radius: 50%;
+            animation: waterSlosh 2.5s ease-in-out infinite reverse;
+        }
+        
+        .water-wave::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -15px;
+            right: -15px;
+            height: 35px;
+            background: linear-gradient(to bottom, 
+                rgba(255, 255, 255, 0.3) 0%, 
+                rgba(135, 206, 250, 0.8) 40%,
+                rgba(30, 144, 255, 0.92) 100%);
+            border-radius: 50%;
+            animation: waterSlosh 1.8s ease-in-out infinite;
+        }
+        
+        @keyframes waterSlosh {
+            0%, 100% {
+                transform: translateY(0px) scaleY(1);
+                border-radius: 50% 50% 45% 45%;
+            }
+            25% {
+                transform: translateY(-3px) scaleY(1.05);
+                border-radius: 48% 48% 47% 47%;
+            }
+            50% {
+                transform: translateY(-5px) scaleY(1.1);
+                border-radius: 45% 45% 50% 50%;
+            }
+            75% {
+                transform: translateY(-2px) scaleY(1.03);
+                border-radius: 47% 47% 48% 48%;
+            }
+        }
+        
+        @keyframes waterSloshCalm {
+            0%, 100% {
+                transform: translateY(0px) scaleY(1);
+                border-radius: 50% 50% 45% 45%;
+            }
+            50% {
+                transform: translateY(-0.5px) scaleY(1.005);
+                border-radius: 49.5% 49.5% 45.5% 45.5%;
+            }
+        }
+        
+        .water-amount {
+            margin-top: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        /* Advanced nutrients with progress indicators */
+        .nutrient-box {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 0.75rem;
+            background: white;
+            height: 100%;
+        }
+        
+        .nutrient-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .nutrient-goal {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        
+        .nutrient-progress {
+            height: 4px;
+            background-color: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .nutrient-progress-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .nutrient-progress-bar.low {
+            background-color: #28a745; /* green */
+        }
+        
+        .nutrient-progress-bar.medium {
+            background-color: #ffc107; /* yellow */
+        }
+        
+        .nutrient-progress-bar.high {
+            background-color: #dc3545; /* red */
+        }
+        
+        .nutrient-progress-bar.complete {
+            background-color: #0d6efd; /* vibrant primary blue */
+        }
+    </style>
+</head>
+<body class="nutrition-theme">
+    <div layout:fragment="content">
+        <!-- Nutrition Theme Header -->
+        <div class="page-header-nutrition" data-aos="fade-down">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 fw-bold mb-2">
+                        <i class="bi bi-egg-fried me-3"></i>Nutrition Hub
+                    </h1>
+                    <p class="lead mb-0">Fuel your body with the right nutrition</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="/dashboard" class="btn btn-light btn-lg">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Nutrition Summary -->
+        <div class="row mb-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="col-12">
+                <div class="card hover-lift">
+                    <div class="card-header glass">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-graph-up me-2"></i>Daily Nutrition Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="nutrition-summary-row">
+                            <!-- Calories - Centered on top -->
+                            <div class="text-center mb-4" style="width: 100%; max-width: 300px;"
+                                 th:with="caloriesPercent=${dailyNutritionView.caloriesGoal > 0 ? (dailyNutritionView.caloriesConsumed * 100.0 / dailyNutritionView.caloriesGoal) : 0}">
+                                <h3 class="text-primary" th:text="${dailyNutritionView.caloriesConsumed}">0</h3>
+                                <p class="text-muted mb-0">Calories Consumed</p>
+                    <div class="progress mt-2">
+                                    <div class="progress-bar bg-primary" role="progressbar"
+                                         th:style="'width:' + (${caloriesPercent > 100 ? 100 : caloriesPercent}) + '%'" ></div>
+                                </div>
+                                <small>Goal: <span th:text="${dailyNutritionView.caloriesGoal}">0</span></small>
+                            </div>
+                            
+                            <!-- Macros - Protein centered, Carbs left, Fats right -->
+                            <div class="nutrition-macros-row">
+                                <!-- Carbs - Left (now blue/info) -->
+                                <div class="nutrition-macro-item"
+                                     th:with="carbsPercent=${dailyNutritionView.carbsGoal > 0 ? (dailyNutritionView.carbsConsumed * 100.0 / dailyNutritionView.carbsGoal) : 0}">
+                                    <h3 class="text-info" th:text="${dailyNutritionView.carbsConsumed} + 'g'">0g</h3>
+                                    <p class="text-muted mb-0">Carbs</p>
+                                    <div class="progress mt-2" style="max-width: 300px; margin: 0 auto;">
+                                        <div class="progress-bar bg-info" role="progressbar"
+                                             th:style="'width:' + (${carbsPercent > 100 ? 100 : carbsPercent}) + '%'" ></div>
+                                    </div>
+                                    <small>Goal: <span th:text="${dailyNutritionView.carbsGoal}">0</span>g</small>
+                                </div>
+                                
+                                <!-- Protein - Center (green/success) -->
+                                <div class="nutrition-macro-item"
+                                     th:with="proteinPercent=${dailyNutritionView.proteinGoal > 0 ? (dailyNutritionView.proteinConsumed * 100.0 / dailyNutritionView.proteinGoal) : 0}">
+                                    <h3 class="text-success" th:text="${dailyNutritionView.proteinConsumed} + 'g'">0g</h3>
+                                    <p class="text-muted mb-0">Protein</p>
+                                    <div class="progress mt-2" style="max-width: 300px; margin: 0 auto;">
+                                        <div class="progress-bar bg-success" role="progressbar"
+                                             th:style="'width:' + (${proteinPercent > 100 ? 100 : proteinPercent}) + '%'" ></div>
+                                    </div>
+                                    <small>Goal: <span th:text="${dailyNutritionView.proteinGoal}">0</span>g</small>
+                                </div>
+                                
+                                <!-- Fats - Right (now yellow/warning) -->
+                                <div class="nutrition-macro-item"
+                                     th:with="fatPercent=${dailyNutritionView.fatGoal > 0 ? (dailyNutritionView.fatConsumed * 100.0 / dailyNutritionView.fatGoal) : 0}">
+                                    <h3 class="text-warning" th:text="${dailyNutritionView.fatConsumed} + 'g'">0g</h3>
+                                    <p class="text-muted mb-0">Fat</p>
+                                    <div class="progress mt-2" style="max-width: 300px; margin: 0 auto;">
+                                        <div class="progress-bar bg-warning" role="progressbar"
+                                             th:style="'width:' + (${fatPercent > 100 ? 100 : fatPercent}) + '%'" ></div>
+                                    </div>
+                                    <small>Goal: <span th:text="${dailyNutritionView.fatGoal}">0</span>g</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Advanced Nutrition Section -->
+                        <div class="mt-4">
+                            <button class="btn btn-outline-secondary w-100" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#advancedNutrition" aria-expanded="false" aria-controls="advancedNutrition">
+                                <i class="bi bi-chevron-down me-2" id="advancedToggleIcon"></i>
+                                Advanced Nutrition Details
+                            </button>
+                            <div class="collapse mt-3" id="advancedNutrition">
+                                <div class="card card-body bg-light" style="backdrop-filter: none !important;">
+                                    <div class="row">
+                                        <!-- Carbohydrates Breakdown -->
+                                        <div class="col-md-6 mb-4">
+                                            <h6 class="text-info mb-3">
+                                                <i class="bi bi-activity me-2"></i>Carbohydrates Breakdown
+                                            </h6>
+                                            <div class="row g-3">
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="sugarPercent=${dailyNutritionView.sugarGoal > 0 ? (dailyNutritionView.sugarConsumed * 100.0 / dailyNutritionView.sugarGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Sugar</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.sugarConsumed} + 'g'">0g</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${sugarPercent >= 100} ? 'bg-danger' : (${sugarPercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${sugarPercent > 100 ? 100 : sugarPercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Max: <span th:text="${dailyNutritionView.sugarGoal}">0</span>g</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="fiberPercent=${dailyNutritionView.fiberGoal > 0 ? (dailyNutritionView.fiberConsumed * 100.0 / dailyNutritionView.fiberGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Fiber</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.fiberConsumed} + 'g'">0g</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${fiberPercent >= 100} ? 'bg-success' : (${fiberPercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${fiberPercent > 100 ? 100 : fiberPercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Goal: <span th:text="${dailyNutritionView.fiberGoal}">25</span>g</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box">
+                                                        <small class="text-muted d-block mb-1">Glycemic Index</small>
+                                                        <div class="nutrient-value">-</div>
+                                                        <div class="nutrient-progress">
+                                                            <div class="nutrient-progress-bar low" style="width: 0%;"></div>
+                                                        </div>
+                                                        <div class="nutrient-goal">Scale: <span th:text="${dailyNutritionView.glycemicIndex}">0</span></div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box">
+                                                        <small class="text-muted d-block mb-1">Glycemic Load</small>
+                                                        <div class="nutrient-value">-</div>
+                                                        <div class="nutrient-progress">
+                                                            <div class="nutrient-progress-bar low" style="width: 0%;"></div>
+                                                        </div>
+                                                        <div class="nutrient-goal">Scale: <span th:text="${dailyNutritionView.glycemicLoad}">0</span></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Fats Breakdown -->
+                                        <div class="col-md-6 mb-4">
+                                            <h6 class="text-warning mb-3">
+                                                <i class="bi bi-droplet-fill me-2"></i>Fats Breakdown
+                                            </h6>
+                                            <div class="row g-3">
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="saturatedPercent=${dailyNutritionView.saturatedFatGoal > 0 ? (dailyNutritionView.saturatedFatConsumed * 100.0 / dailyNutritionView.saturatedFatGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Saturated Fat</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.saturatedFatConsumed} + 'g'">0g</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${saturatedPercent >= 100} ? 'bg-danger' : (${saturatedPercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${saturatedPercent > 100 ? 100 : saturatedPercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Max: <span th:text="${dailyNutritionView.saturatedFatGoal}">0</span>g</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="monoPercent=${dailyNutritionView.monoUnsaturatedGoal > 0 ? (dailyNutritionView.monoUnsaturatedConsumed * 100.0 / dailyNutritionView.monoUnsaturatedGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Monounsaturated</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.monoUnsaturatedConsumed} + 'g'">0g</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${monoPercent >= 100} ? 'bg-success' : (${monoPercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${monoPercent > 100 ? 100 : monoPercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Goal: <span th:text="${dailyNutritionView.monoUnsaturatedGoal}">0</span>g</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="polyPercent=${dailyNutritionView.polyUnsaturatedGoal > 0 ? (dailyNutritionView.polyUnsaturatedConsumed * 100.0 / dailyNutritionView.polyUnsaturatedGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Polyunsaturated</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.polyUnsaturatedConsumed} + 'g'">0g</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${polyPercent >= 100} ? 'bg-success' : (${polyPercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${polyPercent > 100 ? 100 : polyPercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Goal: <span th:text="${dailyNutritionView.polyUnsaturatedGoal}">0</span>g</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="transPercent=${dailyNutritionView.transFatGoal > 0 ? (dailyNutritionView.transFatConsumed * 100.0 / dailyNutritionView.transFatGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Trans Fat</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.transFatConsumed} + 'g'">0g</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${transPercent >= 100} ? 'bg-danger' : (${transPercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${transPercent > 100 ? 100 : transPercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Max: 0g ✓</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Vitamins & Minerals -->
+                                        <div class="col-md-6 mb-4">
+                                            <h6 class="text-success mb-3">
+                                                <i class="bi bi-capsule me-2"></i>Vitamins & Minerals
+                                            </h6>
+                                            <div class="row g-3">
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="sodiumPercent=${dailyNutritionView.sodiumGoal > 0 ? (dailyNutritionView.sodiumConsumed * 100.0 / dailyNutritionView.sodiumGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Sodium</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.sodiumConsumed} + 'mg'">0mg</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${sodiumPercent >= 100} ? 'bg-danger' : (${sodiumPercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${sodiumPercent > 100 ? 100 : sodiumPercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Max: <span th:text="${dailyNutritionView.sodiumGoal}">2300</span>mg</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="potassiumPercent=${dailyNutritionView.potassiumGoal > 0 ? (dailyNutritionView.potassiumConsumed * 100.0 / dailyNutritionView.potassiumGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Potassium</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.potassiumConsumed} + 'mg'">0mg</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${potassiumPercent >= 100} ? 'bg-success' : (${potassiumPercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${potassiumPercent > 100 ? 100 : potassiumPercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Goal: <span th:text="${dailyNutritionView.potassiumGoal}">3500</span>mg</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="calciumPercent=${dailyNutritionView.calciumGoal > 0 ? (dailyNutritionView.calciumConsumed * 100.0 / dailyNutritionView.calciumGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Calcium</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.calciumConsumed} + 'mg'">0mg</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${calciumPercent >= 100} ? 'bg-success' : (${calciumPercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${calciumPercent > 100 ? 100 : calciumPercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Goal: <span th:text="${dailyNutritionView.calciumGoal}">1000</span>mg</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box">
+                                                        <small class="text-muted d-block mb-1">Iron</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.ironGoal} + 'mg'">0mg</div>
+                                                        <div class="nutrient-progress">
+                                                            <div class="nutrient-progress-bar low" style="width: 0%;"></div>
+                                                        </div>
+                                                        <div class="nutrient-goal">Goal: <span th:text="${dailyNutritionView.ironGoal}">18</span>mg</div>
+                                                    </div>
+                    </div>
+                </div>
+            </div>
+                                        
+                                        <!-- Other Nutrients -->
+                                        <div class="col-md-6 mb-4">
+                                            <h6 class="text-danger mb-3">
+                                                <i class="bi bi-flask me-2"></i>Other Nutrients
+                                            </h6>
+                                            <div class="row g-3">
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="cholesterolPercent=${dailyNutritionView.cholesterolGoal > 0 ? (dailyNutritionView.cholesterolConsumed * 100.0 / dailyNutritionView.cholesterolGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Cholesterol</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.cholesterolConsumed} + 'mg'">0mg</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${cholesterolPercent >= 100} ? 'bg-danger' : (${cholesterolPercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${cholesterolPercent > 100 ? 100 : cholesterolPercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Max: <span th:text="${dailyNutritionView.cholesterolGoal}">300</span>mg</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box" th:with="caffeinePercent=${dailyNutritionView.caffeineGoal > 0 ? (dailyNutritionView.caffeineConsumed * 100.0 / dailyNutritionView.caffeineGoal) : 0}">
+                                                        <small class="text-muted d-block mb-1">Caffeine</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.caffeineConsumed} + 'mg'">0mg</div>
+                                                            <div class="nutrient-progress">
+                                                                <div th:class="'nutrient-progress-bar ' + (${caffeinePercent >= 100} ? 'bg-danger' : (${caffeinePercent >= 50} ? 'bg-warning' : 'bg-info'))"
+                                                                     role="progressbar"
+                                                                     th:style="'width:' + (${caffeinePercent > 100 ? 100 : caffeinePercent}) + '%'" ></div>
+                                                            </div>
+                                                        <div class="nutrient-goal">Max: <span th:text="${dailyNutritionView.caffeineGoal}">400</span>mg</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="nutrient-box">
+                                                        <small class="text-muted d-block mb-1">Alcohol</small>
+                                                        <div class="nutrient-value" th:text="${dailyNutritionView.alcoholConsumed} + 'g'">0g</div>
+                                                        <div class="nutrient-progress">
+                                                            <div class="nutrient-progress-bar low" style="width: 0%;"></div>
+                                                        </div>
+                                                        <div class="nutrient-goal">Max: <span th:text="${dailyNutritionView.alcoholGoal}">0</span>g</div>
+                                                    </div>
+                    </div>
+                </div>
+            </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="col-md-6 col-xl-3 mb-3 d-flex">
+                <a href="/nutrition/food-tracker" class="card hover-lift text-decoration-none w-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                            <i class="bi bi-plus-circle" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="mt-3">Log Meal</h5>
+                        <p class="text-muted">Quickly add your meals and track nutrition</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-3 mb-3 d-flex">
+                <a href="/nutrition/meal-plan" class="card hover-lift text-decoration-none w-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                            <i class="bi bi-calendar-check" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="mt-3">Meal Planning</h5>
+                        <p class="text-muted">Plan your meals for the week ahead</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-3 mb-3 d-flex">
+                <a href="/nutrition/foods" class="card hover-lift text-decoration-none w-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                            <i class="bi bi-book" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="mt-3">Browse Foods</h5>
+                        <p class="text-muted">Discover foods, products, and recipes</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 col-xl-3 mb-3 d-flex">
+                <a th:href="@{/nutrition/create-food}" class="card hover-lift text-decoration-none w-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                            <i class="bi bi-pencil-square" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="mt-3">Create Custom Food</h5>
+                        <p class="text-muted">Add your own food item to the database</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Water Intake Tracker -->
+        <div id="water-intake-section" class="row mb-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="col-12">
+                <div class="card hover-lift">
+                    <div class="card-header glass">
+                        <h5 class="mb-0 fw-bold text-center">
+                            <i class="bi bi-droplet me-2"></i>Daily Water Intake
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="water-glass-container">
+                            <div class="water-glass">
+                                <div class="water-fill" id="waterFill" style="height: 25%;">
+                                    <div class="water-wave" id="waterWave"></div>
+                                </div>
+                            </div>
+                            <div class="water-amount">
+                                <span id="waterConsumed">500</span> ml / <span id="waterGoal">2000</span> ml
+                            </div>
+                            <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#waterIntakeModal">
+                                <i class="bi bi-plus-circle me-2"></i>Log Water
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Water Intake Modal -->
+        <div class="modal fade" id="waterIntakeModal" tabindex="-1" aria-labelledby="waterIntakeModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="waterIntakeModalLabel">
+                            <i class="bi bi-droplet me-2"></i>Log Water Intake
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-4">
+                            <label for="waterAmount" class="form-label fw-bold">Amount (ml)</label>
+                            <input type="number" class="form-control form-control-lg" id="waterAmount" 
+                                   min="0" max="5000" step="50" value="250" placeholder="Enter amount in ml">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Quick Select</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-outline-primary quick-water-btn" data-amount="250">250 ml</button>
+                                <button type="button" class="btn btn-outline-primary quick-water-btn" data-amount="330">330 ml</button>
+                                <button type="button" class="btn btn-outline-primary quick-water-btn" data-amount="500">500 ml</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="submitWaterIntake">
+                            <i class="bi bi-check-circle me-2"></i>Log Water
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Nutrition Activity -->
+        <div class="row" data-aos="fade-up" data-aos-delay="400">
+            <div class="col-12">
+                <div class="card hover-lift">
+                    <div class="card-header glass">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-clock-history me-2"></i>Recent Nutrition Activity
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Activity</th>
+                                        <th>Details</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentActivityBody">
+                                    <tr id="recentActivityEmptyState">
+                                        <td colspan="3" class="text-center text-muted">
+                                            No nutrition activity yet. Start by logging meals, drinking water, or creating foods.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination -->
+                        <nav aria-label="Activity pagination" id="activityPagination" style="display: none;" class="mt-3">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item" id="prevPageBtn">
+                                    <a class="page-link" href="#" onclick="loadActivityPage(currentActivityPage - 1); return false;" role="button">
+                                        <i class="bi bi-chevron-left me-1"></i>Previous
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link fw-semibold" id="pageInfo">Page 1 of 1</span>
+                                </li>
+                                <li class="page-item" id="nextPageBtn">
+                                    <a class="page-link" href="#" onclick="loadActivityPage(currentActivityPage + 1); return false;" role="button">
+                                        Next<i class="bi bi-chevron-right ms-1"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div layout:fragment="scripts">
+        <script>
+            // Toggle chevron icon when advanced nutrition section is expanded/collapsed
+            const advancedNutritionCollapse = document.getElementById('advancedNutrition');
+            const advancedToggleIcon = document.getElementById('advancedToggleIcon');
+            
+            if (advancedNutritionCollapse) {
+                advancedNutritionCollapse.addEventListener('show.bs.collapse', function () {
+                    advancedToggleIcon.classList.remove('bi-chevron-down');
+                    advancedToggleIcon.classList.add('bi-chevron-up');
+                });
+                
+                advancedNutritionCollapse.addEventListener('hide.bs.collapse', function () {
+                    advancedToggleIcon.classList.remove('bi-chevron-up');
+                    advancedToggleIcon.classList.add('bi-chevron-down');
+                });
+            }
+            
+            // Water intake functionality
+            let currentWaterIntake = 0; // ml - will be loaded from backend
+            let waterGoal = 2000; // ml - default, will be overridden from backend if available
+            
+            function updateWaterGlass() {
+                const waterFill = document.getElementById('waterFill');
+                const waterConsumed = document.getElementById('waterConsumed');
+                const waterWave = document.getElementById('waterWave');
+                const percentage = Math.min((currentWaterIntake / waterGoal) * 100, 100);
+                
+                if (waterFill) {
+                    waterFill.style.height = percentage + '%';
+                }
+                
+                if (waterConsumed) {
+                    waterConsumed.textContent = currentWaterIntake.toLocaleString();
+                }
+                
+            // Update animation based on fill level
+            if (waterWave && waterFill) {
+                // Remove all animation classes first
+                waterWave.classList.remove('calm', 'full');
+                waterFill.classList.remove('full', 'empty');
+                
+                // Small delay to ensure class removal is processed
+                setTimeout(() => {
+                    if (percentage <= 0) {
+                        // Empty - hide water but keep element for smooth fill animation
+                        waterFill.classList.add('empty');
+                        waterWave.style.cssText = 'opacity: 0; visibility: hidden; animation: none !important;';
+                    } else if (percentage >= 100) {
+                        // Full - no animation and hide wave layers for flat surface
+                        waterWave.classList.add('full');
+                        waterFill.classList.add('full');
+                        // Force stop with inline styles and hide
+                        waterWave.style.cssText = 'animation: none !important; -webkit-animation: none !important; opacity: 0; visibility: hidden;';
+                    } else if (percentage >= 90) {
+                        // Almost full (90-99.9%) - very calm, minimal animation
+                        waterWave.classList.add('calm');
+                        waterWave.style.cssText = 'opacity: 1; visibility: visible;';
+                        waterFill.classList.remove('empty');
+                    } else if (percentage > 0) {
+                        // Below 90% but above 0% - default animation, show wave
+                        waterWave.style.cssText = 'opacity: 1; visibility: visible; animation: waterSlosh 2s ease-in-out infinite;';
+                        waterFill.classList.remove('empty');
+                        // Small delay to ensure wave animation starts
+                        setTimeout(() => {
+                            if (waterWave && !waterWave.classList.contains('full') && !waterWave.classList.contains('calm')) {
+                                waterWave.style.animation = 'waterSlosh 2s ease-in-out infinite';
+                            }
+                        }, 100);
+                    }
+                }, 10);
+            }
+        }
+
+        // Make function available globally for testing
+        window.updateWaterGlass = updateWaterGlass;
+
+        function loadTodayWater() {
+            fetch('/api/v1/nutrition/water', {
+                method: 'GET',
+                credentials: 'same-origin'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load water intake: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (typeof data.totalAmount === 'number') {
+                        currentWaterIntake = data.totalAmount;
+                    }
+                    if (typeof data.goal === 'number') {
+                        waterGoal = data.goal;
+                        const goalEl = document.getElementById('waterGoal');
+                        if (goalEl) {
+                            goalEl.textContent = data.goal.toLocaleString();
+                        }
+                    }
+                    updateWaterGlass();
+                })
+                .catch(error => {
+                    console.error('Error loading water intake:', error);
+                    updateWaterGlass();
+                });
+        }
+
+        // Quick select buttons
+        document.querySelectorAll('.quick-water-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const amount = parseInt(this.getAttribute('data-amount'));
+                document.getElementById('waterAmount').value = amount;
+            });
+        });
+
+        // Submit water intake
+        document.getElementById('submitWaterIntake')?.addEventListener('click', function() {
+            const amount = parseInt(document.getElementById('waterAmount').value);
+
+            if (amount && amount > 0) {
+                const csrfTokenMeta = document.querySelector('meta[name="_csrf"]');
+                const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+                const csrfToken = csrfTokenMeta ? csrfTokenMeta.content : null;
+                const csrfHeader = csrfHeaderMeta ? csrfHeaderMeta.content : null;
+
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (csrfToken && csrfHeader) {
+                    headers[csrfHeader] = csrfToken;
+                }
+
+                fetch('/api/v1/nutrition/water', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: headers,
+                    body: JSON.stringify({ amount: amount })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                throw new Error(text || 'Failed to log water');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (typeof data.totalAmount === 'number') {
+                            currentWaterIntake = data.totalAmount;
+                        } else {
+                            currentWaterIntake += amount;
+                        }
+                        if (typeof data.goal === 'number') {
+                            waterGoal = data.goal;
+                            const goalEl = document.getElementById('waterGoal');
+                            if (goalEl) {
+                                goalEl.textContent = data.goal.toLocaleString();
+                            }
+                        }
+                        updateWaterGlass();
+
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('waterIntakeModal'));
+                        modal.hide();
+
+                        // Reset input
+                        document.getElementById('waterAmount').value = 250;
+
+                        // Show success message (you can integrate with your toast system)
+                        if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                            Momentum.showToast('Water logged successfully!', 'success');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error logging water:', error);
+                        if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                            Momentum.showToast('Failed to log water. Please try again.', 'danger');
+                        } else {
+                            alert('Failed to log water. Please try again.');
+                        }
+                    });
+            }
+        });
+
+        let currentActivityPage = 0;
+        const activityPageSize = 10;
+
+        function loadActivityPage(page) {
+            const tbody = document.getElementById('recentActivityBody');
+            const emptyRow = document.getElementById('recentActivityEmptyState');
+            const pagination = document.getElementById('activityPagination');
+
+            if (!tbody) {
+                return;
+            }
+
+            fetch(`/api/v1/nutrition/activity?page=${page}&size=${activityPageSize}`, {
+                method: 'GET',
+                credentials: 'same-origin'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load activity: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    currentActivityPage = data.currentPage || 0;
+
+                    if (!data.content || data.content.length === 0) {
+                        if (emptyRow) {
+                            emptyRow.style.display = '';
+                        }
+                        if (pagination) {
+                            pagination.style.display = 'none';
+                        }
+                        return;
+                    }
+
+                    if (emptyRow) {
+                        emptyRow.style.display = 'none';
+                    }
+                    if (pagination) {
+                        pagination.style.display = 'block';
+                    }
+
+                    tbody.innerHTML = data.content.map(item => {
+                        const type = item.type || 'OTHER';
+                        const typeLabel = type.replace(/_/g, ' ')
+                            .toLowerCase()
+                            .replace(/^\w/, c => c.toUpperCase());
+
+                        let badgeClass = 'bg-secondary';
+                        if (type === 'MEAL_ADDED') badgeClass = 'bg-success';
+                        else if (type === 'MEAL_REMOVED') badgeClass = 'bg-danger';
+                        else if (type === 'WATER_LOGGED') badgeClass = 'bg-primary';
+                        else if (type === 'FOOD_CREATED') badgeClass = 'bg-info';
+                        else if (type === 'FOOD_UPDATED') badgeClass = 'bg-warning text-dark';
+                        else if (type === 'RECIPE_ADDED_TO_LIBRARY') badgeClass = 'bg-success';
+                        else if (type === 'RECIPE_REMOVED_FROM_LIBRARY') badgeClass = 'bg-danger';
+
+                        let timeText = '';
+                        if (item.createdAt) {
+                            const d = new Date(item.createdAt);
+                            if (!isNaN(d.getTime())) {
+                                const options = { hour: '2-digit', minute: '2-digit' };
+                                timeText = d.toLocaleTimeString(undefined, options);
+                            }
+                        }
+
+                        return `
+                            <tr>
+                                <td><span class="badge ${badgeClass}">${typeLabel}</span></td>
+                                <td>${item.message || ''}</td>
+                                <td>${timeText}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    // Update pagination controls
+                    updatePaginationControls(data);
+                })
+                .catch(error => {
+                    console.error('Error loading activity:', error);
+                });
+        }
+
+        function updatePaginationControls(data) {
+            const pageInfo = document.getElementById('pageInfo');
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+
+            if (pageInfo) {
+                const current = data.currentPage + 1;
+                const total = data.totalPages || 1;
+                pageInfo.textContent = `Page ${current} of ${total}`;
+            }
+
+            if (prevBtn) {
+                if (data.hasPrevious) {
+                    prevBtn.classList.remove('disabled');
+                    prevBtn.querySelector('a').style.pointerEvents = 'auto';
+                } else {
+                    prevBtn.classList.add('disabled');
+                    prevBtn.querySelector('a').style.pointerEvents = 'none';
+                }
+            }
+
+            if (nextBtn) {
+                if (data.hasNext) {
+                    nextBtn.classList.remove('disabled');
+                    nextBtn.querySelector('a').style.pointerEvents = 'auto';
+                } else {
+                    nextBtn.classList.add('disabled');
+                    nextBtn.querySelector('a').style.pointerEvents = 'none';
+                }
+            }
+        }
+
+        function loadRecentActivity() {
+            loadActivityPage(0);
+        }
+
+        // Initialize widgets on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTodayWater();
+            loadRecentActivity();
+
+            // Handle URL hash for scrolling to sections
+            const hash = window.location.hash;
+            if (hash === '#water-intake-section') {
+                // Small delay to ensure page is fully loaded
+                setTimeout(() => {
+                    const waterSection = document.getElementById('water-intake-section');
+                    if (waterSection) {
+                        waterSection.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+
+                        // Add highlight effect
+                        const card = waterSection.querySelector('.card');
+                        if (card) {
+                            card.style.boxShadow = '0 0 30px rgba(17, 153, 142, 0.6)';
+                            setTimeout(() => {
+                                card.style.boxShadow = '';
+                            }, 3000);
+                        }
+                    }
+                }, 500);
+            }
+        });
+        </script>
+    </div>
+</body>
+</html>
+
+

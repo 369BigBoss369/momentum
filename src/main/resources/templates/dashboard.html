@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Dashboard</title>
+
+    <style>
+        .workout-completed-btn {
+            background: linear-gradient(135deg, #198754, #20c997);
+            border: none;
+            color: white;
+        }
+
+        .workout-completed-btn:hover {
+            background: linear-gradient(135deg, #157347, #1aa179);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Welcome Section -->
+    <div class="row mb-5" data-aos="fade-up">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white morphing-shape">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="card-title mb-3 display-5 fw-bold">Welcome back, <span class="username-gradient" th:text="${userName}">User</span>!</h2>
+                            <p class="card-text mb-0 lead">Ready to continue your fitness journey? Let's make today count!</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <i class="bi bi-lightning-charge-fill float" style="font-size: 5rem; opacity: 0.3;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-5 justify-content-center" data-aos="fade-up" data-aos-delay="200">
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="stats-card danger hover-lift">
+                <div class="stats-icon">
+                    <i class="bi bi-fire"></i>
+                </div>
+                <h3 class="stats-number" th:text="${caloriesToday}">0</h3>
+                <p class="stats-label">Calories Burned</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="stats-card info hover-lift">
+                <div class="stats-icon info-icon">
+                    <i class="bi bi-droplet"></i>
+                </div>
+                <h3 class="stats-number" th:text="${waterMl}">0</h3>
+                <p class="stats-label">Water (ML)</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="stats-card success hover-lift">
+                <div class="stats-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <h3 class="stats-number" th:text="${workoutsThisWeek}">0</h3>
+                <p class="stats-label">Workouts Completed This Week</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row" data-aos="fade-up" data-aos-delay="300">
+        <!-- Nutrition Overview -->
+        <div class="col-lg-6 mb-4" data-aos="slide-in-left" data-aos-delay="400">
+            <div class="card h-100 hover-lift">
+                <div class="card-header glass">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-egg-fried me-2"></i>Today's Nutrition
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-success" th:text="${caloriesConsumed ?: 0}">0</h4>
+                                <small class="text-muted">Calories</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <h4 class="text-primary" th:text="${caloriesGoal ?: 2000}">2000</h4>
+                                <small class="text-muted">Goal</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Macronutrients -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Protein</span>
+                            <span th:text="${proteinConsumed ?: 0} + 'g'">0g</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar"
+                                 th:style="'width: ' + ${proteinProgress ?: 0} + '%'"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Carbs</span>
+                            <span th:text="${carbsConsumed ?: 0} + 'g'">0g</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-warning" role="progressbar"
+                                 th:style="'width: ' + ${carbsProgress ?: 0} + '%'"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Fat</span>
+                            <span th:text="${fatConsumed ?: 0} + 'g'">0g</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-info" role="progressbar"
+                                 th:style="'width: ' + ${fatProgress ?: 0} + '%'"></div>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="/nutrition/food-tracker" class="btn btn-success me-2">
+                            <i class="bi bi-plus-circle me-1"></i>Add Meal
+                        </a>
+                        <button type="button" class="btn btn-info text-white" id="drinkWaterBtn">
+                            <i class="bi bi-droplet me-1"></i>Drink Water
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout Overview -->
+        <div class="col-lg-6 mb-4" data-aos="slide-in-right" data-aos-delay="500">
+            <div class="card h-100 hover-lift">
+                <div class="card-header glass">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-activity me-2"></i>Today's Workout
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${!todaysWorkouts.isEmpty()}">
+                        <p class="text-muted small mb-3" th:if="${todaysWorkouts.size() > 1}"
+                           th:text="${todaysWorkouts.size()} + ' workouts scheduled today'">Workouts scheduled today</p>
+
+                        <div class="list-group list-group-flush">
+                            <div th:each="entry : ${todaysWorkouts}" class="list-group-item px-0 py-3">
+                                <div class="d-flex justify-content-between align-items-center gap-3">
+
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0"
+                                             style="width: 44px; height: 44px;"
+                                             th:classappend="${entry.completed} ? 'bg-success' : 'bg-primary-subtle'">
+                                            <i class="bi"
+                                               th:classappend="${entry.completed} ? 'bi-check-lg text-white' : 'bi-activity text-primary'"
+                                               style="font-size: 1.2rem;"></i>
+                                        </div>
+
+                                        <div>
+                                            <h6 class="mb-1" th:text="${entry.workout.name}">Workout Name</h6>
+
+                                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-dark border"
+                                      th:text="${entry.workout.type}">Type</span>
+
+                                                <small class="text-muted"
+                                                       th:text="${entry.workout.workoutExercises?.size() ?: 0} + ' exercises'">
+                                                    0 exercises
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Completed workout -->
+                                    <a th:if="${entry.completed}"
+                                       href="/fitness/tracker"
+                                       class="btn btn-sm flex-shrink-0 text-white workout-completed-btn">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        Check
+                                    </a>
+
+                                    <!-- Workout not completed -->
+                                    <a th:unless="${entry.completed}"
+                                       href="/fitness/tracker"
+                                       class="btn btn-primary btn-sm flex-shrink-0">
+                                        <i class="bi bi-play-fill me-1"></i>
+                                        Start
+                                    </a>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- No workouts today -->
+                    <div th:if="${todaysWorkouts.isEmpty()}" class="text-center">
+                        <i class="bi bi-activity text-muted" style="font-size: 3rem;"></i>
+
+                        <h5 class="text-muted mt-3">No workout planned for today</h5>
+
+                        <p class="text-muted">
+                            Create a workout plan to get started!
+                        </p>
+
+                        <a href="/fitness/plans" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i>
+                            Create Plan
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hub Navigation Cards -->
+    <div class="row mt-5" data-aos="fade-up" data-aos-delay="700">
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="/nutrition/dashboard" class="hub-navigation-card nutrition-hub-card" id="nutritionHubLink">
+                <div class="hub-navigation-icon">
+                    <i class="bi bi-egg-fried"></i>
+                </div>
+                <h3 class="hub-navigation-title">Nutrition Hub</h3>
+                <p class="hub-navigation-description">Track meals, monitor calories, and discover healthy recipes</p>
+                <div class="hub-navigation-arrow">
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-6 col-md-6 mb-4">
+            <a href="/fitness/dashboard" class="hub-navigation-card fitness-hub-card" id="fitnessHubLink">
+                <div class="hub-navigation-icon">
+                    <i class="bi bi-activity"></i>
+                </div>
+                <h3 class="hub-navigation-title">Fitness Hub</h3>
+                <p class="hub-navigation-description">Manage workouts, track exercises, and plan your training</p>
+                <div class="hub-navigation-arrow">
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Transition Overlay -->
+    <div id="transitionOverlay" class="transition-overlay"></div>
+</div>
+</body>
+</html>
+
+<div layout:fragment="scripts">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const drinkWaterBtn = document.getElementById('drinkWaterBtn');
+
+            if (drinkWaterBtn) {
+                drinkWaterBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Redirect to nutrition dashboard and scroll to water intake section
+                    window.location.href = '/nutrition/dashboard#water-intake-section';
+                });
+            }
+        });
+    </script>
+</div>

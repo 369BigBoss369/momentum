@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Momentum | Basic Information</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css?v=1.0" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.92), rgba(118, 75, 162, 0.88));
+            position: relative;
+            overflow: hidden;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .auth-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.25), transparent 55%),
+                        radial-gradient(circle at bottom left, rgba(102, 126, 234, 0.35), transparent 60%);
+            pointer-events: none;
+        }
+
+        .auth-container {
+            position: relative;
+            z-index: 1;
+            width: min(520px, 92vw);
+        }
+
+        .auth-card {
+            backdrop-filter: blur(18px);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1.6rem;
+            box-shadow: 0 35px 75px rgba(102, 126, 234, 0.38);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.55);
+        }
+
+        .auth-header {
+            text-align: center;
+            padding: 2.6rem 2.4rem 1.8rem;
+        }
+
+        .auth-header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin-bottom: 0.55rem;
+            color: #2d2a44;
+        }
+
+        .auth-header p {
+            margin: 0;
+            font-size: 0.98rem;
+            color: #67648b;
+        }
+
+        .auth-form {
+            padding: 0 2.4rem 2.2rem;
+        }
+
+        .form-floating > label {
+            color: #6c6a8d;
+        }
+
+        .form-control, .form-select {
+            background-color: rgba(255, 255, 255, 0.97);
+            border: 1px solid rgba(102, 126, 234, 0.25);
+            border-radius: 0.9rem;
+            padding-left: 1.25rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: rgba(102, 126, 234, 0.65);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.18);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #6c63ff 0%, #a855f7 100%);
+            border: none;
+            border-radius: 0.9rem;
+            padding: 0.95rem;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(108, 99, 255, 0.3);
+            color: white;
+        }
+
+        .floating-field {
+            position: relative;
+            margin-bottom: 1.4rem;
+        }
+
+        .floating-field .form-floating {
+            position: relative;
+        }
+
+        .floating-field.has-error .form-control,
+        .floating-field.has-error .form-select {
+            border-color: rgba(255, 99, 132, 0.55);
+            box-shadow: 0 0 0 0.15rem rgba(255, 99, 132, 0.15);
+        }
+
+        .floating-field .field-error {
+            color: #ff6584;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-top: 0.45rem;
+            padding-left: 0.2rem;
+            letter-spacing: 0.01em;
+        }
+
+        .floating-field .field-error::before {
+            content: '\26A0';
+            font-size: 0.72rem;
+            margin-right: 0.35rem;
+        }
+
+        .global-error {
+            background: rgba(255, 99, 132, 0.12);
+            border: 1px solid rgba(255, 99, 132, 0.35);
+            color: #ff5777;
+            border-radius: 0.9rem;
+            padding: 0.9rem 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 1.4rem;
+            box-shadow: 0 12px 26px rgba(255, 99, 132, 0.08);
+        }
+
+        .progress-indicator {
+            text-align: center;
+            padding: 1.5rem 2.4rem 0;
+            color: #67648b;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(102, 126, 234, 0.15);
+            border-radius: 2px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6c63ff 0%, #a855f7 100%);
+            width: 50%;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-overlay"></div>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="progress-indicator">
+                <span>Step 1 of 2</span>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+
+            <div class="auth-header">
+                <h1>Tell us about yourself</h1>
+                <p>We need some basic information to personalize your experience</p>
+            </div>
+
+            <form th:action="@{/complete-profile/step1}" th:method="PATCH" th:object="${userBiometricsRequest}" class="auth-form">
+                <div class="floating-field" th:classappend="${#fields.hasErrors('height')} ? 'has-error'">
+                    <div class="form-floating">
+                        <input type="number" 
+                               class="form-control" 
+                               id="height" 
+                               th:field="*{height}" 
+                               placeholder="Height"
+                               required>
+                        <label for="height">Height (cm)</label>
+                    </div>
+                    <div th:if="${#fields.hasErrors('height')}" class="field-error" th:each="error : ${#fields.errors('height')}" th:text="${error}"></div>
+                </div>
+
+                <div class="floating-field" th:classappend="${#fields.hasErrors('weight')} ? 'has-error'">
+                    <div class="form-floating">
+                        <input type="number" 
+                               class="form-control" 
+                               id="weight" 
+                               th:field="*{weight}" 
+                               placeholder="Weight"
+                               step="0.1"
+                               required>
+                        <label for="weight">Weight (kg)</label>
+                    </div>
+                    <div th:if="${#fields.hasErrors('weight')}" class="field-error" th:each="error : ${#fields.errors('weight')}" th:text="${error}"></div>
+                </div>
+
+                <div class="floating-field" th:classappend="${#fields.hasErrors('age')} ? 'has-error'">
+                    <div class="form-floating">
+                        <input type="number" 
+                               class="form-control" 
+                               id="age" 
+                               th:field="*{age}" 
+                               placeholder="Age"
+                               required>
+                        <label for="age">Age</label>
+                    </div>
+                    <div th:if="${#fields.hasErrors('age')}" class="field-error" th:each="error : ${#fields.errors('age')}" th:text="${error}"></div>
+                </div>
+
+                <div class="floating-field" th:classappend="${#fields.hasErrors('gender')} ? 'has-error'">
+                    <div class="form-floating">
+                        <select class="form-select"
+                                id="gender"
+                                th:field="*{gender}"
+                                required>
+                            <option value="">Select your gender</option>
+                            <option th:each="genderType : ${T(com.momentum.user.model.enums.GenderType).values()}"
+                                    th:value="${genderType}"
+                                    th:text="${genderType.displayName}">Gender</option>
+                        </select>
+                        <label for="gender">Gender</label>
+                    </div>
+                    <div th:if="${#fields.hasErrors('gender')}" class="field-error" th:each="error : ${#fields.errors('gender')}" th:text="${error}"></div>
+                </div>
+
+                <button type="submit" class="btn btn-gradient">
+                    Continue
+                    <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

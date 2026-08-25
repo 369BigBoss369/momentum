@@ -1,0 +1,3013 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Recipes</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <style>
+        .nutrition-theme {
+            --primary-color: #11998e;
+            --gradient-primary: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .nutrition-theme .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+        }
+        
+        .nutrition-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #0f857a 0%, #2dd970 100%);
+        }
+        
+        .nutrition-theme .btn-outline-primary {
+            border-color: #11998e;
+            color: #11998e;
+        }
+        
+        .nutrition-theme .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-color: #11998e;
+            color: white;
+        }
+
+        /* Ingredient badge styling */
+        #ingredientsList .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: default;
+        }
+
+        #ingredientsList .badge .btn-close {
+            opacity: 0.8;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        #ingredientsList .badge .btn-close:hover {
+            opacity: 1;
+        }
+
+        /* Sort section styling */
+        #sortSection .card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+
+        #sortSection .form-select {
+            min-width: 200px;
+        }
+
+        /* Recipe card hover effect */
+        .recipe-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Force recipe cards to be 1/3 width on large screens - AGGRESSIVE OVERRIDE */
+        #recipeList.row,
+        #recipeList {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            margin-left: -0.75rem !important;
+            margin-right: -0.75rem !important;
+        }
+        
+        /* Target ALL direct children that have col classes */
+        #recipeList > div,
+        #recipeList.row > div {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+        }
+        
+        /* Force 3 per row on large screens - target by class name */
+        #recipeList > .col-lg-4,
+        #recipeList.row > .col-lg-4,
+        #recipeList > div.col-lg-4,
+        #recipeList.row > div.col-lg-4 {
+            width: 33.33333333% !important;
+            flex: 0 0 33.33333333% !important;
+            max-width: 33.33333333% !important;
+        }
+        
+        /* 2 per row on medium screens */
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            #recipeList > .col-md-6,
+            #recipeList.row > .col-md-6,
+            #recipeList > div.col-md-6,
+            #recipeList.row > div.col-md-6 {
+                width: 50% !important;
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+            }
+        }
+        
+        /* 1 per row on small screens */
+        @media (max-width: 767.98px) {
+            #recipeList > div[class*="col-"],
+            #recipeList.row > div[class*="col-"] {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+            }
+        }
+        
+        #recipeList .card {
+            width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        .ingredient-remove-btn {
+            transition: all 0.3s ease;
+        }
+
+        .ingredient-remove-btn:hover {
+            color: #dc3545 !important;
+            opacity: 1 !important;
+            transform: scale(1.1);
+        }
+
+        .remove-from-library-btn {
+            transition: all 0.3s ease;
+            background: #f5f6f6 !important;
+            color: #dc3545 !important;
+            border: 1px solid #dc3545 !important;
+        }
+
+        .remove-from-library-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%) !important;
+            color: white !important;
+            border-color: #dc3545 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .remove-from-library-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        /* Search Banner Header */
+        .search-banner {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .search-banner h2 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .search-banner p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.95;
+            font-size: 1.1rem;
+        }
+
+        .search-banner .banner-icon {
+            font-size: 2.5rem;
+        }
+        
+        /* Ingredient Modal Styles - Matching create-food.html */
+        #ingredientModalBackdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        #ingredientModalBackdrop.show {
+            opacity: 1;
+        }
+        
+        #ingredientModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1050;
+            overflow-x: hidden;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        #ingredientModal.show {
+            opacity: 1;
+        }
+        
+        #ingredientModal .modal-dialog {
+            position: relative;
+            width: auto;
+            margin: 1.75rem auto;
+            max-width: 600px;
+            pointer-events: none;
+            transform: scale(1);
+        }
+        
+        #ingredientModal.show .modal-dialog {
+            pointer-events: auto;
+            transform: scale(1);
+        }
+        
+        /* Food Type List Styles */
+        .food-type-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+        }
+        
+        .food-type-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border: 2px solid transparent;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #fff;
+        }
+        
+        .food-type-item:hover {
+            background-color: #f8f9fa;
+            border-color: #11998e;
+        }
+        
+        .food-type-item.selected {
+            background-color: #e7f5f3;
+            border-color: #11998e;
+        }
+        
+        .food-type-item img {
+            width: 50px;
+            height: 50px;
+            max-width: 50px;
+            max-height: 50px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .food-type-item .food-type-name {
+            flex: 1;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .food-type-item.selected .food-type-name {
+            color: #11998e;
+            font-weight: 600;
+        }
+        
+        .food-type-category {
+            margin-top: 1.5rem;
+        }
+        
+        .food-type-category:first-child {
+            margin-top: 0;
+        }
+        
+        .food-type-category-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            color: #6c757d;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Select2 custom styles */
+        .select2-food-image {
+            width: 32px !important;
+            height: 32px !important;
+            max-width: 32px !important;
+            max-height: 32px !important;
+            min-width: 32px !important;
+            min-height: 32px !important;
+            object-fit: cover !important;
+            border-radius: 4px !important;
+            flex-shrink: 0 !important;
+        }
+        
+        /* Ingredient badge image styles */
+        .ingredient-image {
+            width: 40px !important;
+            height: 40px !important;
+            max-width: 40px !important;
+            max-height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            object-fit: cover !important;
+            border-radius: 0.375rem !important;
+            flex-shrink: 0 !important;
+        }
+    </style>
+</head>
+<body class="nutrition-theme">
+    <div layout:fragment="content">
+        <!-- CRITICAL: Load jQuery and Select2 FIRST so they're available -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        
+        <!-- CRITICAL: Define openIngredientModal IMMEDIATELY before any content -->
+        <script>
+            // Wait for jQuery to be available
+            (function waitForJQuery() {
+                if (typeof jQuery !== 'undefined' || typeof $ !== 'undefined') {
+                    console.log('jQuery is available');
+                    initEarlyScript();
+                } else {
+                    console.log('Waiting for jQuery...');
+                    setTimeout(waitForJQuery, 50);
+                }
+            })();
+            
+            function initEarlyScript() {
+                'use strict';
+                
+                // Define removeIngredient function early so it's available immediately
+                if (typeof window.removeIngredient === 'undefined') {
+                    window.removeIngredient = function(ingredientId) {
+                        console.log('removeIngredient called with:', ingredientId);
+                        
+                        // Remove from array by ID
+                        if (typeof window.selectedIngredients !== 'undefined') {
+                            window.selectedIngredients = window.selectedIngredients.filter(ing => ing.id !== ingredientId);
+                            console.log('selectedIngredients after removal:', window.selectedIngredients);
+                        }
+                        
+                        // Remove the badge from DOM
+                        const ingredientsList = document.getElementById('ingredientsList');
+                        if (ingredientsList) {
+                            const badgeToRemove = ingredientsList.querySelector('.ingredient-badge[data-ingredient-id="' + ingredientId + '"]');
+                            if (badgeToRemove) {
+                                badgeToRemove.remove();
+                                console.log('Removed badge from DOM for:', ingredientId);
+                            } else {
+                                console.warn('Could not find badge to remove for:', ingredientId);
+                            }
+                        }
+                        
+                        return false;
+                    };
+                    console.log('removeIngredient function defined early');
+                }
+                
+                // Define initializeIngredientSelect2 immediately after jQuery loads
+                // This is the real implementation, defined early so it's always available
+                if (typeof window.initializeIngredientSelect2 === 'undefined') {
+                    window.initializeIngredientSelect2 = function(type, foodTypeValue) {
+                        console.log('initializeIngredientSelect2 called with:', type, foodTypeValue);
+                        
+                        if (typeof $ === 'undefined') {
+                            console.error('jQuery not available');
+                            return;
+                        }
+                        
+                        const $foodSelect = $('#foodSelect');
+                        if ($foodSelect.length === 0) {
+                            console.error('foodSelect element not found!');
+                            return;
+                        }
+                        
+                        console.log('foodSelect element found, initializing Select2...');
+                        
+                        // Destroy existing Select2 if any
+                        if ($foodSelect.data('select2')) {
+                            console.log('Destroying existing Select2 instance');
+                            $foodSelect.select2('destroy');
+                        }
+                        
+                        // Show food selection view FIRST
+                        const foodTypeSelectionViewEl = document.getElementById('ingredientFoodTypeSelectionView');
+                        const foodSelectionViewEl = document.getElementById('ingredientFoodSelectionView');
+                        const backToTypesBtnEl = document.getElementById('ingredientBackToTypesBtn');
+                        const selectedIngredientFoodIdInputEl = document.getElementById('selectedIngredientFoodId');
+                        
+                        if (foodTypeSelectionViewEl) {
+                            foodTypeSelectionViewEl.style.display = 'none';
+                        }
+                        if (foodSelectionViewEl) {
+                            foodSelectionViewEl.style.display = 'block';
+                        }
+                        if (backToTypesBtnEl) {
+                            backToTypesBtnEl.style.display = 'block';
+                        }
+                        
+                        // Format functions for Select2 (define inline)
+                        function formatFoodResult(food) {
+                            if (!food.id) {
+                                return food.text;
+                            }
+                            const imageUrl = food.imagePath || '/images/products/vegetable.png';
+                            return $(
+                                `<span class="d-flex align-items-center">
+                                    <img src="${imageUrl}" class="select2-food-image me-2" onerror="this.src='/images/products/vegetable.png'"/>
+                                    <span>${food.text}</span>
+                                </span>`
+                            );
+                        }
+                        
+                        function formatFoodSelection(food) {
+                            return food.text;
+                        }
+                        
+                        // Small delay to ensure view is visible before initializing Select2
+                        setTimeout(function() {
+                            console.log('Initializing Select2 after view is shown');
+                            if ($foodSelect.data('select2')) {
+                                $foodSelect.select2('destroy');
+                            }
+                            $foodSelect.html('<option value="">Type to search foods...</option>');
+                            
+                            // Initialize Select2
+                            $foodSelect.select2({
+                                theme: 'bootstrap-5',
+                                placeholder: 'Type to search foods...',
+                                allowClear: true,
+                                minimumInputLength: 2,
+                                dropdownParent: $('#ingredientModal'),
+                                ajax: {
+                                    url: '/api/v1/nutrition/foods',
+                                    dataType: 'json',
+                                    delay: 300,
+                                    type: 'GET',
+                                    headers: {
+                                        'Accept': 'application/json'
+                                    },
+                                    data: function (params) {
+                                        console.log('Select2 AJAX request params:', {
+                                            term: params.term,
+                                            type: type,
+                                            foodType: foodTypeValue
+                                        });
+                                        return {
+                                            query: params.term || '',
+                                            type: type,
+                                            foodType: foodTypeValue
+                                        };
+                                    },
+                                    processResults: function (data) {
+                                        console.log('Select2 received data:', data);
+                                        if (!Array.isArray(data)) {
+                                            console.error('Expected array but got:', typeof data, data);
+                                            return { results: [] };
+                                        }
+                                        return {
+                                            results: data.map(function(food) {
+                                                return {
+                                                    id: food.id,
+                                                    text: food.name,
+                                                    imagePath: food.imagePath || '/images/products/vegetable.png'
+                                                };
+                                            })
+                                        };
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('Select2 AJAX error:', {
+                                            status: status,
+                                            error: error,
+                                            responseText: xhr.responseText,
+                                            statusCode: xhr.status
+                                        });
+                                    },
+                                    cache: true
+                                },
+                                templateResult: formatFoodResult,
+                                templateSelection: formatFoodSelection
+                            });
+                            
+                            console.log('Select2 initialized successfully');
+                        }, 50);
+                        
+                        // Handle food selection
+                        const confirmBtnEl = document.getElementById('confirmAddIngredientBtn');
+                        
+                        $foodSelect.off('select2:select').on('select2:select', function(e) {
+                            const selectedFood = e.params.data;
+                            console.log('Food selected:', selectedFood);
+                            if (selectedIngredientFoodIdInputEl) {
+                                selectedIngredientFoodIdInputEl.value = selectedFood.id;
+                            }
+                            window._selectedFoodData = {
+                                id: selectedFood.id,
+                                name: selectedFood.text,
+                                imagePath: selectedFood.imagePath
+                            };
+                            if (confirmBtnEl) {
+                                confirmBtnEl.disabled = false;
+                            }
+                        });
+                        
+                        $foodSelect.off('select2:clear').on('select2:clear', function() {
+                            const selectedIngredientFoodIdInputEl = document.getElementById('selectedIngredientFoodId');
+                            if (selectedIngredientFoodIdInputEl) {
+                                selectedIngredientFoodIdInputEl.value = '';
+                            }
+                            window._selectedFoodData = null;
+                            if (confirmBtnEl) {
+                                confirmBtnEl.disabled = true;
+                            }
+                        });
+                    };
+                    console.log('initializeIngredientSelect2 defined early');
+                }
+                
+                // Define attachModalEventListeners FIRST so it's available
+                window.attachModalEventListeners = function() {
+                    console.log('attachModalEventListeners called (early)');
+                    
+                    const closeBtnEl = document.getElementById('closeIngredientModalBtn');
+                    const backToTypesBtnEl = document.getElementById('ingredientBackToTypesBtn');
+                    const confirmBtnEl = document.getElementById('confirmAddIngredientBtn');
+                    const foodTypeListEl = document.getElementById('ingredientFoodTypeList');
+                    const backdropEl = document.getElementById('ingredientModalBackdrop');
+                    
+                    console.log('Modal elements found:', {
+                        closeBtn: !!closeBtnEl,
+                        backBtn: !!backToTypesBtnEl,
+                        confirmBtn: !!confirmBtnEl,
+                        foodTypeList: !!foodTypeListEl,
+                        backdrop: !!backdropEl
+                    });
+                    
+                    // Close button - use direct onclick to ensure it works
+                    if (closeBtnEl) {
+                        closeBtnEl.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Close button clicked!');
+                            const modalEl = document.getElementById('ingredientModal');
+                            const backdropEl = document.getElementById('ingredientModalBackdrop');
+                            if (backdropEl) {
+                                backdropEl.classList.remove('show');
+                                backdropEl.style.display = 'none';
+                            }
+                            if (modalEl) {
+                                modalEl.classList.remove('show');
+                                modalEl.style.display = 'none';
+                                modalEl.setAttribute('aria-hidden', 'true');
+                                document.body.style.overflow = '';
+                            }
+                        };
+                    }
+                    
+                    // Back to types button
+                    if (backToTypesBtnEl) {
+                        backToTypesBtnEl.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Back to types clicked!');
+                            const foodTypeSelectionViewEl = document.getElementById('ingredientFoodTypeSelectionView');
+                            const foodSelectionViewEl = document.getElementById('ingredientFoodSelectionView');
+                            const selectedIngredientFoodIdInputEl = document.getElementById('selectedIngredientFoodId');
+                            
+                            if (foodTypeSelectionViewEl) foodTypeSelectionViewEl.style.display = 'block';
+                            if (foodSelectionViewEl) foodSelectionViewEl.style.display = 'none';
+                            if (backToTypesBtnEl) backToTypesBtnEl.style.display = 'none';
+                            
+                            if (typeof window._selectedFoodData !== 'undefined') {
+                                window._selectedFoodData = null;
+                            }
+                            if (selectedIngredientFoodIdInputEl) selectedIngredientFoodIdInputEl.value = '';
+                            
+                            const confirmBtn = document.getElementById('confirmAddIngredientBtn');
+                            if (confirmBtn) confirmBtn.disabled = true;
+                            
+                            if (typeof $ !== 'undefined' && $('#foodSelect').data('select2')) {
+                                $('#foodSelect').val(null).trigger('change');
+                            }
+                        };
+                    }
+                    
+                    // Confirm button
+                    if (confirmBtnEl) {
+                        confirmBtnEl.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Confirm button clicked!');
+                            
+                            if (this.disabled) {
+                                console.log('Button is disabled');
+                                return;
+                            }
+                            
+                            const selectedFoodData = window._selectedFoodData;
+                            const selectedIngredientFoodIdInputEl = document.getElementById('selectedIngredientFoodId');
+                            
+                            if (!selectedFoodData || !selectedIngredientFoodIdInputEl || !selectedIngredientFoodIdInputEl.value) {
+                                console.log('No food selected');
+                                return;
+                            }
+                            
+                            // Check if ingredient already added
+                            if (typeof window.selectedIngredients !== 'undefined' && window.selectedIngredients.some(ing => ing.id === selectedFoodData.id)) {
+                                // Show error message inside the modal
+                                const errorDiv = document.getElementById('ingredientDuplicateError');
+                                const errorText = document.getElementById('ingredientDuplicateErrorText');
+                                if (errorDiv && errorText) {
+                                    errorText.textContent = 'This ingredient is already added';
+                                    errorDiv.style.display = 'block';
+                                    errorDiv.classList.add('show');
+                                    // Auto-hide after 5 seconds
+                                    setTimeout(function() {
+                                        errorDiv.classList.remove('show');
+                                        setTimeout(function() {
+                                            errorDiv.style.display = 'none';
+                                        }, 300);
+                                    }, 5000);
+                                }
+                                return;
+                            }
+                            
+                            // Hide error message if ingredient is valid
+                            const errorDiv = document.getElementById('ingredientDuplicateError');
+                            if (errorDiv) {
+                                errorDiv.classList.remove('show');
+                                setTimeout(function() {
+                                    errorDiv.style.display = 'none';
+                                }, 300);
+                            }
+                            
+                            // Add to array
+                            if (typeof window.selectedIngredients === 'undefined') {
+                                window.selectedIngredients = [];
+                            }
+                            window.selectedIngredients.push({
+                                id: selectedFoodData.id,
+                                name: selectedFoodData.name,
+                                imagePath: selectedFoodData.imagePath
+                            });
+                            
+                            // Add badge to UI
+                            const ingredientsListEl = document.getElementById('ingredientsList');
+                            if (ingredientsListEl) {
+                                const badge = document.createElement('span');
+                                badge.className = 'badge bg-success me-2 mb-2 ingredient-badge';
+                                badge.setAttribute('data-ingredient-id', selectedFoodData.id);
+                                badge.style.cssText = 'font-size: 0.9rem; padding: 0.5rem 0.75rem; display: inline-flex; align-items: center; gap: 0.5rem;';
+                                
+                                const imageHtml = selectedFoodData.imagePath ? 
+                                    `<img src="${selectedFoodData.imagePath}" alt="${selectedFoodData.name}" class="ingredient-image me-2" onerror="this.style.display='none';">` : '';
+                                
+                                badge.innerHTML = `
+                                    ${imageHtml}
+                                    <span>${selectedFoodData.name}</span>
+                                    <button type="button" class="ingredient-remove-btn" 
+                                            data-remove-id="${selectedFoodData.id}"
+                                            style="background: transparent; border: none; color: white; font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0.25rem; margin-left: 0.5rem; opacity: 0.8; font-weight: bold; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;"
+                                            aria-label="Remove">×</button>
+                                `;
+                                
+                                ingredientsListEl.appendChild(badge);
+                                
+                                // Attach remove button handler
+                                const removeBtn = badge.querySelector('.ingredient-remove-btn');
+                                if (removeBtn) {
+                                    removeBtn.onclick = function(e) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const ingredientId = this.getAttribute('data-remove-id');
+                                        console.log('Remove button clicked for ingredient:', ingredientId);
+                                        if (typeof window.removeIngredient === 'function') {
+                                            window.removeIngredient(ingredientId);
+                                        } else {
+                                            // Fallback: remove directly from DOM and array
+                                            console.warn('removeIngredient function not available, using fallback');
+                                            if (typeof window.selectedIngredients !== 'undefined') {
+                                                window.selectedIngredients = window.selectedIngredients.filter(ing => ing.id !== ingredientId);
+                                            }
+                                            badge.remove();
+                                        }
+                                    };
+                                }
+                            }
+                            
+                            // Hide modal
+                            const modalEl = document.getElementById('ingredientModal');
+                            const backdropEl = document.getElementById('ingredientModalBackdrop');
+                            if (backdropEl) {
+                                backdropEl.classList.remove('show');
+                                backdropEl.style.display = 'none';
+                            }
+                            if (modalEl) {
+                                modalEl.classList.remove('show');
+                                modalEl.style.display = 'none';
+                                modalEl.setAttribute('aria-hidden', 'true');
+                                document.body.style.overflow = '';
+                            }
+                        };
+                    }
+                    
+                    // Food type list - event delegation
+                    if (foodTypeListEl) {
+                        foodTypeListEl.onclick = function(e) {
+                            const foodTypeItem = e.target.closest('.food-type-item');
+                            if (foodTypeItem) {
+                                console.log('Food type clicked:', foodTypeItem.dataset);
+                                const selectedItems = foodTypeListEl.querySelectorAll('.food-type-item.selected');
+                                selectedItems.forEach(item => item.classList.remove('selected'));
+                                foodTypeItem.classList.add('selected');
+                                
+                                window._selectedFoodType = {
+                                    type: foodTypeItem.dataset.type,
+                                    value: foodTypeItem.dataset.value,
+                                    name: foodTypeItem.dataset.name
+                                };
+                                
+                                // Show food selection view
+                                const foodTypeSelectionViewEl = document.getElementById('ingredientFoodTypeSelectionView');
+                                const foodSelectionViewEl = document.getElementById('ingredientFoodSelectionView');
+                                const backToTypesBtnEl = document.getElementById('ingredientBackToTypesBtn');
+                                
+                                if (foodTypeSelectionViewEl) foodTypeSelectionViewEl.style.display = 'none';
+                                if (foodSelectionViewEl) foodSelectionViewEl.style.display = 'block';
+                                if (backToTypesBtnEl) backToTypesBtnEl.style.display = 'block';
+                                
+                                // Call initializeIngredientSelect2 if it exists and jQuery is ready
+                                function tryInitSelect2(attempts) {
+                                    attempts = attempts || 0;
+                                    if (attempts > 50) { // Max 5 seconds
+                                        console.error('Timeout waiting for jQuery or initializeIngredientSelect2');
+                                        alert('Search functionality is still loading. Please try again in a moment.');
+                                        return;
+                                    }
+                                    
+                                    if (typeof window.initializeIngredientSelect2 === 'function' && typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
+                                        console.log('Calling initializeIngredientSelect2');
+                                        window.initializeIngredientSelect2(window._selectedFoodType.type, window._selectedFoodType.value);
+                                    } else {
+                                        if (attempts % 10 === 0) { // Log every second
+                                            console.log('Waiting for initializeIngredientSelect2 or jQuery...', {
+                                                hasFunction: typeof window.initializeIngredientSelect2 === 'function',
+                                                hasJQuery: typeof $ !== 'undefined',
+                                                hasSelect2: typeof $ !== 'undefined' && typeof $.fn.select2 !== 'undefined',
+                                                attempt: attempts
+                                            });
+                                        }
+                                        setTimeout(function() { tryInitSelect2(attempts + 1); }, 100);
+                                    }
+                                }
+                                tryInitSelect2();
+                            }
+                        };
+                    }
+                    
+                    // Backdrop click
+                    if (backdropEl) {
+                        backdropEl.onclick = function(e) {
+                            if (e.target === backdropEl) {
+                                console.log('Backdrop clicked');
+                                const modalEl = document.getElementById('ingredientModal');
+                                if (backdropEl) {
+                                    backdropEl.classList.remove('show');
+                                    backdropEl.style.display = 'none';
+                                }
+                                if (modalEl) {
+                                    modalEl.classList.remove('show');
+                                    modalEl.style.display = 'none';
+                                    modalEl.setAttribute('aria-hidden', 'true');
+                                    document.body.style.overflow = '';
+                                }
+                            }
+                        };
+                    }
+                    
+                    console.log('All modal event listeners attached (early)');
+                };
+                
+                // Define the function immediately when this script executes
+                window.openIngredientModal = function() {
+                    console.log('openIngredientModal called (early definition)');
+                    const modalEl = document.getElementById('ingredientModal');
+                    const backdropEl = document.getElementById('ingredientModalBackdrop');
+                    
+                    if (!modalEl || !backdropEl) {
+                        console.error('Modal elements not found');
+                        alert('Modal is not ready yet. Please wait a moment.');
+                        return;
+                    }
+                    
+                    // Reset views to show food type selection (always start fresh)
+                    const foodTypeSelectionViewEl = document.getElementById('ingredientFoodTypeSelectionView');
+                    const foodSelectionViewEl = document.getElementById('ingredientFoodSelectionView');
+                    const backToTypesBtnEl = document.getElementById('ingredientBackToTypesBtn');
+                    const confirmBtnEl = document.getElementById('confirmAddIngredientBtn');
+                    
+                    // Show food type selection, hide food search
+                    if (foodTypeSelectionViewEl) {
+                        foodTypeSelectionViewEl.style.display = 'block';
+                    }
+                    if (foodSelectionViewEl) {
+                        foodSelectionViewEl.style.display = 'none';
+                    }
+                    if (backToTypesBtnEl) {
+                        backToTypesBtnEl.style.display = 'none';
+                    }
+                    if (confirmBtnEl) {
+                        confirmBtnEl.disabled = true;
+                    }
+                    
+                    // Clear any selected state
+                    if (typeof window._selectedFoodType !== 'undefined') {
+                        window._selectedFoodType = null;
+                    }
+                    if (typeof window._selectedFoodData !== 'undefined') {
+                        window._selectedFoodData = null;
+                    }
+                    
+                    // Hide any error messages
+                    const errorDiv = document.getElementById('ingredientDuplicateError');
+                    if (errorDiv) {
+                        errorDiv.classList.remove('show');
+                        errorDiv.style.display = 'none';
+                    }
+                    
+                    // Clear Select2 if it exists
+                    if (typeof $ !== 'undefined' && $('#foodSelect').data('select2')) {
+                        $('#foodSelect').select2('destroy');
+                        $('#foodSelect').html('<option value="">Type to search foods...</option>');
+                    }
+                    
+                    // Basic modal show logic
+                    backdropEl.style.display = 'block';
+                    backdropEl.classList.add('show');
+                    modalEl.style.display = 'block';
+                    modalEl.classList.add('show');
+                    modalEl.removeAttribute('aria-hidden'); // Fix aria-hidden warning
+                    modalEl.setAttribute('aria-modal', 'true');
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Attach event listeners after modal is shown
+                    setTimeout(function() {
+                        console.log('Timeout executing, calling attachModalEventListeners');
+                        if (typeof window.attachModalEventListeners === 'function') {
+                            attachModalEventListeners();
+                        } else {
+                            console.error('attachModalEventListeners not found!');
+                        }
+                    }, 100);
+                };
+                console.log('Early openIngredientModal defined:', typeof window.openIngredientModal);
+
+                window.toggleLibrary = function(id, itemType, currentlyInLibrary, button) {
+                    console.log("Toggle Library called.");
+
+                    const endpoint = itemType === 'PRODUCT'
+                        ? '/api/v1/nutrition/products/' + id + '/library'
+                        : '/api/v1/nutrition/composites/' + id + '/library';
+
+                    console.log("Endpoint: " + endpoint);
+
+                    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+                    fetch(endpoint, {
+                        method: currentlyInLibrary ? 'DELETE' : 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to update library');
+                            }
+
+                            if (currentlyInLibrary) {
+                                // Removed from library → switch to ADD
+                                button.className = 'btn btn-outline-primary btn-sm w-100';
+                                button.innerHTML =
+                                    '<i class="bi bi-bookmark-plus me-1"></i>Add to Library';
+
+                                button.setAttribute(
+                                    'onclick',
+                                    `window.toggleLibrary('${id}', '${itemType}', false, this)`
+                                );
+
+                            } else {
+                                button.className = 'btn remove-from-library-btn btn-sm w-100';
+                                button.innerHTML = '<i class="bi bi-bookmark-x me-2"></i>Remove from Library';
+
+                                button.setAttribute(
+                                    'onclick',
+                                    `window.toggleLibrary('${id}', '${itemType}', true, this)`
+                                );
+                            }
+
+                            if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                                Momentum.showToast(
+                                    currentlyInLibrary
+                                        ? 'Removed from your library'
+                                        : 'Added to your library',
+                                    'success'
+                                );
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error toggling library:', error);
+
+                            if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                                Momentum.showToast('Failed to update library', 'error');
+                            }
+                        });
+                };
+            }
+        </script>
+        <!-- Search Banner Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="search-banner">
+                    <h2>
+                        <i class="bi bi-search banner-icon"></i>
+                        Search Foods
+                    </h2>
+                    <p>Find products, composite foods, or recipes by name, ingredients, or browse items created by you and the community.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <!-- Name / Owner -->
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="recipeNameSearch" class="form-label">
+                                    <i class="bi bi-tag me-1"></i>Item Name
+                                </label>
+                                <input type="text" class="form-control" id="recipeNameSearch" 
+                                       placeholder="Search by item name...">
+                                <small class="text-muted">Enter part or full item name to search</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="recipeOwnerFilter" class="form-label">
+                                    <i class="bi bi-person me-1"></i>Owner
+                                </label>
+                                <select class="form-select" id="recipeOwnerFilter">
+                                    <option value="all">All Items</option>
+                                    <option value="own">My Items</option>
+                                    <option value="others">Community Items</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Item Type / Library Filter -->
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="itemTypeFilter" class="form-label">
+                                    <i class="bi bi-grid-3x3-gap me-1"></i>Item Type
+                                </label>
+                                <select class="form-select" id="itemTypeFilter">
+                                    <option value="PRODUCT" selected>Products</option>
+                                    <option value="COMPOSITE">Composite Foods</option>
+                                    <option value="RECIPE">Recipes</option>
+                                </select>
+                                <small class="text-muted">Choose what kind of items to search.</small>
+                            </div>
+                            <div class="col-md-6 mb-3" id="libraryFilterGroup" style="display: none;">
+                                <label for="libraryFilter" class="form-label">
+                                    <i class="bi bi-bookmark me-1"></i>Library
+                                </label>
+                                <select class="form-select" id="libraryFilter">
+                                    <option value="">All Items</option>
+                                    <option value="true">In Library</option>
+                                    <option value="false">Not in Library</option>
+                                </select>
+                                <small class="text-muted">Filter items by library status.</small>
+                            </div>
+                        </div>
+                        <!-- Ingredients Filter -->
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3" id="ingredientsFilterGroup" style="display: none;">
+                                <label class="form-label">
+                                    <i class="bi bi-list-ul me-1"></i>Ingredients
+                                </label>
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-outline-primary add-ingredient-btn" onclick="if(typeof window.openIngredientModal==='function'){window.openIngredientModal();}else{console.error('openIngredientModal not available');alert('Please wait for the page to finish loading.');}">
+                                        <i class="bi bi-plus-circle me-1"></i>Add Ingredient
+                                    </button>
+                                </div>
+                                <!-- Ingredients List - appears right below the Add Ingredient button -->
+                                <div id="ingredientsList" class="mt-2 mb-2 text-start">
+                                    <!-- Ingredients will be added here as badges -->
+                                </div>
+                                <script>
+                                    // Ensure function is available immediately
+                                    if (typeof window.openIngredientModal === 'undefined') {
+                                        window.openIngredientModal = function() {
+                                            console.error('openIngredientModal called but not yet defined - page may still be loading');
+                                            alert('The page is still loading. Please wait a moment and try again.');
+                                        };
+                                    }
+                                </script>
+                                <small class="text-muted">
+                                    Add ingredients that should be in the recipe. Recipes containing any of these ingredients will be shown.
+                                    <span class="text-muted d-block">(Ingredients filter applies only when searching for recipes.)</span>
+                                </small>
+                                </div>
+                            </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <button class="btn btn-primary" type="button" onclick="searchRecipes()">
+                                    <i class="bi bi-search me-1"></i>Search
+                                </button>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+
+                        
+
+                        <!-- Action Scripts -->
+                        <script>
+                            // Define viewRecipe globally so it's accessible from dynamically generated HTML
+                            if (typeof viewRecipe === 'undefined') {
+                                window.viewRecipe = function(recipeId) {
+                                    window.location.href = '/nutrition/recipes/' + recipeId;
+                                };
+                            }
+                            if (typeof searchRecipes === 'undefined') {
+                                function searchRecipes() {
+                                    var recipeNameEl = document.getElementById('recipeNameSearch');
+                                    var typeEl = document.getElementById('recipeOwnerFilter');
+                                    var itemTypeEl = document.getElementById('itemTypeFilter');
+                                    var libraryEl = document.getElementById('libraryFilter');
+                                    if (!recipeNameEl || !typeEl) { alert('Elements not found'); return; }
+                                    var recipeName = recipeNameEl.value.trim();
+                                    var type = typeEl.value;
+                                    var itemType = itemTypeEl && itemTypeEl.value ? itemTypeEl.value.toUpperCase() : 'PRODUCT';
+                                    var params = new URLSearchParams();
+                                    if (recipeName) params.append('name', recipeName);
+                                    if (typeof selectedIngredients !== 'undefined' && selectedIngredients.length > 0) {
+                                        for (var i = 0; i < selectedIngredients.length; i++) {
+                                            params.append('ingredients', selectedIngredients[i].id);
+                                        }
+                                    }
+                                    var ownerType = (type && type.trim() && type !== 'all') ? type.toUpperCase() : 'ALL';
+                                    params.append('ownership', ownerType);
+                                    params.append('itemType', itemType);
+                                    // Add library filter if set
+                                    if (libraryEl && libraryEl.value && (libraryEl.value === 'true' || libraryEl.value === 'false')) {
+                                        params.append('inLibrary', libraryEl.value);
+                                        console.log('Added library filter (inline):', libraryEl.value);
+                                    }
+                                    console.log('Owner type being sent:', ownerType, 'from select value:', type, 'element:', typeEl, 'itemType:', itemType, 'params:', params.toString());
+                                    if (typeof Momentum !== 'undefined' && Momentum.showToast) Momentum.showToast('Searching...', 'info');
+                                    // Call loadRecipes inline since it might not be defined yet
+                                    loadRecipesInline(params);
+                                }
+                            }
+                            
+                            // Show/hide filters based on item type and owner type
+                            function updateIngredientsFilterVisibility() {
+                                var itemTypeEl = document.getElementById('itemTypeFilter');
+                                var ingredientsGroup = document.getElementById('ingredientsFilterGroup');
+                                
+                                if (!itemTypeEl) {
+                                    return;
+                                }
+                                
+                                var value = itemTypeEl.value ? itemTypeEl.value.toUpperCase() : 'PRODUCT';
+                                
+                                // Ingredients filter only for recipes
+                                if (value === 'RECIPE') {
+                                    if (ingredientsGroup) ingredientsGroup.style.display = '';
+                                } else {
+                                    if (ingredientsGroup) ingredientsGroup.style.display = 'none';
+                                    
+                                    // Clear selected ingredients and UI badges
+                                    if (typeof selectedIngredients !== 'undefined') {
+                                        selectedIngredients = [];
+                                    }
+                                    var list = document.getElementById('ingredientsList');
+                                    if (list) {
+                                        list.innerHTML = '';
+                                    }
+                                }
+                            }
+                            
+                            // Show/hide library filter based on owner type
+                            function updateLibraryFilterVisibility() {
+                                var ownerTypeEl = document.getElementById('recipeOwnerFilter');
+                                var libraryGroup = document.getElementById('libraryFilterGroup');
+                                
+                                if (!ownerTypeEl || !libraryGroup) {
+                                    return;
+                                }
+                                
+                                var ownerValue = ownerTypeEl.value;
+                                
+                                // Library filter only visible for Community Items (others)
+                                if (ownerValue === 'others') {
+                                    libraryGroup.style.display = '';
+                                } else {
+                                    libraryGroup.style.display = 'none';
+                                    // Clear library filter value when hidden
+                                    var libraryFilterEl = document.getElementById('libraryFilter');
+                                    if (libraryFilterEl) {
+                                        libraryFilterEl.value = '';
+                                    }
+                                }
+                            }
+                            
+                            // Add event listener to owner filter
+                            var ownerFilterEl = document.getElementById('recipeOwnerFilter');
+                            if (ownerFilterEl) {
+                                ownerFilterEl.addEventListener('change', updateLibraryFilterVisibility);
+                            }
+                            
+                            // Initialize library filter visibility on page load
+                            updateLibraryFilterVisibility();
+                            
+                            document.addEventListener('DOMContentLoaded', function () {
+                                var itemTypeEl = document.getElementById('itemTypeFilter');
+                                if (itemTypeEl) {
+                                    itemTypeEl.addEventListener('change', updateIngredientsFilterVisibility);
+                                }
+                                updateIngredientsFilterVisibility();
+                                
+                                // Also initialize library filter visibility
+                                updateLibraryFilterVisibility();
+                            });
+                            function loadRecipesInline(params) {
+                                console.log('=== loadRecipesInline CALLED ===', 'params:', params ? params.toString() : 'null');
+                                console.log('loadRecipesInline: document.body exists:', !!document.body);
+                                console.log('loadRecipesInline: document.readyState:', document.readyState);
+                                console.log('loadRecipesInline: checking for emptyState element...');
+                                var testEmptyState = document.getElementById('emptyState');
+                                console.log('loadRecipesInline: emptyState element found at start:', testEmptyState);
+                                if (!testEmptyState) {
+                                    console.log('loadRecipesInline: all div elements:', document.querySelectorAll('div').length);
+                                    console.log('loadRecipesInline: all elements with id starting with empty:', document.querySelectorAll('[id^="empty"]'));
+                                }
+                                var recipeList = document.getElementById('recipeList');
+                                if (!recipeList) {
+                                    console.error('recipeList element not found before loading recipes.');
+                                    return;
+                                }
+                                recipeList.innerHTML = '';
+                                var emptyState = document.getElementById('emptyState');
+                                console.log('loadRecipesInline: emptyState element lookup:', emptyState);
+                                if (emptyState) {
+                                    emptyState.style.display = 'none';
+                                } else {
+                                    console.error('loadRecipesInline: emptyState element not found at initialization');
+                                }
+
+                                var section = document.getElementById('searchResultsSection');
+                                if (section) section.style.display = 'block';
+                                var url = '/api/v1/nutrition/foods?' + params.toString();
+                                console.log('Fetching from URL:', url);
+                                fetch(url, { credentials: 'same-origin' })
+                                    .then(function(response) {
+                                        if (!response.ok) {
+                                            return response.text().then(function(text) {
+                                                throw new Error(text || 'Failed to load recipes');
+                                            });
+                                        }
+                                        return response.json();
+                                    })
+                                    .then(function(data) {
+                                        console.log('loadRecipesInline: Received data:', data, 'type:', typeof data, 'isArray:', Array.isArray(data), 'length:', data ? data.length : 'null');
+                                        if (typeof currentRecipes === 'undefined') {
+                                            window.currentRecipes = [];
+                                        }
+                                        window.currentRecipes = data || [];
+
+                                        if (data && Array.isArray(data) && data.length > 0) {
+                                            console.log('loadRecipesInline: Displaying', data.length, 'recipes');
+                                            recipeList.style.display = 'flex';
+                                            for (var i = 0; i < data.length; i++) {
+                                                var recipe = data[i];
+                                                console.log('loadRecipesInline: Processing recipe', i + 1, ':', recipe.name, 'itemType:', recipe.itemType, 'imagePath:', recipe.imagePath);
+                                                var col = document.createElement('div');
+                                                col.className = 'col-lg-4 col-md-6 col-sm-12 mb-4';
+                                                if (window.innerWidth >= 992) {
+                                                    col.style.width = '33.33333333%';
+                                                    col.style.flex = '0 0 33.33333333%';
+                                                    col.style.maxWidth = '33.33333333%';
+                                                } else if (window.innerWidth >= 768) {
+                                                    col.style.width = '50%';
+                                                    col.style.flex = '0 0 50%';
+                                                    col.style.maxWidth = '50%';
+                                                } else {
+                                                    col.style.width = '100%';
+                                                    col.style.flex = '0 0 100%';
+                                                    col.style.maxWidth = '100%';
+                                                }
+                                                var defaultImage = '/images/composites/meals_and_side_dishes.png'; // Default for recipes/composites
+                                                if (recipe.itemType === 'PRODUCT') {
+                                                    // Map foodType display names to default images
+                                                    var productImageMap = {
+                                                        'Pork': '/images/products/pork.png',
+                                                        'Beef': '/images/products/beef.png',
+                                                        'Veal': '/images/products/veal.png',
+                                                        'Lamb': '/images/products/lamb.png',
+                                                        'Game': '/images/products/game.png',
+                                                        'Poultry': '/images/products/poultry.png',
+                                                        'Fish': '/images/products/fish.png',
+                                                        'Vegetable': '/images/products/vegetable.png',
+                                                        'Legume': '/images/products/legume.png',
+                                                        'Fruit': '/images/products/fruit.png',
+                                                        'Grain': '/images/products/grain.png',
+                                                        'Dairy': '/images/products/dairy.png',
+                                                        'Egg': '/images/products/egg.png',
+                                                        'Fats and Oils': '/images/products/fats_and_oils.png',
+                                                        'Nuts and Seeds': '/images/products/nuts_and_seeds.png',
+                                                        'Spices and Herbs': '/images/products/spices_and_herbs.png'
+                                                    };
+                                                    defaultImage = productImageMap[recipe.foodType] || '/images/products/vegetable.png';
+                                                }
+                                                var imagePath = recipe.imagePath || defaultImage;
+                                                console.log('loadRecipesInline: recipe.imagePath:', recipe.imagePath, 'defaultImage:', defaultImage, 'final imagePath:', imagePath, 'using default:', !recipe.imagePath);
+                                                console.log('loadRecipesInline: About to set HTML with src="' + imagePath + '"');
+                                                var calories = recipe.calories || 0;
+                                                var protein = recipe.protein || 0;
+                                                var carbs = recipe.carbohydrates || 0;
+                                                var fat = recipe.fat || 0;
+                                                var isOwner = recipe.isOwner || false;
+                                                var isPublic = typeof recipe.isPublic === 'boolean' ? recipe.isPublic : true;
+                                                var sharedUsersCount = recipe.sharedUsersCount || 0;
+                                                var isInLibrary = recipe.isInLibrary || false;
+                                                var recipeType = recipe.foodType || '';
+                                                var ownerBadge = isOwner
+                                                    ? '<span class="badge bg-success me-1"><i class="bi bi-person-check me-1"></i>My Item</span>'
+                                                    : '<span class="badge bg-info me-1"><i class="bi bi-globe me-1"></i>Community Item</span>';
+                                                var visibilityBadge = isOwner
+                                                    ? (isPublic
+                                                        ? '<span class="badge bg-primary me-1"><i class="bi bi-unlock me-1"></i>Public</span>'
+                                                        : '<span class="badge bg-dark me-1"><i class="bi bi-lock me-1"></i>Private</span>')
+                                                    : '';
+                                                var typeBadge = recipeType ? '<span class="badge bg-warning text-dark me-1"><i class="bi bi-tag me-1"></i>' + recipeType + '</span>' : '';
+                                                var sharedUsersBadgeClass = isInLibrary ? 'bg-success' : 'bg-secondary';
+                                                var sharedUsersBadge = '<span class="badge ' + sharedUsersBadgeClass + '"><i class="bi bi-people me-1"></i>' + sharedUsersCount + ' user' + (sharedUsersCount !== 1 ? 's' : '') + '</span>';
+                                                var buttonHtml = '';
+
+// Recipes keep their View Details button
+                                                if (recipe.itemType === 'RECIPE') {
+                                                    buttonHtml += '<button class="btn btn-primary btn-sm w-100 mb-1" ' +
+                                                        'onclick="window.viewRecipe(\'' + recipe.id + '\')">' +
+                                                        'View Details' +
+                                                        '</button>';
+                                                }
+
+                                                if (isOwner && (recipe.itemType === 'PRODUCT' || recipe.itemType === 'COMPOSITE')) {
+
+                                                    var editUrl = recipe.itemType === 'PRODUCT'
+                                                        ? '/nutrition/products/' + recipe.id + '/edit'
+                                                        : '/nutrition/composites/' + recipe.id + '/edit';
+
+                                                    buttonHtml += '<button class="btn btn-outline-secondary btn-sm w-100" ' +
+                                                        'onclick="window.location.href=\'' + editUrl + '\'">' +
+                                                        'Edit' +
+                                                        '</button>';
+                                                }
+
+                                                if (!isOwner && (recipe.itemType === 'PRODUCT' || recipe.itemType === 'COMPOSITE')) {
+
+                                                    var viewUrl = recipe.itemType === 'PRODUCT'
+                                                        ? '/nutrition/products/' + recipe.id
+                                                        : '/nutrition/composites/' + recipe.id;
+
+                                                    buttonHtml += '<button class="btn btn-primary btn-sm w-100 mb-1" ' +
+                                                        'onclick="window.location.href=\'' + viewUrl + '\'">' +
+                                                        'View Details' +
+                                                        '</button>';
+                                                }
+                                                col.innerHTML = '<div class="card recipe-card h-100" style="width: 100%;"><img src="' + imagePath + '" class="card-img-top" style="height: 200px; object-fit: cover; width: 100%;" onerror="console.log(\'Image failed to load:\', this.src, \'falling back to:\', \'' + defaultImage + '\'); this.src=\'' + defaultImage + '\'"><div class="card-body" style="width: 100%;"><h5 class="card-title">' + recipe.name + '</h5><div class="mb-2">' + ownerBadge + visibilityBadge + typeBadge + sharedUsersBadge + '</div><p class="text-muted small">' + (recipe.ingredientCount || 0) + ' ingredients</p><div class="d-flex justify-content-between mb-2 flex-wrap"><span>Calories: <strong>' + Math.round(calories) + '</strong></span><span>Protein: <strong>' + protein.toFixed(1) + '</strong>g</span><span>Carbs: <strong>' + carbs.toFixed(1) + '</strong>g</span><span>Fat: <strong>' + fat.toFixed(1) + '</strong>g</span></div></div><div class="card-footer d-flex flex-column gap-1" style="width: 100%;">' + buttonHtml + '</div></div>';
+                                                recipeList.appendChild(col);
+                                                console.log('loadRecipesInline: Added recipe card', i + 1, 'to DOM, recipeList children count:', recipeList.children.length);
+                                            }
+                                            console.log('loadRecipesInline: Finished adding all recipes. Total children:', recipeList.children.length, 'Final display style:', window.getComputedStyle(recipeList).display);
+                                            var sortSection = document.getElementById('sortSection');
+                                            if (sortSection) sortSection.style.display = 'block';
+                                            var resultsCount = document.getElementById('resultsCount');
+                                            if (resultsCount) resultsCount.textContent = data.length + ' item' + (data.length !== 1 ? 's' : '') + ' found';
+                                            var currentEmptyState = document.getElementById('emptyState');
+                                            if (currentEmptyState) {
+                                                currentEmptyState.style.display = 'none';
+                                                console.log('loadRecipesInline: emptyState hidden when results found');
+                                            }
+                                            var section = document.getElementById('searchResultsSection');
+                                            if (section) section.style.display = 'block'; // Show "Search Results" header
+                                        } else {
+                                            console.log('loadRecipesInline: No results found, showing empty state');
+                                            console.log('loadRecipesInline: emptyState variable:', emptyState);
+                                            recipeList.style.display = 'none';
+                                            var sortSection = document.getElementById('sortSection');
+                                            if (sortSection) sortSection.style.display = 'none';
+                                            var section = document.getElementById('searchResultsSection');
+                                            if (section) section.style.display = 'none'; // Hide "Search Results" header when no results
+                                            // Show empty state - look it up fresh to avoid scoping issues
+                                            var currentEmptyState = document.getElementById('emptyState');
+                                            console.log('loadRecipesInline: fresh emptyState lookup:', currentEmptyState);
+                                            console.log('loadRecipesInline: all elements with id emptyState:', document.querySelectorAll('#emptyState'));
+                                            console.log('loadRecipesInline: document.body exists:', !!document.body);
+                                            console.log('loadRecipesInline: document.readyState:', document.readyState);
+
+                                            // Try alternative ways to find the element
+                                            if (!currentEmptyState) {
+                                                console.log('loadRecipesInline: trying querySelector...');
+                                                currentEmptyState = document.querySelector('#emptyState');
+                                                console.log('loadRecipesInline: querySelector result:', currentEmptyState);
+                                            }
+
+                                            if (!currentEmptyState) {
+                                                console.log('loadRecipesInline: trying getElementsByTagName...');
+                                                var allDivs = document.getElementsByTagName('div');
+                                                for (var i = 0; i < allDivs.length; i++) {
+                                                    if (allDivs[i].id === 'emptyState') {
+                                                        currentEmptyState = allDivs[i];
+                                                        console.log('loadRecipesInline: found via getElementsByTagName at index', i);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            if (currentEmptyState) {
+                                                currentEmptyState.style.display = 'flex'; // Bootstrap row uses flex
+                                                console.log('Empty state displayed (inline), computed display:', window.getComputedStyle(currentEmptyState).display);
+                                            } else {
+                                                console.error('emptyState element not found in loadRecipesInline - creating it dynamically');
+                                                // Create the empty state element dynamically
+                                                var emptyStateDiv = document.createElement('div');
+                                                emptyStateDiv.className = 'row';
+                                                emptyStateDiv.id = 'emptyState';
+                                                emptyStateDiv.innerHTML = `
+                                                    <div class="col-12">
+                                                        <div class="card mt-4">
+                                                            <div class="card-body text-center py-5">
+                                                                <i class="bi bi-egg-fried text-muted" style="font-size: 3rem;"></i>
+                                                                <h5 class="text-muted mt-3">No items found</h5>
+                                                                <p class="text-muted">Try adjusting your search criteria.</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                                // Insert it after the search results section
+                                                var searchResultsSection = document.getElementById('searchResultsSection');
+                                                if (searchResultsSection && searchResultsSection.parentNode) {
+                                                    searchResultsSection.parentNode.insertBefore(emptyStateDiv, searchResultsSection.nextSibling);
+                                                    emptyStateDiv.style.display = 'flex';
+                                                    console.log('Empty state created and displayed dynamically');
+                                                } else {
+                                                    console.error('Could not find insertion point for emptyState');
+                                                }
+                                            }
+                                        }
+                                    })
+                                    .catch(function(error) {
+                                        alert(error.message || 'Error loading recipes');
+                                        var errorEmptyState = document.getElementById('emptyState');
+                                        if (errorEmptyState) errorEmptyState.style.display = 'flex';
+                                        var sortSection = document.getElementById('sortSection');
+                                        if (sortSection) sortSection.style.display = 'none';
+                                        recipeList.style.display = 'none';
+                                    });
+                            }
+                            if (typeof clearAllFilters === 'undefined') {
+                                function clearAllFilters() {
+                                    var recipeNameEl = document.getElementById('recipeNameSearch');
+                                    var typeEl = document.getElementById('recipeOwnerFilter');
+                                    if (recipeNameEl) recipeNameEl.value = '';
+                                    if (typeEl) typeEl.value = 'all';
+                                    if (typeof selectedIngredients !== 'undefined') selectedIngredients = [];
+                                    var ingredientsList = document.getElementById('ingredientsList');
+                                    if (ingredientsList) ingredientsList.innerHTML = '';
+                                    if (typeof hideSearchResultsSection === 'function') hideSearchResultsSection();
+                                    if (typeof hideSortSection === 'function') hideSortSection();
+                                    if (typeof hideRecipeList === 'function') hideRecipeList();
+                                    if (typeof hideEmptyState === 'function') hideEmptyState();
+                                }
+                            }
+                        </script>
+
+        <!-- Sort Options (shown after search or when results are displayed) -->
+        <div class="row mb-3" id="sortSection" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <label for="sortBy" class="form-label mb-0 me-2">
+                                    <i class="bi bi-sort-down me-1"></i>Sort by:
+                                </label>
+                                <select class="form-select form-select-sm" id="sortBy" style="width: auto;" onchange="applySorting()">
+                                    <option value="name_asc">Name (A-Z)</option>
+                                    <option value="name_desc">Name (Z-A)</option>
+                                    <option value="calories_asc">Calories (Low to High)</option>
+                                    <option value="calories_desc">Calories (High to Low)</option>
+                                    <option value="protein_asc">Protein (Low to High)</option>
+                                    <option value="protein_desc">Protein (High to Low)</option>
+                                    <option value="carbs_asc">Carbs (Low to High)</option>
+                                    <option value="carbs_desc">Carbs (High to Low)</option>
+                                    <option value="fat_asc">Fat (Low to High)</option>
+                                    <option value="fat_desc">Fat (High to Low)</option>
+                                </select>
+                            </div>
+                            <div>
+                                                <span class="text-muted" id="resultsCount">0 items found</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Results Section (shown only after search) -->
+        <div class="row mb-4" id="searchResultsSection" style="display: none;">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>Search Results</h4>
+                </div>
+            </div>
+        </div>
+
+                        <!-- Results List -->
+                        <div class="row mb-4" id="recipeList" style="display: none;">
+            <!-- Recipe items will be dynamically loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State (shown when no items found after search) -->
+        <div class="row mt-4" id="emptyState" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-egg-fried text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="text-muted mt-3">No items found</h5>
+                        <p class="text-muted">Try adjusting your search criteria.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- Create Recipe Modal -->
+    <div class="modal fade" id="createRecipeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Recipe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createRecipeForm">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="recipeName" class="form-label">Recipe Name</label>
+                                <input type="text" class="form-control" id="recipeName" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="recipeDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="recipeDescription" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="prepTime" class="form-label">Prep Time (minutes)</label>
+                                <input type="number" class="form-control" id="prepTime" min="0">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="cookTime" class="form-label">Cook Time (minutes)</label>
+                                <input type="number" class="form-control" id="cookTime" min="0">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="servings" class="form-label">Servings</label>
+                                <input type="number" class="form-control" id="servings" min="1">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="caloriesPerServing" class="form-label">Calories per Serving</label>
+                                <input type="number" class="form-control" id="caloriesPerServing" min="0">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createRecipe()">Create Recipe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery and Select2 are now loaded at the top, so we don't need them here -->
+    <script>
+        console.log('Script starting...');
+        // SIMPLE GLOBAL FUNCTIONS - DEFINED FIRST
+        var selectedIngredients = [];
+        
+        // Define viewRecipe globally so it's accessible from dynamically generated HTML
+        window.viewRecipe = function(recipeId) {
+            window.location.href = '/nutrition/recipes/' + recipeId;
+        };
+        
+        // Define openIngredientModal IMMEDIATELY at the top so it's always available
+        window.openIngredientModal = function() {
+            console.log('openIngredientModal called');
+            const modalEl = document.getElementById('ingredientModal');
+            const backdropEl = document.getElementById('ingredientModalBackdrop');
+            
+            if (!modalEl || !backdropEl) {
+                console.error('Modal elements not found. Modal:', modalEl, 'Backdrop:', backdropEl);
+                alert('Modal elements not found. Please refresh the page.');
+                return;
+            }
+            
+            // Reset form and state
+            const ingredientFormEl = document.getElementById('ingredientForm');
+            const foodTypeSelectionViewEl = document.getElementById('ingredientFoodTypeSelectionView');
+            const foodSelectionViewEl = document.getElementById('ingredientFoodSelectionView');
+            const backToTypesBtnEl = document.getElementById('ingredientBackToTypesBtn');
+            const foodTypeListEl = document.getElementById('ingredientFoodTypeList');
+            const confirmBtnEl = document.getElementById('confirmAddIngredientBtn');
+            
+            if (typeof window._selectedFoodType !== 'undefined') {
+                window._selectedFoodType = null;
+            }
+            if (typeof window._selectedFoodData !== 'undefined') {
+                window._selectedFoodData = null;
+            }
+            
+            // Reset form
+            if (ingredientFormEl) {
+                ingredientFormEl.classList.remove('was-validated');
+                ingredientFormEl.reset();
+            }
+            
+            // Disable Add Ingredient button initially
+            if (confirmBtnEl) {
+                confirmBtnEl.disabled = true;
+            }
+            
+            // ALWAYS reset to food type selection view first
+            // Show type selection view, hide food selection view
+            if (foodTypeSelectionViewEl) {
+                foodTypeSelectionViewEl.style.display = 'block';
+            }
+            if (foodSelectionViewEl) {
+                foodSelectionViewEl.style.display = 'none';
+            }
+            if (backToTypesBtnEl) {
+                backToTypesBtnEl.style.display = 'none';
+            }
+            
+            // Hide any error messages
+            const errorDiv = document.getElementById('ingredientDuplicateError');
+            if (errorDiv) {
+                errorDiv.classList.remove('show');
+                errorDiv.style.display = 'none';
+            }
+            
+            // Clear visual selections (remove selected class from food type items)
+            if (foodTypeListEl) {
+                const selectedItems = foodTypeListEl.querySelectorAll('.food-type-item.selected');
+                selectedItems.forEach(item => item.classList.remove('selected'));
+            }
+            
+            // Clear Select2 and reset search
+            if (typeof $ !== 'undefined' && $('#foodSelect').data('select2')) {
+                $('#foodSelect').select2('destroy');
+            }
+            if (typeof $ !== 'undefined') {
+                $('#foodSelect').html('<option value="">Type to search foods...</option>');
+            }
+            
+            // Show modal
+            backdropEl.style.display = 'block';
+            backdropEl.classList.add('show');
+            modalEl.style.display = 'block';
+            modalEl.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        };
+        console.log('window.openIngredientModal defined:', typeof window.openIngredientModal);
+
+        function searchRecipes() {
+            console.log('searchRecipes called!');
+
+            // Clear previous recipes immediately
+            const recipeList = document.getElementById('recipeList');
+            if (recipeList) {
+                recipeList.innerHTML = '';
+            }
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+
+            const recipeNameEl = document.getElementById('recipeNameSearch');
+            const typeEl = document.getElementById('recipeOwnerFilter');
+            const itemTypeEl = document.getElementById('itemTypeFilter');
+
+            if (!recipeNameEl || !typeEl) {
+                console.error('Required elements not found');
+                return;
+            }
+
+            const recipeName = recipeNameEl.value.trim();
+            const type = typeEl.value;
+            const itemType = itemTypeEl && itemTypeEl.value ? itemTypeEl.value.toUpperCase() : 'PRODUCT';
+            console.log('Select element value:', type, 'selectedIndex:', typeEl.selectedIndex);
+
+            // Build search query parameters
+            const params = new URLSearchParams();
+
+            if (recipeName) {
+                params.append('name', recipeName);
+            }
+
+            // Add ingredient IDs
+            if (selectedIngredients.length > 0) {
+                selectedIngredients.forEach(ingredient => {
+                    params.append('ingredients', ingredient.id);
+                });
+            }
+
+            // Convert to uppercase for enum (all -> ALL, own -> OWN, others -> OTHERS)
+            var ownerType = 'ALL';
+            if (type) {
+                var lowerType = type.toLowerCase().trim();
+                if (lowerType === 'own') {
+                    ownerType = 'OWN';
+                } else if (lowerType === 'others') {
+                    ownerType = 'OTHERS';
+                } else {
+                    ownerType = 'ALL';
+                }
+            }
+            params.append('ownership', ownerType);
+            params.append('itemType', itemType);
+
+            // Add library filter if set
+            var libraryFilterEl = document.getElementById('libraryFilter');
+            var inLibrary = libraryFilterEl ? libraryFilterEl.value : '';
+            if (inLibrary && inLibrary !== '' && (inLibrary === 'true' || inLibrary === 'false')) {
+                params.append('inLibrary', inLibrary);
+                console.log('Added library filter:', inLibrary);
+            }
+
+            console.log('Owner type being sent:', ownerType, 'from select value:', type, 'selectedIndex:', typeEl.selectedIndex, 'options:', typeEl.options[typeEl.selectedIndex]?.value, 'itemType:', itemType);
+
+            // Show loading message
+            let message = 'Searching items';
+            if (recipeName) message += ` with name "${recipeName}"`;
+            if (selectedIngredients.length > 0) message += ` containing ${selectedIngredients.length} ingredient(s)`;
+            if (type !== 'all') {
+                const ownerLabel = type === 'own' ? 'My' : 'Others\'';
+                message += ` (${ownerLabel}) items`;
+            }
+
+            try {
+                if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+            Momentum.showToast(message + '...', 'info');
+                }
+            } catch (e) {
+                console.warn('Error showing toast:', e);
+            }
+
+            // Load and display filtered recipes
+            console.log('About to call loadRecipes, type:', typeof loadRecipes, 'window.loadRecipes:', typeof window.loadRecipes);
+            if (typeof window.loadRecipes === 'function') {
+                console.log('Calling window.loadRecipes with params:', params.toString());
+                window.loadRecipes(params);
+            } else if (typeof loadRecipes === 'function') {
+                console.log('Calling loadRecipes (not on window) with params:', params.toString());
+            loadRecipes(params);
+            } else {
+                console.error('loadRecipes function not defined! Available on window:', typeof window.loadRecipes);
+            }
+        }
+        
+        console.log('searchRecipes defined:', typeof searchRecipes);
+        
+        function clearAllFilters() {
+            console.log('clearAllFilters called!');
+            const recipeNameEl = document.getElementById('recipeNameSearch');
+            const typeEl = document.getElementById('recipeOwnerFilter');
+            
+            if (recipeNameEl) recipeNameEl.value = '';
+            if (typeEl) typeEl.value = 'all';
+            
+            if (typeof selectedIngredients !== 'undefined') {
+                selectedIngredients = [];
+            }
+            
+            // Clear ingredient badges
+            const ingredientsList = document.getElementById('ingredientsList');
+            if (ingredientsList) {
+                ingredientsList.innerHTML = '';
+            }
+            
+            // Hide search results section and related elements
+            if (typeof hideSearchResultsSection === 'function') hideSearchResultsSection();
+            if (typeof hideSortSection === 'function') hideSortSection();
+            if (typeof hideRecipeList === 'function') hideRecipeList();
+            if (typeof hideEmptyState === 'function') hideEmptyState();
+        }
+        
+        console.log('clearAllFilters defined:', typeof clearAllFilters);
+        console.log('Functions ready!');
+
+        // Ingredient Modal functionality - define showModal immediately
+        let selectedFoodType = null;
+        let selectedFoodData = null;
+        
+        function showModal() {
+                // Get elements dynamically when function is called
+                const modalEl = document.getElementById('ingredientModal');
+                const backdropEl = document.getElementById('ingredientModalBackdrop');
+                
+                if (!modalEl || !backdropEl) {
+                    console.error('Modal elements not found. Modal:', modalEl, 'Backdrop:', backdropEl);
+                    // Try one more time after a short delay in case of timing issues
+                    setTimeout(function() {
+                        const retryModal = document.getElementById('ingredientModal');
+                        const retryBackdrop = document.getElementById('ingredientModalBackdrop');
+                        if (!retryModal || !retryBackdrop) {
+                            console.error('Modal still not found after retry');
+                            alert('Modal elements not found. The page may not have loaded completely. Please refresh.');
+                        } else {
+                            // Retry the function with found elements
+                            showModal();
+                        }
+                    }, 200);
+                    return;
+                }
+                
+                const ingredientFormEl = document.getElementById('ingredientForm');
+                const foodTypeSelectionViewEl = document.getElementById('ingredientFoodTypeSelectionView');
+                const foodSelectionViewEl = document.getElementById('ingredientFoodSelectionView');
+                const backToTypesBtnEl = document.getElementById('ingredientBackToTypesBtn');
+                const foodTypeListEl = document.getElementById('ingredientFoodTypeList');
+                const confirmBtnEl = document.getElementById('confirmAddIngredientBtn');
+                
+                selectedFoodType = null;
+                selectedFoodData = null;
+                
+                // Reset form
+                if (ingredientFormEl) {
+                    ingredientFormEl.classList.remove('was-validated');
+                    ingredientFormEl.reset();
+                }
+                
+                // Disable Add Ingredient button initially
+                if (confirmBtnEl) {
+                    confirmBtnEl.disabled = true;
+                }
+                
+                // Clear Select2
+                if (typeof $ !== 'undefined' && $('#foodSelect').data('select2')) {
+                    $('#foodSelect').select2('destroy');
+                }
+                if (typeof $ !== 'undefined') {
+                    $('#foodSelect').html('<option value="">Type to search foods...</option>');
+                }
+                
+                // Show type selection view, hide food selection view
+                if (foodTypeSelectionViewEl) {
+                    foodTypeSelectionViewEl.style.display = 'block';
+                }
+                if (foodSelectionViewEl) {
+                    foodSelectionViewEl.style.display = 'none';
+                }
+                if (backToTypesBtnEl) {
+                    backToTypesBtnEl.style.display = 'none';
+                }
+                
+                // Clear visual selections
+                if (foodTypeListEl) {
+                    const selectedItems = foodTypeListEl.querySelectorAll('.food-type-item.selected');
+                    selectedItems.forEach(item => item.classList.remove('selected'));
+                }
+                
+                // Show modal first
+                backdropEl.style.display = 'block';
+                backdropEl.classList.add('show');
+                modalEl.style.display = 'block';
+                modalEl.classList.add('show');
+                modalEl.removeAttribute('aria-hidden'); // Fix aria-hidden warning
+                modalEl.setAttribute('aria-modal', 'true');
+                document.body.style.overflow = 'hidden';
+                
+                // Ensure event listeners are set up AFTER modal is shown
+                setTimeout(function() {
+                    if (typeof setupAllEventListeners === 'function') {
+                        setupAllEventListeners();
+                    }
+                    // Also attach listeners directly
+                    attachModalEventListeners();
+                }, 100);
+        }
+        
+        // Direct function to attach event listeners to modal buttons
+        function attachModalEventListeners() {
+            console.log('attachModalEventListeners called');
+            
+            const closeBtnEl = document.getElementById('closeIngredientModalBtn');
+            const backToTypesBtnEl = document.getElementById('ingredientBackToTypesBtn');
+            const confirmBtnEl = document.getElementById('confirmAddIngredientBtn');
+            const foodTypeListEl = document.getElementById('ingredientFoodTypeList');
+            const backdropEl = document.getElementById('ingredientModalBackdrop');
+            
+            console.log('Modal elements found:', {
+                closeBtn: !!closeBtnEl,
+                backBtn: !!backToTypesBtnEl,
+                confirmBtn: !!confirmBtnEl,
+                foodTypeList: !!foodTypeListEl,
+                backdrop: !!backdropEl
+            });
+            
+            // Close button
+            if (closeBtnEl) {
+                // Remove old listeners by cloning
+                const newCloseBtn = closeBtnEl.cloneNode(true);
+                closeBtnEl.parentNode.replaceChild(newCloseBtn, closeBtnEl);
+                newCloseBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Close button clicked!');
+                    hideModal();
+                });
+            }
+            
+            // Back to types button
+            if (backToTypesBtnEl) {
+                const newBackBtn = backToTypesBtnEl.cloneNode(true);
+                backToTypesBtnEl.parentNode.replaceChild(newBackBtn, backToTypesBtnEl);
+                newBackBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Back to types clicked!');
+                    const foodTypeSelectionViewEl = document.getElementById('ingredientFoodTypeSelectionView');
+                    const foodSelectionViewEl = document.getElementById('ingredientFoodSelectionView');
+                    const selectedIngredientFoodIdInputEl = document.getElementById('selectedIngredientFoodId');
+                    
+                    if (foodTypeSelectionViewEl) foodTypeSelectionViewEl.style.display = 'block';
+                    if (foodSelectionViewEl) foodSelectionViewEl.style.display = 'none';
+                    if (newBackBtn) newBackBtn.style.display = 'none';
+                    
+                    selectedFoodData = null;
+                    if (selectedIngredientFoodIdInputEl) selectedIngredientFoodIdInputEl.value = '';
+                    
+                    const confirmBtn = document.getElementById('confirmAddIngredientBtn');
+                    if (confirmBtn) confirmBtn.disabled = true;
+                    
+                    if (typeof $ !== 'undefined' && $('#foodSelect').data('select2')) {
+                        $('#foodSelect').val(null).trigger('change');
+                    }
+                });
+            }
+            
+            // Confirm button
+            if (confirmBtnEl) {
+                const newConfirmBtn = confirmBtnEl.cloneNode(true);
+                confirmBtnEl.parentNode.replaceChild(newConfirmBtn, confirmBtnEl);
+                newConfirmBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Confirm button clicked!', selectedFoodData);
+                    
+                    if (this.disabled) {
+                        console.log('Button is disabled, ignoring click');
+                        return;
+                    }
+                    
+                    const selectedIngredientFoodIdInputEl = document.getElementById('selectedIngredientFoodId');
+                    
+                    if (!selectedFoodData || !selectedIngredientFoodIdInputEl || !selectedIngredientFoodIdInputEl.value) {
+                        console.log('No food selected');
+                        this.disabled = true;
+                        return;
+                    }
+                    
+                    // Check if ingredient already added
+                    if (typeof selectedIngredients !== 'undefined' && selectedIngredients.some(ing => ing.id === selectedFoodData.id)) {
+                        // Show error message inside the modal
+                        const errorDiv = document.getElementById('ingredientDuplicateError');
+                        const errorText = document.getElementById('ingredientDuplicateErrorText');
+                        if (errorDiv && errorText) {
+                            errorText.textContent = 'This ingredient is already added';
+                            errorDiv.style.display = 'block';
+                            errorDiv.classList.add('show');
+                            // Auto-hide after 5 seconds
+                            setTimeout(function() {
+                                errorDiv.classList.remove('show');
+                                setTimeout(function() {
+                                    errorDiv.style.display = 'none';
+                                }, 300);
+                            }, 5000);
+                        }
+                        return;
+                    }
+                    
+                    // Hide error message if ingredient is valid
+                    const errorDiv = document.getElementById('ingredientDuplicateError');
+                    if (errorDiv) {
+                        errorDiv.classList.remove('show');
+                        setTimeout(function() {
+                            errorDiv.style.display = 'none';
+                        }, 300);
+                    }
+                    
+                    // Add to array
+                    if (typeof selectedIngredients === 'undefined') {
+                        window.selectedIngredients = [];
+                    }
+                    selectedIngredients.push({
+                        id: selectedFoodData.id,
+                        name: selectedFoodData.name,
+                        imagePath: selectedFoodData.imagePath
+                    });
+                    
+                    // Add badge to UI
+                    const ingredientsListEl = document.getElementById('ingredientsList');
+                    if (ingredientsListEl) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-success me-2 mb-2 ingredient-badge';
+                        badge.setAttribute('data-ingredient-id', selectedFoodData.id);
+                        badge.style.cssText = 'font-size: 0.9rem; padding: 0.5rem 0.75rem; display: inline-flex; align-items: center; gap: 0.5rem;';
+                        
+                        const imageHtml = selectedFoodData.imagePath ? 
+                            `<img src="${selectedFoodData.imagePath}" alt="${selectedFoodData.name}" class="ingredient-image me-2" onerror="this.style.display='none';">` : '';
+                        
+                        badge.innerHTML = `
+                            ${imageHtml}
+                            <span>${selectedFoodData.name}</span>
+                            <button type="button" class="ingredient-remove-btn" 
+                                    data-remove-id="${selectedFoodData.id}"
+                                    style="background: transparent; border: none; color: white; font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0.25rem; margin-left: 0.5rem; opacity: 0.8; font-weight: bold; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;"
+                                    aria-label="Remove">×</button>
+                        `;
+                        
+                        ingredientsListEl.appendChild(badge);
+                        
+                        const removeBtn = badge.querySelector('.ingredient-remove-btn');
+                        if (removeBtn) {
+                            removeBtn.addEventListener('click', function() {
+                                const ingredientId = this.getAttribute('data-remove-id');
+                                if (typeof removeIngredient === 'function') {
+                                    removeIngredient(ingredientId);
+                                }
+                            });
+                        }
+                    }
+                    
+                    hideModal();
+                });
+            }
+            
+            // Food type list - use event delegation
+            if (foodTypeListEl) {
+                foodTypeListEl.addEventListener('click', function(e) {
+                    const foodTypeItem = e.target.closest('.food-type-item');
+                    if (foodTypeItem) {
+                        console.log('Food type clicked:', foodTypeItem.dataset);
+                        const selectedItems = foodTypeListEl.querySelectorAll('.food-type-item.selected');
+                        selectedItems.forEach(item => item.classList.remove('selected'));
+                        foodTypeItem.classList.add('selected');
+                        
+                        selectedFoodType = {
+                            type: foodTypeItem.dataset.type,
+                            value: foodTypeItem.dataset.value,
+                            name: foodTypeItem.dataset.name
+                        };
+                    
+                        initializeIngredientSelect2(selectedFoodType.type, selectedFoodType.value);
+                    }
+                });
+            }
+            
+            // Backdrop click
+            if (backdropEl) {
+                backdropEl.addEventListener('click', function(e) {
+                    if (e.target === backdropEl) {
+                        console.log('Backdrop clicked');
+                        hideModal();
+                    }
+                });
+            }
+            
+            console.log('All modal event listeners attached');
+        }
+        
+        // Expose attachModalEventListeners globally
+        window.attachModalEventListeners = attachModalEventListeners;
+        
+        // Expose showModal globally IMMEDIATELY so onclick handlers can call it
+        window.openIngredientModal = showModal;
+        console.log('window.openIngredientModal assigned:', typeof window.openIngredientModal);
+        
+        function hideModal() {
+            // Get elements dynamically when function is called
+            const modalEl = document.getElementById('ingredientModal');
+            const backdropEl = document.getElementById('ingredientModalBackdrop');
+            
+            if (backdropEl) {
+                backdropEl.classList.remove('show');
+                backdropEl.style.display = 'none';
+            }
+            if (modalEl) {
+                modalEl.classList.remove('show');
+                modalEl.style.display = 'none';
+                modalEl.setAttribute('aria-hidden', 'true'); // Restore aria-hidden when hiding
+                modalEl.removeAttribute('aria-modal');
+                document.body.style.overflow = '';
+            }
+            
+            selectedFoodType = null;
+            selectedFoodData = null;
+        }
+        
+        // Expose hideModal globally
+        window.hideIngredientModal = hideModal;
+            
+        // Format functions for Select2
+        function formatFoodResult(food) {
+            if (!food.id) {
+                return food.text;
+            }
+            const imageUrl = food.imagePath || '/images/products/vegetable.png';
+            return $(
+                `<span class="d-flex align-items-center">
+                    <img src="${imageUrl}" class="select2-food-image me-2" onerror="this.src='/images/products/vegetable.png'"/>
+                    <span>${food.text}</span>
+                </span>`
+            );
+        }
+        
+        function formatFoodSelection(food) {
+            return food.text;
+        }
+        
+        // Initialize Select2 for ingredient search
+        function initializeIngredientSelect2(type, foodTypeValue) {
+            console.log('initializeIngredientSelect2 called with:', type, foodTypeValue);
+            
+            if (typeof $ === 'undefined') {
+                console.error('jQuery not available');
+                return;
+            }
+            
+            const $foodSelect = $('#foodSelect');
+            if ($foodSelect.length === 0) {
+                console.error('foodSelect element not found!');
+                return;
+            }
+            
+            console.log('foodSelect element found, initializing Select2...');
+            
+            // Destroy existing Select2 if any
+            if ($foodSelect.data('select2')) {
+                console.log('Destroying existing Select2 instance');
+                $foodSelect.select2('destroy');
+            }
+            
+            // Show food selection view FIRST, then initialize Select2
+            const foodTypeSelectionViewEl = document.getElementById('ingredientFoodTypeSelectionView');
+            const foodSelectionViewEl = document.getElementById('ingredientFoodSelectionView');
+            const backToTypesBtnEl = document.getElementById('ingredientBackToTypesBtn');
+            const selectedIngredientFoodIdInputEl = document.getElementById('selectedIngredientFoodId');
+            
+            if (foodTypeSelectionViewEl) {
+                foodTypeSelectionViewEl.style.display = 'none';
+            }
+            if (foodSelectionViewEl) {
+                foodSelectionViewEl.style.display = 'block';
+            }
+            if (backToTypesBtnEl) {
+                backToTypesBtnEl.style.display = 'block';
+            }
+            
+            // Small delay to ensure view is visible before initializing Select2
+            setTimeout(function() {
+                console.log('Re-initializing Select2 after view is shown');
+                if ($foodSelect.data('select2')) {
+                    $foodSelect.select2('destroy');
+                }
+                $foodSelect.html('<option value="">Type to search foods...</option>');
+                
+                // Re-initialize Select2
+                $foodSelect.select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Type to search foods...',
+                    allowClear: true,
+                    minimumInputLength: 2,
+                    dropdownParent: $('#ingredientModal'),
+                    ajax: {
+                        url: '/api/v1/nutrition/foods',
+                        dataType: 'json',
+                        delay: 300,
+                        type: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        data: function (params) {
+                            console.log('Select2 AJAX request params:', {
+                                term: params.term,
+                                type: type,
+                                foodType: foodTypeValue
+                            });
+                            return {
+                                query: params.term || '',
+                                type: type,
+                                foodType: foodTypeValue
+                            };
+                        },
+                        processResults: function (data) {
+                            console.log('Select2 received data:', data);
+                            if (!Array.isArray(data)) {
+                                console.error('Expected array but got:', typeof data, data);
+                                return { results: [] };
+                            }
+                            return {
+                                results: data.map(function(food) {
+                                    return {
+                                        id: food.id,
+                                        text: food.name,
+                                        imagePath: food.imagePath || '/images/products/vegetable.png'
+                                    };
+                                })
+                            };
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Select2 AJAX error:', {
+                                status: status,
+                                error: error,
+                                responseText: xhr.responseText,
+                                statusCode: xhr.status
+                            });
+                        },
+                        cache: true
+                    },
+                    templateResult: formatFoodResult,
+                    templateSelection: formatFoodSelection
+                });
+                
+                console.log('Select2 re-initialized successfully');
+            }, 50);
+            
+            // Handle food selection - use window._selectedFoodData
+            const confirmBtnEl = document.getElementById('confirmAddIngredientBtn');
+            
+            $('#foodSelect').off('select2:select').on('select2:select', function(e) {
+                const selectedFood = e.params.data;
+                console.log('Food selected:', selectedFood);
+                if (selectedIngredientFoodIdInputEl) {
+                    selectedIngredientFoodIdInputEl.value = selectedFood.id;
+                }
+                window._selectedFoodData = {
+                    id: selectedFood.id,
+                    name: selectedFood.text,
+                    imagePath: selectedFood.imagePath
+                };
+                // Enable Add Ingredient button when food is selected
+                if (confirmBtnEl) {
+                    confirmBtnEl.disabled = false;
+                }
+            });
+            
+            $('#foodSelect').off('select2:clear').on('select2:clear', function() {
+                const selectedIngredientFoodIdInputEl = document.getElementById('selectedIngredientFoodId');
+                if (selectedIngredientFoodIdInputEl) {
+                    selectedIngredientFoodIdInputEl.value = '';
+                }
+                window._selectedFoodData = null;
+                // Disable Add Ingredient button when food is cleared
+                if (confirmBtnEl) {
+                    confirmBtnEl.disabled = true;
+                }
+            });
+        }
+        
+        // Expose initializeIngredientSelect2 globally
+        // Store the real implementation so placeholder can delegate to it
+        window._realInitializeIngredientSelect2 = initializeIngredientSelect2;
+        // Replace the placeholder with the real implementation
+        window.initializeIngredientSelect2 = initializeIngredientSelect2;
+        console.log('Real initializeIngredientSelect2 exposed to window');
+            
+        // Event listeners - setup after DOM is ready
+        function setupEventListeners() {
+            const openBtn = document.querySelector('.add-ingredient-btn');
+            if (openBtn && !openBtn.hasAttribute('data-listener-attached')) {
+                openBtn.addEventListener('click', showModal);
+                openBtn.setAttribute('data-listener-attached', 'true');
+            }
+        }
+        
+        // Setup listeners when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupEventListeners);
+        } else {
+            setupEventListeners();
+        }
+        
+        // Setup all other event listeners when DOM is ready
+        function setupAllEventListeners() {
+            // Prevent duplicate listeners
+            if (window._ingredientModalListenersSetup) {
+                console.log('Event listeners already set up, skipping');
+                return;
+            }
+            window._ingredientModalListenersSetup = true;
+            
+            const closeBtnEl = document.getElementById('closeIngredientModalBtn');
+            const backdropEl = document.getElementById('ingredientModalBackdrop');
+            const modalEl = document.getElementById('ingredientModal');
+            const foodTypeListEl = document.getElementById('ingredientFoodTypeList');
+            
+            console.log('Setting up ingredient modal event listeners', {
+                closeBtn: !!closeBtnEl,
+                backdrop: !!backdropEl,
+                modal: !!modalEl,
+                foodTypeList: !!foodTypeListEl
+            });
+            
+            if (closeBtnEl && !closeBtnEl.hasAttribute('data-listener-attached')) {
+                closeBtnEl.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Close button clicked');
+                    hideModal();
+                });
+                closeBtnEl.setAttribute('data-listener-attached', 'true');
+            }
+            
+            if (backdropEl) {
+                backdropEl.addEventListener('click', function(e) {
+                    if (e.target === backdropEl) {
+                        hideModal();
+                    }
+                });
+            }
+            
+            document.addEventListener('keydown', function(e) {
+                const modalEl = document.getElementById('ingredientModal');
+                if (e.key === 'Escape' && modalEl && modalEl.classList.contains('show')) {
+                    hideModal();
+                }
+            });
+            
+            // Food type selection handler
+            if (foodTypeListEl && !foodTypeListEl.hasAttribute('data-listener-attached')) {
+                foodTypeListEl.addEventListener('click', function(e) {
+                    const foodTypeItem = e.target.closest('.food-type-item');
+                    if (foodTypeItem) {
+                        console.log('Food type selected:', foodTypeItem.dataset);
+                        const selectedItems = foodTypeListEl.querySelectorAll('.food-type-item.selected');
+                        selectedItems.forEach(item => item.classList.remove('selected'));
+                        foodTypeItem.classList.add('selected');
+                        
+                        selectedFoodType = {
+                            type: foodTypeItem.dataset.type,
+                            value: foodTypeItem.dataset.value,
+                            name: foodTypeItem.dataset.name
+                        };
+                    
+                        initializeIngredientSelect2(selectedFoodType.type, selectedFoodType.value);
+                    }
+                });
+                foodTypeListEl.setAttribute('data-listener-attached', 'true');
+            }
+            
+            // Back to types button handler
+            const backToTypesBtnEl = document.getElementById('ingredientBackToTypesBtn');
+            if (backToTypesBtnEl && !backToTypesBtnEl.hasAttribute('data-listener-attached')) {
+                backToTypesBtnEl.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Back to types button clicked');
+                    const foodTypeSelectionViewEl = document.getElementById('ingredientFoodTypeSelectionView');
+                    const foodSelectionViewEl = document.getElementById('ingredientFoodSelectionView');
+                    const selectedIngredientFoodIdInputEl = document.getElementById('selectedIngredientFoodId');
+                    
+                    if (foodTypeSelectionViewEl) {
+                        foodTypeSelectionViewEl.style.display = 'block';
+                    }
+                    if (foodSelectionViewEl) {
+                        foodSelectionViewEl.style.display = 'none';
+                    }
+                    if (backToTypesBtnEl) {
+                        backToTypesBtnEl.style.display = 'none';
+                    }
+                    
+                    selectedFoodData = null;
+                    if (selectedIngredientFoodIdInputEl) {
+                        selectedIngredientFoodIdInputEl.value = '';
+                    }
+                    
+                    const confirmBtnEl = document.getElementById('confirmAddIngredientBtn');
+                    // Disable Add Ingredient button when going back to types
+                    if (confirmBtnEl) {
+                        confirmBtnEl.disabled = true;
+                    }
+                    
+                    if (typeof $ !== 'undefined' && $('#foodSelect').data('select2')) {
+                        $('#foodSelect').val(null).trigger('change');
+                    }
+                });
+                backToTypesBtnEl.setAttribute('data-listener-attached', 'true');
+            }
+            
+            // Add ingredient button handler
+            const confirmBtnEl = document.getElementById('confirmAddIngredientBtn');
+            const ingredientsListEl = document.getElementById('ingredientsList');
+            
+            if (confirmBtnEl && !confirmBtnEl.hasAttribute('data-listener-attached')) {
+                confirmBtnEl.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Confirm Add Ingredient button clicked');
+                    // If button is disabled, do nothing
+                    if (this.disabled) {
+                        return;
+                    }
+                    
+                    const selectedIngredientFoodIdInputEl = document.getElementById('selectedIngredientFoodId');
+                    
+                    if (!selectedFoodData || !selectedIngredientFoodIdInputEl || !selectedIngredientFoodIdInputEl.value) {
+                        // Disable button if no food selected
+                        this.disabled = true;
+                        return;
+                    }
+                    
+                    // Check if ingredient already added
+                    if (typeof selectedIngredients !== 'undefined' && selectedIngredients.some(ing => ing.id === selectedFoodData.id)) {
+                        // Show error message inside the modal
+                        const errorDiv = document.getElementById('ingredientDuplicateError');
+                        const errorText = document.getElementById('ingredientDuplicateErrorText');
+                        if (errorDiv && errorText) {
+                            errorText.textContent = 'This ingredient is already added';
+                            errorDiv.style.display = 'block';
+                            errorDiv.classList.add('show');
+                            // Auto-hide after 5 seconds
+                            setTimeout(function() {
+                                errorDiv.classList.remove('show');
+                                setTimeout(function() {
+                                    errorDiv.style.display = 'none';
+                                }, 300);
+                            }, 5000);
+                        }
+                        return;
+                    }
+                    
+                    // Hide error message if ingredient is valid
+                    const errorDiv = document.getElementById('ingredientDuplicateError');
+                    if (errorDiv) {
+                        errorDiv.classList.remove('show');
+                        setTimeout(function() {
+                            errorDiv.style.display = 'none';
+                        }, 300);
+                    }
+                    
+                    // Add to array
+                    if (typeof selectedIngredients === 'undefined') {
+                        window.selectedIngredients = [];
+                    }
+                    selectedIngredients.push({
+                        id: selectedFoodData.id,
+                        name: selectedFoodData.name,
+                        imagePath: selectedFoodData.imagePath
+                    });
+                    
+                    // Add badge to UI
+                    if (ingredientsListEl) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-success me-2 mb-2 ingredient-badge';
+                        badge.setAttribute('data-ingredient-id', selectedFoodData.id);
+                        badge.style.cssText = 'font-size: 0.9rem; padding: 0.5rem 0.75rem; display: inline-flex; align-items: center; gap: 0.5rem;';
+                        
+                        const imageHtml = selectedFoodData.imagePath ? 
+                            `<img src="${selectedFoodData.imagePath}" alt="${selectedFoodData.name}" class="ingredient-image me-2" onerror="this.style.display='none';">` : '';
+                        
+                        badge.innerHTML = `
+                            ${imageHtml}
+                            <span>${selectedFoodData.name}</span>
+                            <button type="button" class="ingredient-remove-btn" 
+                                    data-remove-id="${selectedFoodData.id}"
+                                    style="background: transparent; border: none; color: white; font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 0.25rem; margin-left: 0.5rem; opacity: 0.8; font-weight: bold; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;"
+                                    aria-label="Remove">×</button>
+                        `;
+                        
+                        ingredientsListEl.appendChild(badge);
+                        
+                        // Add click handler for remove button
+                        const removeBtn = badge.querySelector('.ingredient-remove-btn');
+                        if (removeBtn) {
+                            removeBtn.addEventListener('click', function() {
+                                const ingredientId = this.getAttribute('data-remove-id');
+                                if (typeof removeIngredient === 'function') {
+                                    removeIngredient(ingredientId);
+                                }
+                            });
+                        }
+                    }
+                    
+                    hideModal();
+                });
+                confirmBtnEl.setAttribute('data-listener-attached', 'true');
+            }
+            
+            console.log('All ingredient modal event listeners set up');
+        }
+        
+        // Expose setupAllEventListeners globally
+        window.setupAllEventListeners = setupAllEventListeners;
+        
+        // Call setupAllEventListeners when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setupAllEventListeners();
+            });
+        } else {
+            setupAllEventListeners();
+        }
+        
+        // Verify functions are defined
+        console.log('After IIFE - searchRecipes:', typeof window.searchRecipes);
+        console.log('After IIFE - clearAllFilters:', typeof window.clearAllFilters);
+        
+        // Fallback: Define functions if they weren't defined (shouldn't happen but just in case)
+        if (typeof window.searchRecipes === 'undefined') {
+            console.error('searchRecipes was not defined! Defining fallback...');
+            window.searchRecipes = function() {
+                alert('searchRecipes function not properly initialized. Please refresh the page.');
+            };
+        }
+        if (typeof window.clearAllFilters === 'undefined') {
+            console.error('clearAllFilters was not defined! Defining fallback...');
+            window.clearAllFilters = function() {
+                alert('clearAllFilters function not properly initialized. Please refresh the page.');
+            };
+        }
+
+        // Search and filter functionality
+
+        window.loadRecipes = function(params) {
+            window.lastSearchParams = params;
+            console.log('=== loadRecipes CALLED ===', 'params:', params ? params.toString() : 'null');
+            const recipeList = document.getElementById('recipeList');
+            if (recipeList) {
+                recipeList.innerHTML = '';
+            }
+            // Initially hide empty state (will be shown if no results)
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+            
+            // Show search results section (will be hidden if no results)
+            showSearchResultsSection();
+            
+            console.log('Loading recipes with params:', params.toString());
+            console.log('Fetch URL:', `/api/v1/nutrition/foods?${params.toString()}`);
+            
+            // params should already contain itemType (set in searchRecipes)
+            fetch(`/api/v1/nutrition/foods?${params.toString()}`, {
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                console.log('Response received, status:', response.status, 'ok:', response.ok);
+                if (!response.ok) {
+                    // Try to parse error message from response
+                    return response.text().then(text => {
+                        console.error('Response not OK, error text:', text);
+                        try {
+                            const errorData = JSON.parse(text);
+                            throw new Error(errorData.message || text || 'Failed to load recipes');
+                        } catch (e) {
+                            if (e instanceof Error && e.message !== 'Failed to load recipes') {
+                                throw e;
+                            }
+                            throw new Error(text || 'Failed to load recipes: ' + response.status);
+                        }
+                    });
+                }
+                console.log('Response OK, parsing JSON...');
+                return response.json();
+            })
+            .then(data => {
+                console.log('Loaded recipes:', data);
+                console.log('Data type:', typeof data, 'Is array:', Array.isArray(data), 'Length:', data ? data.length : 'null');
+                // Store recipes for sorting
+                currentRecipes = data || [];
+                
+                if (data && Array.isArray(data) && data.length > 0) {
+                    console.log('Displaying', data.length, 'recipes');
+                    displayRecipes(data);
+                    showSortSection();
+                    updateResultsCount(data.length);
+                    showSearchResultsSection(); // Show "Search Results" header
+                    hideEmptyState();
+                } else {
+                    console.log('No recipes to display. Data:', data);
+                    hideRecipeList();
+                    hideSortSection();
+                    hideSearchResultsSection(); // Hide "Search Results" header when no results
+                    // Show empty state - explicitly set display to flex
+                    const emptyStateEl = document.getElementById('emptyState');
+                    if (emptyStateEl) {
+                        emptyStateEl.style.display = 'flex'; // Bootstrap row uses flex
+                        console.log('Empty state displayed, computed display:', window.getComputedStyle(emptyStateEl).display);
+                    } else {
+                        console.error('emptyState element not found in loadRecipes');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error loading recipes:', error);
+                const errorMessage = error.message || 'Error loading recipes';
+                if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                    Momentum.showToast(errorMessage, 'error');
+                } else {
+                    alert(errorMessage);
+                }
+                hideRecipeList();
+                hideSortSection();
+                hideSearchResultsSection(); // Hide "Search Results" header on error
+                showEmptyState(); // Show empty state on error
+            });
+        }
+
+        function displayRecipes(recipes) {
+            console.log('displayRecipes called with', recipes ? recipes.length : 'null', 'recipes');
+            // TODO: Implement recipe display logic
+            const recipeList = document.getElementById('recipeList');
+            if (!recipeList) {
+                console.error('recipeList element not found!');
+                return;
+            }
+            
+            console.log('recipeList element found, clearing and displaying recipes');
+            // Clear existing recipes
+            recipeList.innerHTML = '';
+            
+            // Show recipe list
+            showRecipeList();
+            hideEmptyState();
+            
+            // Display recipes in grid view (default)
+            const viewMode = 'grid';
+            
+            let displayedCount = 0;
+            recipes.forEach(function(recipe, index) {
+                console.log(`Processing recipe ${index + 1}/${recipes.length}:`, recipe.name, recipe);
+                // Create recipe card based on view mode
+                try {
+                const recipeCard = createRecipeCard(recipe, viewMode);
+                    if (recipeCard) {
+                recipeList.appendChild(recipeCard);
+                        displayedCount++;
+                        console.log(`Successfully added recipe card for: ${recipe.name}`);
+                    } else {
+                        console.warn('createRecipeCard returned null for:', recipe);
+                    }
+                } catch (error) {
+                    console.error('Error creating recipe card for:', recipe, error);
+                }
+            });
+            
+            console.log('Displayed', displayedCount, 'out of', recipes.length, 'recipes in', viewMode, 'view');
+            console.log('recipeList children count:', recipeList.children.length);
+            console.log('recipeList display style:', window.getComputedStyle(recipeList).display);
+        }
+        
+        function createRecipeCard(recipe, viewMode) {
+            console.log('Creating card for:', recipe.name, 'itemType:', recipe.itemType, 'imagePath:', recipe.imagePath);
+
+            const col = document.createElement('div');
+            col.className = viewMode === 'grid' ? 'col-lg-4 col-md-6 col-sm-12 mb-4' : 'col-12 mb-3';
+
+            // Force width for large screens - always set for grid view
+            if (viewMode === 'grid') {
+                if (window.innerWidth >= 992) {
+                    col.style.width = '33.33333333%';
+                    col.style.flex = '0 0 33.33333333%';
+                    col.style.maxWidth = '33.33333333%';
+                } else if (window.innerWidth >= 768) {
+                    col.style.width = '50%';
+                    col.style.flex = '0 0 50%';
+                    col.style.maxWidth = '50%';
+                } else {
+                    col.style.width = '100%';
+                    col.style.flex = '0 0 100%';
+                    col.style.maxWidth = '100%';
+                }
+            }
+
+            let defaultImage = '/images/composites/meals_and_side_dishes.png'; // Default for recipes/composites
+            if (recipe.itemType === 'PRODUCT') {
+                // Map foodType display names to default images
+                const productImageMap = {
+                    'Pork': '/images/products/pork.png',
+                    'Beef': '/images/products/beef.png',
+                    'Veal': '/images/products/veal.png',
+                    'Lamb': '/images/products/lamb.png',
+                    'Game': '/images/products/game.png',
+                    'Poultry': '/images/products/poultry.png',
+                    'Fish': '/images/products/fish.png',
+                    'Vegetable': '/images/products/vegetable.png',
+                    'Legume': '/images/products/legume.png',
+                    'Fruit': '/images/products/fruit.png',
+                    'Grain': '/images/products/grain.png',
+                    'Dairy': '/images/products/dairy.png',
+                    'Egg': '/images/products/egg.png',
+                    'Fats and Oils': '/images/products/fats_and_oils.png',
+                    'Nuts and Seeds': '/images/products/nuts_and_seeds.png',
+                    'Spices and Herbs': '/images/products/spices_and_herbs.png'
+                };
+                defaultImage = productImageMap[recipe.foodType] || '/images/products/vegetable.png';
+            }
+            const imagePath = recipe.imagePath || defaultImage;
+            console.log('Final imagePath for', recipe.name, ':', imagePath, 'using default:', !recipe.imagePath);
+            const calories = recipe.calories || 0;
+            const protein = recipe.protein || 0;
+            const carbs = recipe.carbohydrates || 0;
+            const fat = recipe.fat || 0;
+            const ingredientCount = recipe.ingredientCount || 0;
+            
+            const isOwner = recipe.isOwner || false;
+            const isPublic = typeof recipe.isPublic === 'boolean' ? recipe.isPublic : true;
+            const sharedUsersCount = recipe.sharedUsersCount || 0;
+            const isInLibrary = recipe.isInLibrary || false;
+            // foodType is the human-readable category (e.g. Meals and Side Dishes, Beverages, etc.)
+            const recipeType = recipe.foodType || '';
+            const ownerBadge = isOwner
+                ? '<span class="badge bg-success me-1"><i class="bi bi-person-check me-1"></i>My Item</span>'
+                : '<span class="badge bg-info me-1"><i class="bi bi-globe me-1"></i>Community Item</span>';
+            const visibilityBadge = isOwner
+                ? (isPublic
+                    ? '<span class="badge bg-primary me-1"><i class="bi bi-unlock me-1"></i>Public</span>'
+                    : '<span class="badge bg-dark me-1"><i class="bi bi-lock me-1"></i>Private</span>')
+                : '';
+            const typeBadge = recipeType ? `<span class="badge bg-warning text-dark me-1"><i class="bi bi-tag me-1"></i>${recipeType}</span>` : '';
+            const sharedUsersBadgeClass = isInLibrary ? 'bg-success' : 'bg-secondary';
+            const sharedUsersBadge = `<span class="badge ${sharedUsersBadgeClass}"><i class="bi bi-people me-1"></i>${sharedUsersCount} user${sharedUsersCount !== 1 ? 's' : ''}</span>`;
+            
+            col.innerHTML = `
+                <div class="card recipe-card h-100" style="width: 100%;">
+                    <img src="${imagePath}" class="card-img-top" style="height: 200px; object-fit: cover; width: 100%;" onerror="this.src='${defaultImage}'">
+                    <div class="card-body" style="width: 100%;">
+                        <h5 class="card-title">${recipe.name}</h5>
+                        <div class="mb-2">
+                            ${ownerBadge}
+                            ${visibilityBadge}
+                            ${typeBadge}
+                            ${sharedUsersBadge}
+                        </div>
+                        <p class="text-muted small mb-2">${ingredientCount} ingredient${ingredientCount !== 1 ? 's' : ''}</p>
+                        <div class="d-flex justify-content-between mb-2 flex-wrap">
+                            <span>Calories: <strong>${Math.round(calories)}</strong></span>
+                            <span>Protein: <strong>${protein.toFixed(1)}</strong>g</span>
+                            <span>Carbs: <strong>${carbs.toFixed(1)}</strong>g</span>
+                            <span>Fat: <strong>${fat.toFixed(1)}</strong>g</span>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex flex-column gap-1" style="width: 100%;">
+                        ${recipe.itemType === 'RECIPE' ? `
+                        <button class="btn btn-primary btn-sm w-100 mb-1" onclick="window.viewRecipe('${recipe.id}')">
+                            View Details
+                        </button>` : ''}
+                        ${!isOwner && (recipe.itemType === 'PRODUCT' || recipe.itemType === 'COMPOSITE') ? `
+                        <button class="btn ${isInLibrary ? 'btn-success' : 'btn-outline-primary'} btn-sm w-100" onclick="window.toggleLibrary('${recipe.id}', '${recipe.itemType}', ${isInLibrary}, this)">
+                            <i class="bi ${isInLibrary ? 'bi-bookmark-check' : 'bi-bookmark-plus'} me-1"></i>${isInLibrary ? 'In Your Library' : 'Add to Library'}
+                        </button>` : ''}
+                        ${isOwner && recipe.itemType ? `
+                        <button class="btn btn-outline-secondary btn-sm w-100" onclick="window.location.href='${
+                            recipe.itemType === 'PRODUCT'
+                                ? '/nutrition/products/' + recipe.id + '/edit'
+                                : recipe.itemType === 'COMPOSITE'
+                                    ? '/nutrition/composites/' + recipe.id + '/edit'
+                                    : '/nutrition/recipes/' + recipe.id + '/edit'
+                        }'">
+                            Edit
+                        </button>` : ''}
+                    </div>
+                </div>
+            `;
+            return col;
+        }
+
+
+        
+        function showSearchResultsSection() {
+            const section = document.getElementById('searchResultsSection');
+            if (section) {
+                section.style.display = 'block';
+            }
+        }
+        
+        function hideSearchResultsSection() {
+            const section = document.getElementById('searchResultsSection');
+            if (section) {
+                section.style.display = 'none';
+            }
+        }
+        
+        function showRecipeList() {
+            const recipeList = document.getElementById('recipeList');
+            if (recipeList) {
+                recipeList.style.display = 'block';
+            }
+        }
+        
+        function hideRecipeList() {
+            const recipeList = document.getElementById('recipeList');
+            if (recipeList) {
+                recipeList.style.display = 'none';
+            }
+        }
+        
+        function showEmptyState() {
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) {
+                // Bootstrap row uses flex, so set it explicitly
+                emptyState.style.display = 'flex';
+                console.log('Empty state shown, computed display:', window.getComputedStyle(emptyState).display);
+            } else {
+                console.warn('emptyState element not found');
+            }
+        }
+        
+        function hideEmptyState() {
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+        }
+
+        // Store current recipes for sorting (global variable)
+        window.currentRecipes = [];
+
+        // Sorting functionality
+        window.applySorting = function() {
+            const sortBy = document.getElementById('sortBy').value;
+            console.log('Sorting by:', sortBy);
+            
+            if (!window.currentRecipes || window.currentRecipes.length === 0) {
+                console.warn('No recipes to sort');
+                return;
+            }
+            
+            const sortedRecipes = sortRecipes([...window.currentRecipes], sortBy);
+            displayRecipes(sortedRecipes);
+        };
+        
+        function sortRecipes(recipes, sortBy) {
+            if (!recipes || recipes.length === 0) {
+                return recipes;
+            }
+            
+            const [field, order] = sortBy.split('_');
+            const isAscending = order === 'asc';
+            
+            return recipes.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch (field) {
+                    case 'name':
+                        aValue = (a.name || '').toLowerCase();
+                        bValue = (b.name || '').toLowerCase();
+                        return isAscending 
+                            ? aValue.localeCompare(bValue)
+                            : bValue.localeCompare(aValue);
+                    
+                    case 'calories':
+                        aValue = a.calories || 0;
+                        bValue = b.calories || 0;
+                        return isAscending ? aValue - bValue : bValue - aValue;
+                    
+                    case 'protein':
+                        aValue = a.protein || 0;
+                        bValue = b.protein || 0;
+                        return isAscending ? aValue - bValue : bValue - aValue;
+                    
+                    case 'carbs':
+                        aValue = a.carbohydrates || 0;
+                        bValue = b.carbohydrates || 0;
+                        return isAscending ? aValue - bValue : bValue - aValue;
+                    
+                    case 'fat':
+                        aValue = a.fat || 0;
+                        bValue = b.fat || 0;
+                        return isAscending ? aValue - bValue : bValue - aValue;
+                    
+                    default:
+                        return 0;
+                }
+            });
+        }
+
+        function showSortSection() {
+            const sortSection = document.getElementById('sortSection');
+            if (sortSection) {
+                sortSection.style.display = 'block';
+            }
+        }
+
+        function hideSortSection() {
+            const sortSection = document.getElementById('sortSection');
+            if (sortSection) {
+                sortSection.style.display = 'none';
+            }
+        }
+
+        function updateResultsCount(count) {
+            const resultsCount = document.getElementById('resultsCount');
+            if (resultsCount) {
+                resultsCount.textContent = `${count} item${count !== 1 ? 's' : ''} found`;
+            }
+        }
+
+        // Define removeIngredient function
+        function removeIngredient(ingredientId) {
+            console.log('removeIngredient called with:', ingredientId);
+            
+            // Remove from array by ID (use window.selectedIngredients for consistency)
+            if (typeof window.selectedIngredients !== 'undefined') {
+                window.selectedIngredients = window.selectedIngredients.filter(ing => ing.id !== ingredientId);
+            }
+            // Also update local selectedIngredients if it exists
+            if (typeof selectedIngredients !== 'undefined') {
+                selectedIngredients = selectedIngredients.filter(ing => ing.id !== ingredientId);
+            }
+            console.log('selectedIngredients after removal:', typeof window.selectedIngredients !== 'undefined' ? window.selectedIngredients : selectedIngredients);
+            
+            // Remove the badge from DOM
+            const ingredientsList = document.getElementById('ingredientsList');
+            if (ingredientsList) {
+                const badgeToRemove = ingredientsList.querySelector('.ingredient-badge[data-ingredient-id="' + ingredientId + '"]');
+                if (badgeToRemove) {
+                    badgeToRemove.remove();
+                    console.log('Removed badge from DOM for:', ingredientId);
+                } else {
+                    console.warn('Could not find badge to remove for:', ingredientId);
+                }
+            }
+            
+            return false;
+        }
+        
+        // Make function globally accessible (replace early version if needed)
+        window.removeIngredient = removeIngredient;
+        
+        // Initialize page - setup event listeners only
+        function initializePage() {
+            // Allow Enter key in recipe name search to trigger search
+            const recipeNameInput = document.getElementById('recipeNameSearch');
+            if (recipeNameInput) {
+                recipeNameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchRecipes();
+                    }
+                });
+            }
+            
+            // Allow Enter key in ingredient search to add ingredient
+            const ingredientInput = document.getElementById('ingredientSearch');
+            if (ingredientInput) {
+                ingredientInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        window.addIngredient();
+                    }
+                });
+            }
+        }
+        
+        // Initialize page - setup event listeners and sync with HTML
+        function initializeIngredients() {
+            console.log('Initializing ingredients...');
+            
+            // Setup remove button handlers for existing HTML badges
+            function setupRemoveButtons() {
+                const ingredientsList = document.getElementById('ingredientsList');
+                if (ingredientsList) {
+                    const removeButtons = ingredientsList.querySelectorAll('.ingredient-remove-btn');
+                    removeButtons.forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            const ingredientId = this.getAttribute('data-remove-id');
+                            if (typeof removeIngredient === 'function') {
+                                removeIngredient(ingredientId);
+                            }
+                        });
+                    });
+                }
+            }
+            
+            setupRemoveButtons();
+            
+            // Then sync HTML badges to JavaScript array (but don't modify DOM)
+            const ingredientsList = document.getElementById('ingredientsList');
+            if (ingredientsList) {
+                const existingBadges = ingredientsList.querySelectorAll('.ingredient-badge[data-ingredient]');
+                existingBadges.forEach(function(badge) {
+                    const ingredient = badge.getAttribute('data-ingredient');
+                    if (ingredient && !selectedIngredients.includes(ingredient.toLowerCase())) {
+                        selectedIngredients.push(ingredient.toLowerCase());
+                        console.log('Synced ingredient from HTML:', ingredient);
+                    }
+                });
+            }
+            
+            console.log('Selected ingredients after sync:', selectedIngredients);
+            
+            // Setup event listeners for search inputs
+            initializePage();
+        }
+        
+        // Run initialization when DOM is ready
+        function runInitialization() {
+            try {
+                initializeIngredients();
+            } catch (error) {
+                console.error('Error initializing ingredients:', error);
+            }
+        }
+        
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', runInitialization);
+        } else {
+            // DOM already loaded, run after a small delay to ensure everything is ready
+            setTimeout(runInitialization, 50);
+        }
+        
+        // Fallback - try again after a delay
+        setTimeout(function() {
+            const ingredientsList = document.getElementById('ingredientsList');
+            if (ingredientsList) {
+                const existingBadges = ingredientsList.querySelectorAll('.ingredient-badge');
+                if (existingBadges.length > 0) {
+                    setupRemoveButtons();
+                    console.log('Fallback: Setup remove buttons for', existingBadges.length, 'badges');
+                }
+            }
+        }, 200);
+
+        // viewRecipe is already defined earlier in the script (line 705)
+
+        function addToMealPlan(recipeId) {
+            console.log('Adding recipe to meal plan:', recipeId);
+            Momentum.showToast('Recipe added to meal plan!', 'success');
+            // TODO: Implement add to meal plan functionality
+        }
+
+        function showCreateRecipeModal() {
+            new bootstrap.Modal(document.getElementById('createRecipeModal')).show();
+        }
+
+        function createRecipe() {
+            const form = document.getElementById('createRecipeForm');
+            const formData = new FormData(form);
+            
+            // Validate required fields
+            const requiredFields = ['recipeName'];
+            for (const field of requiredFields) {
+                if (!document.getElementById(field).value) {
+                    Momentum.showToast('Please fill in all required fields', 'warning');
+                    return;
+                }
+            }
+            
+            console.log('Creating recipe with data:', Object.fromEntries(formData));
+            Momentum.showToast('Recipe created successfully!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('createRecipeModal')).hide();
+            form.reset();
+        }
+    </script>
+    
+</body>
+</html>

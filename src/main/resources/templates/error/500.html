@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+
+<head>
+    <title>Server Error - Momentum</title>
+</head>
+
+<body>
+<section layout:fragment="content" class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 text-center">
+                <div class="error-page">
+                    <h1 class="display-1 text-danger fw-bold">500</h1>
+                    <h2 class="mb-4">Internal Server Error</h2>
+                    <p class="lead text-muted mb-4" th:if="${message}" th:text="${message}">Something went wrong on our end.</p>
+                    <p class="text-muted mb-5" th:if="!${message}">We're experiencing technical difficulties. Our team has been notified and is working to fix the issue.</p>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="/dashboard" class="btn btn-primary btn-lg">
+                            <i class="bi bi-house-door me-2"></i>Go to Dashboard
+                        </a>
+                        <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-arrow-left me-2"></i>Go Back
+                        </button>
+                    </div>
+
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            Error ID: <span th:text="${#dates.format(#dates.createNow(), 'yyyyMMdd-HHmmss')}">20241204-120000</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

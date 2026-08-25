@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title th:text="${recipe.name} + ' - Recipe Details'">Recipe Details</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .nutrition-theme {
+            --primary-color: #11998e;
+            --gradient-primary: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .nutrition-theme .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+        }
+        
+        .nutrition-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #0f857a 0%, #2dd970 100%);
+        }
+        
+        .recipe-header {
+            background: var(--gradient-primary);
+            padding: 2rem;
+            border-radius: 1rem;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        
+        .recipe-image {
+            width: 100%;
+            max-width: 500px;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+        
+        .nutrition-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+        }
+        
+        .nutrition-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+            border: 2px solid transparent;
+        }
+        
+        .nutrition-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .nutrition-card .nutrition-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nutrition-card .nutrition-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+        
+        .nutrition-card .nutrition-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .nutrition-card .nutrition-unit {
+            font-size: 0.85rem;
+            color: #868e96;
+            margin-left: 0.25rem;
+        }
+        
+        .ingredient-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+        }
+        
+        .ingredient-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+            margin-right: 1rem;
+        }
+        
+        .step-item {
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .step-number:empty {
+            display: none;
+        }
+        
+        .recipe-stats {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .recipe-stat-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 1.25rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .recipe-stat-badge:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .recipe-stat-badge i {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .recipe-stat-badge .stat-number {
+            font-weight: 700;
+            margin-left: 0.25rem;
+            margin-right: 0.8rem;
+        }
+
+        .add-to-library-btn {
+            transition: all 0.3s ease;
+            background: white !important;
+            color: #212529 !important;
+            border: 1px solid #11998e !important;
+        }
+
+        .add-to-library-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+            color: white !important;
+            border-color: #11998e !important;
+            box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
+        }
+
+        #removeFromLibraryBtn {
+            transition: all 0.3s ease;
+            background: white !important;
+            color: #dc3545 !important;
+            border: 1px solid #dc3545 !important;
+        }
+
+        #removeFromLibraryBtn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%) !important;
+            color: white !important;
+            border-color: #dc3545 !important;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+    </style>
+</head>
+<body class="nutrition-theme">
+    <div layout:fragment="content">
+        <div class="container">
+            <!-- Back Button -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="/nutrition/foods" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Foods
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Recipe Header -->
+            <div class="recipe-header">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <img th:src="${recipe.imagePath}" 
+                             th:alt="${recipe.name}"
+                             class="recipe-image"
+                             onerror="this.src='/images/composites/meals_and_side_dishes.png'">
+                    </div>
+                    <div class="col-md-8">
+                        <h1 th:text="${recipe.name}" class="mb-3">Recipe Name</h1>
+                        <div class="recipe-stats">
+                            <div class="recipe-stat-badge" th:if="${ownerUsername != null}">
+                                <i class="bi bi-person"></i>
+                                <span>Created by <strong th:text="${ownerUsername}">username</strong></span>
+                            </div>
+                            <div class="recipe-stat-badge" th:if="${recipe.type != null}">
+                                <i class="bi bi-tag"></i>
+                                <span th:text="${recipe.type.displayName}">Type</span>
+                            </div>
+                            <div class="recipe-stat-badge">
+                                <span class="stat-number" th:text="${recipe.ingredients != null ? recipe.ingredients.size() : 0}">0</span>
+                                <span>ingredient<span th:if="${recipe.ingredients != null and recipe.ingredients.size() != 1}">s</span></span>
+                            </div>
+                            <div class="recipe-stat-badge" th:if="${recipe.steps != null and recipe.steps.size() > 0}">
+                                <span class="stat-number" th:text="${recipe.steps.size()}">0</span>
+                                <span>step<span th:if="${recipe.steps.size() != 1}">s</span></span>
+                            </div>
+                            <div class="recipe-stat-badge" th:if="${sharedUsersCount != null}">
+                                <i class="bi bi-people"></i>
+                                <span class="stat-number" th:text="${sharedUsersCount}">0</span>
+                                <span>user<span th:if="${sharedUsersCount != 1}">s</span> using it</span>
+                            </div>
+                        </div>
+                        <div class="mt-3" th:if="${ownerUsername != null and !isInLibrary and recipe.isPublic and (recipe.moderationStatus == null or recipe.moderationStatus.name() == 'APPROVED')}">
+                            <button class="btn btn-lg add-to-library-btn" id="addToLibraryBtn" onclick="window.addToLibrary()">
+                                <i class="bi bi-bookmark-plus me-2"></i>Add to Library
+                            </button>
+                        </div>
+                        <div class="mt-3" th:if="${isInLibrary}">
+                            <button class="btn btn-lg" id="removeFromLibraryBtn" onclick="window.removeFromLibrary()">
+                                <i class="bi bi-bookmark-x me-2"></i>Remove from Library
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Nutrition Info -->
+            <div class="nutrition-info">
+                <h4 class="mb-4 text-center">
+                    <i class="bi bi-calculator me-2"></i>Nutritional Information (per 100g)
+                </h4>
+                <div class="row g-3">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon">
+                                <i class="bi bi-fire"></i>
+                            </div>
+                            <div class="nutrition-value">
+                                <span th:text="${recipe.calories}">0</span>
+                                <span class="nutrition-unit">kcal</span>
+                            </div>
+                            <div class="nutrition-label">Calories</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon">
+                                <i class="fa-solid fa-apple-whole"></i>
+                            </div>
+                            <div class="nutrition-value">
+                                <span th:text="${#numbers.formatDecimal(recipe.carbohydrates, 1, 1)}">0</span>
+                                <span class="nutrition-unit">g</span>
+                            </div>
+                            <div class="nutrition-label">Carbohydrates</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon">
+                                <i class="fa-solid fa-drumstick-bite"></i>
+                            </div>
+                            <div class="nutrition-value">
+                                <span th:text="${#numbers.formatDecimal(recipe.protein, 1, 1)}">0</span>
+                                <span class="nutrition-unit">g</span>
+                            </div>
+                            <div class="nutrition-label">Protein</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="nutrition-card">
+                            <div class="nutrition-icon">
+                                <i class="fa-solid fa-bottle-droplet"></i>
+                            </div>
+                            <div class="nutrition-value">
+                                <span th:text="${#numbers.formatDecimal(recipe.fat, 1, 1)}">0</span>
+                                <span class="nutrition-unit">g</span>
+                            </div>
+                            <div class="nutrition-label">Fat</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ingredients -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="bi bi-list-ul me-2"></i>Ingredients</h4>
+                </div>
+                <div class="card-body">
+                    <div th:if="${recipe.ingredients == null or recipe.ingredients.isEmpty()}">
+                        <p class="text-muted">No ingredients listed.</p>
+                    </div>
+                    <div th:each="ingredient : ${recipe.ingredients}">
+                        <div class="ingredient-item">
+                            <img th:src="${ingredient.food.imagePath}" 
+                                 th:alt="${ingredient.food.name}"
+                                 onerror="this.src='/images/products/fruits.png'">
+                            <div class="flex-grow-1">
+                                <strong th:text="${ingredient.food.name}">Ingredient Name</strong>
+                                <div class="text-muted">
+                                    <span th:text="${ingredient.servingSize}">0</span>g
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Steps -->
+            <div class="card mb-4" th:if="${steps != null and not steps.isEmpty()}">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="bi bi-list-ul me-2"></i>Instructions</h4>
+                </div>
+                <div class="card-body">
+                    <div th:each="step : ${steps}" class="step-item">
+                        <div class="flex-grow-1">
+                            <h5>
+                                <span class="badge me-2" style="background: var(--gradient-primary); color: white;" th:text="'Step ' + ${step.stepNumber}">Step 1</span>
+                                <span th:text="${step.title}">Step Title</span>
+                            </h5>
+                            <p th:text="${step.description}">Step description</p>
+                            <img th:if="${step.imageUrl != null and not step.imageUrl.isEmpty()}" 
+                                 th:src="${step.imageUrl}" 
+                                 th:alt="${step.title}"
+                                 class="img-fluid rounded mt-2"
+                                 style="max-height: 300px; object-fit: cover;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="/nutrition/foods" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Foods
+                        </a>
+                        <div th:if="${isOwner != null and isOwner}">
+                            <a th:href="@{/nutrition/recipes/{id}/edit(id=${recipe.id})}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-pencil me-2"></i>Edit Recipe
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div layout:fragment="scripts">
+    <script th:inline="javascript">
+        // Make addToLibrary globally accessible
+        window.addToLibrary = function() {
+            console.log('addToLibrary function called');
+            const btn = document.getElementById('addToLibraryBtn');
+            if (!btn) {
+                console.error('Add to Library button not found');
+                alert('Error: Button not found');
+                return;
+            }
+            
+            const recipeId = /*[[${recipe.id}]]*/ '';
+            console.log('Recipe ID:', recipeId);
+            
+            if (!recipeId) {
+                console.error('Recipe ID not found');
+                alert('Error: Recipe ID not found');
+                return;
+            }
+            
+            // Disable button during request
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Adding...';
+            
+            // Get CSRF token from meta tag
+            const csrfTokenMeta = document.querySelector('meta[name="_csrf"]');
+            const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+            
+            if (!csrfTokenMeta || !csrfHeaderMeta) {
+                console.error('CSRF tokens not found');
+                alert('Error: Security tokens not found. Please refresh the page.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-bookmark-plus me-2"></i>Add to Library';
+                return;
+            }
+            
+            const csrfToken = csrfTokenMeta.content;
+            const csrfHeader = csrfHeaderMeta.content;
+            console.log('CSRF token found, making request...');
+            
+            fetch('/api/v1/nutrition/recipes/' + recipeId + '/library', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (response.ok) {
+                    btn.innerHTML = '<i class="bi bi-bookmark-check me-2"></i>In Your Library';
+                    btn.disabled = true;
+                    btn.classList.remove('btn-light');
+                    btn.classList.add('btn-success');
+                    
+                    // Show success message
+                    if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                        Momentum.showToast('Recipe added to your library!', 'success');
+                    }
+                    
+                    // Reload page to update shared users count
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    return response.text().then(text => {
+                        console.error('Error response:', text);
+                        throw new Error(text || 'Failed to add recipe to library');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error adding recipe to library:', error);
+                const errorMessage = error.message || 'Failed to add recipe to library';
+                
+                if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                    Momentum.showToast(errorMessage, 'error');
+                } else {
+                    alert('Error: ' + errorMessage);
+                }
+                
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-bookmark-plus me-2"></i>Add to Library';
+            });
+        };
+        
+        // Log that function is defined
+        console.log('addToLibrary function defined:', typeof window.addToLibrary);
+        
+        // Make removeFromLibrary globally accessible
+        window.removeFromLibrary = function() {
+            console.log('removeFromLibrary function called');
+            const btn = document.getElementById('removeFromLibraryBtn');
+            if (!btn) {
+                console.error('Remove from Library button not found');
+                alert('Error: Button not found');
+                return;
+            }
+            
+            const recipeId = /*[[${recipe.id}]]*/ '';
+            console.log('Recipe ID:', recipeId);
+            
+            if (!recipeId) {
+                console.error('Recipe ID not found');
+                alert('Error: Recipe ID not found');
+                return;
+            }
+            
+            // Disable button during request
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Removing...';
+            
+            // Get CSRF token from meta tag
+            const csrfTokenMeta = document.querySelector('meta[name="_csrf"]');
+            const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+            
+            if (!csrfTokenMeta || !csrfHeaderMeta) {
+                console.error('CSRF tokens not found');
+                alert('Error: Security tokens not found. Please refresh the page.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-bookmark-check me-2"></i>In Your Library';
+                return;
+            }
+            
+            const csrfToken = csrfTokenMeta.content;
+            const csrfHeader = csrfHeaderMeta.content;
+            console.log('CSRF token found, making request...');
+            
+            fetch('/api/v1/nutrition/recipes/' + recipeId + '/library', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeader]: csrfToken
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (response.ok) {
+                    // Button will be replaced after page reload, so just show removing state
+                    btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Removing...';
+                    
+                    // Show success message
+                    if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                        Momentum.showToast('Recipe removed from your library!', 'success');
+                    }
+                    
+                    // Reload page to update shared users count
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    return response.text().then(text => {
+                        console.error('Error response:', text);
+                        throw new Error(text || 'Failed to remove recipe from library');
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error removing recipe from library:', error);
+                const errorMessage = error.message || 'Failed to remove recipe from library';
+                
+                if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                    Momentum.showToast(errorMessage, 'error');
+                } else {
+                    alert('Error: ' + errorMessage);
+                }
+                
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-bookmark-check me-2"></i>In Your Library';
+            });
+        };
+        
+        // Log that function is defined
+        console.log('removeFromLibrary function defined:', typeof window.removeFromLibrary);
+    </script>
+    </div>
+

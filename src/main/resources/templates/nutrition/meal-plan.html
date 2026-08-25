@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Meal Plan & Statistics</title>
+    <style>
+        .nutrition-theme {
+            --primary-color: #11998e;
+            --gradient-primary: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        
+        .nutrition-theme .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+        }
+        
+        .nutrition-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #0f857a 0%, #2dd970 100%);
+        }
+        
+        .nutrition-theme .btn-outline-primary {
+            border-color: #11998e;
+            color: #11998e;
+        }
+        
+        .nutrition-theme .btn-outline-primary:hover {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-color: #11998e;
+            color: white;
+        }
+
+        /* Banner Header */
+        .meal-plan-banner {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .meal-plan-banner h2 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        #weekRange {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .meal-plan-banner p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.95;
+            font-size: 1.1rem;
+        }
+
+        .meal-plan-banner .banner-icon {
+            font-size: 2.5rem;
+        }
+
+        /* Center table header text vertically in weekly plan */
+        .table-light > tr > .text-center {
+            vertical-align: middle;
+        }
+
+        /* Meal Cell Styling */
+        .meal-cell {
+            height: 120px;
+            vertical-align: top;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+            padding: 0.5rem;
+            background-color: white;
+        }
+
+        .meal-cell.has-food {
+            background-color: #38ef7d; /* bright end of banner gradient */
+            color: #ffffff;
+        }
+
+        .meal-cell.has-food:hover {
+            background-color: #32d86f; /* slightly darker on hover */
+        }
+
+        .meal-cell:hover {
+            background-color: #f8f9fa;
+        }
+
+        .meal-item {
+            padding: 8px;
+            text-align: center;
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .meal-item.empty {
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .meal-item.empty i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .meal-item .food-count {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
+            margin: 0;
+        }
+
+        .meal-cell.has-food .meal-item,
+        .meal-cell.has-food .meal-item .food-count,
+        .meal-cell.has-food .meal-item small {
+            color: #ffffff !important;
+            font-weight: 700;
+        }
+
+        .meal-item .view-btn {
+            padding: 4px 12px;
+            font-size: 0.8rem;
+        }
+
+        .meal-item .remove-btn {
+            padding: 4px 8px;
+            font-size: 0.9rem;
+            background: transparent;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+        }
+
+        .meal-item .remove-btn:hover {
+            color: #c82333;
+            background-color: rgba(220, 53, 69, 0.1);
+            border-radius: 0.25rem;
+        }
+
+        /* Meal Type Headers - Matching food-tracker styling */
+        .meal-type-header {
+            font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
+            color: #fff !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meal-type-header strong {
+            position: relative;
+            z-index: 2;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Breakfast - Sunrise colors */
+        .meal-type-header.breakfast {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 50%, #ffd700 100%) !important;
+            color: #fff !important;
+        }
+
+        /* Lunch - Blue sky with clouds and sun */
+        .meal-type-header.lunch {
+            background: linear-gradient(135deg, #87ceeb 0%, #4fa8d8 50%, #1e90ff 100%) !important;
+            color: #fff !important;
+        }
+        .meal-type-header.lunch::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            width: 35px;
+            height: 35px;
+            background: #ffd700;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            z-index: 1;
+        }
+        .meal-type-header.lunch::after {
+            content: '';
+            position: absolute;
+            top: 65%;
+            left: 35%;
+            width: 50px;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 50px;
+            box-shadow: -25px 0 0 rgba(255, 255, 255, 0.75),
+                        -12px -7px 0 rgba(255, 255, 255, 0.65),
+                        12px -7px 0 rgba(255, 255, 255, 0.65),
+                        25px 0 0 rgba(255, 255, 255, 0.75);
+            z-index: 1;
+        }
+
+        /* Dinner - Night sky with stars */
+        .meal-type-header.dinner {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%) !important;
+            color: #fff !important;
+        }
+        .meal-type-header.dinner strong {
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        .meal-type-header.dinner::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #ffd700 2px, transparent 2px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #ffd700 2px, transparent 2px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #ffd700 2px, transparent 2px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #ffd700 2px, transparent 2px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #ffd700 2px, transparent 2px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #ffd700 2px, transparent 2px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #ffd700 2px, transparent 2px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #fff 1.5px, transparent 1.5px),
+                radial-gradient(circle, #ffd700 2px, transparent 2px);
+            background-size: 
+                3px 3px, 3px 3px, 4px 4px, 3px 3px, 3px 3px, 4px 4px, 3px 3px, 3px 3px,
+                4px 4px, 3px 3px, 3px 3px, 4px 4px, 3px 3px, 3px 3px, 4px 4px, 3px 3px,
+                3px 3px, 4px 4px, 3px 3px, 3px 3px, 4px 4px, 3px 3px, 3px 3px, 4px 4px;
+            background-position:
+                8% 25%, 15% 60%, 22% 35%, 28% 75%, 35% 45%, 42% 20%, 48% 65%, 55% 40%,
+                62% 80%, 68% 30%, 75% 55%, 82% 25%, 88% 70%, 12% 50%, 18% 85%, 25% 15%,
+                32% 50%, 38% 90%, 45% 35%, 52% 60%, 58% 25%, 65% 75%, 72% 45%, 78% 20%;
+            background-repeat: no-repeat;
+            filter: brightness(1.8) drop-shadow(0 0 2px rgba(255, 215, 0, 0.6));
+            z-index: 1;
+            opacity: 0.9;
+        }
+
+        /* Snack - Neutral/Light */
+        .meal-type-header.snack {
+            background: linear-gradient(135deg, #a0a0a0 0%, #c0c0c0 100%) !important;
+            color: #333 !important;
+        }
+        .meal-type-header.snack strong {
+            text-shadow: none;
+        }
+
+        /* Pre-workout - Energetic */
+        .meal-type-header.pre-workout {
+            background: linear-gradient(135deg, #e74c3c 0%, #ff6347 100%) !important;
+            color: #fff !important;
+        }
+
+        /* Post-workout - Recovery */
+        .meal-type-header.post-workout {
+            background: linear-gradient(135deg, #3498db 0%, #5dade2 100%) !important;
+            color: #fff !important;
+        }
+
+        /* Day Headers */
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            padding: 0.75rem;
+        }
+
+        .day-header {
+            color: #495057;
+        }
+
+        /* Weekly Statistics */
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: #f8f9fa;
+            height: 100%;
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-card .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Custom modal styles for meal plan */
+        #viewMealModalBackdrop,
+        #editMealModalBackdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        #viewMealModalBackdrop.show,
+        #editMealModalBackdrop.show {
+            opacity: 1;
+        }
+        
+        #viewMealModal,
+        #editMealModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1050;
+            overflow-x: hidden;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        #viewMealModal.show,
+        #editMealModal.show {
+            opacity: 1;
+        }
+        
+        #viewMealModal .modal-dialog,
+        #editMealModal .modal-dialog {
+            position: relative;
+            width: auto;
+            margin: 1.75rem auto;
+            max-width: 800px;
+            pointer-events: none;
+                        }
+        
+        #viewMealModal.show .modal-dialog,
+        #editMealModal.show .modal-dialog {
+            pointer-events: auto;
+        }
+        
+        .modal-dialog-centered {
+            display: flex;
+            align-items: center;
+            min-height: calc(100% - 3.5rem);
+        }
+        
+        /* Ingredient image styles */
+        .ingredient-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            flex-shrink: 0;
+                }
+        
+        .ingredient-image-placeholder {
+            width: 50px;
+            height: 50px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            flex-shrink: 0;
+        }
+        
+        .ingredient-image-placeholder i {
+            font-size: 1.5rem;
+                        }
+        
+        /* Ensure modal content remains clickable */
+        #viewMealModal .modal-content,
+        #editMealModal .modal-content {
+            pointer-events: auto;
+        }
+
+        .week-nav-btn {
+            border: none !important;
+            background: rgba(255, 255, 255, 0.25) !important;
+            color: #0f5132 !important;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .week-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.4) !important;
+            color: #0b3d25 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .week-nav-btn i {
+            color: inherit !important;
+        }
+
+        .week-nav-light {
+            border-color: rgba(255, 255, 255, 0.8) !important;
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        .week-nav-light:hover {
+            background: rgba(255, 255, 255, 0.22) !important;
+            color: #ffffff !important;
+            border-color: #ffffff !important;
+        }
+
+        .week-nav-btn i {
+            color: inherit !important;
+        }
+
+        .week-nav-light {
+            border-color: rgba(255, 255, 255, 0.8) !important;
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        .week-nav-light:hover {
+            background: rgba(255, 255, 255, 0.22) !important;
+            color: #ffffff !important;
+        }
+
+        .week-status-link {
+            padding: 0.25rem 0.85rem !important;
+            font-size: 0.7rem !important;
+            letter-spacing: 0.05em;
+        }
+
+        .week-status-link:hover {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.28) !important;
+            border-color: #ffffff !important;
+        }
+
+        .week-status--past {
+            border-color: rgba(255, 255, 255, 0.5) !important;
+            color: rgba(255, 255, 255, 0.85) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .week-status--future {
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        .week-status--current {
+            border-color: rgba(255, 255, 255, 0.9) !important;
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        #weekStatus {
+            border-color: rgba(255, 255, 255, 0.85) !important;
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.12) !important;
+            font-size: 0.62rem !important;
+            padding: 0.18rem 0.65rem !important;
+        }
+
+        #weekStatus:hover {
+            background: rgba(255, 255, 255, 0.26) !important;
+            color: #ffffff !important;
+            border-color: #ffffff !important;
+        }
+    </style>
+</head>
+<body class="nutrition-theme">
+    <div layout:fragment="content">
+        <!-- Banner Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="meal-plan-banner">
+                    <h2>
+                        <i class="bi bi-calendar-week banner-icon"></i>
+                        Meal Plan & Statistics
+                    </h2>
+                    <p>View your past meals and nutrition statistics, or plan your meals for upcoming days.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Week Navigation with Meal Plan Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-table me-2"></i>Weekly Meal Plan
+                            </h5>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary btn-sm week-nav-light" onclick="previousWeek()">
+                                    <i class="bi bi-chevron-left me-1"></i>Previous Week
+                                </button>
+                                <div class="text-center px-3">
+                                    <div class="fw-bold" id="weekRange">Loading...</div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm week-nav-light week-status-link week-status--current" id="weekStatus" onclick="goToCurrentWeek()">Current Week</button>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm week-nav-light" onclick="nextWeek()">
+                                    Next Week<i class="bi bi-chevron-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                <div class="table-responsive">
+                            <table class="table table-bordered mb-0" id="mealPlanTable">
+                        <thead class="table-light">
+                            <tr>
+                                        <th style="width: 10%;" class="text-center">Meal Type</th>
+                                        <th style="width: 12.85%;" class="day-header" id="day-0">Monday</th>
+                                        <th style="width: 12.85%;" class="day-header" id="day-1">Tuesday</th>
+                                        <th style="width: 12.85%;" class="day-header" id="day-2">Wednesday</th>
+                                        <th style="width: 12.85%;" class="day-header" id="day-3">Thursday</th>
+                                        <th style="width: 12.85%;" class="day-header" id="day-4">Friday</th>
+                                        <th style="width: 12.85%;" class="day-header" id="day-5">Saturday</th>
+                                        <th style="width: 12.85%;" class="day-header" id="day-6">Sunday</th>
+                            </tr>
+                        </thead>
+                                <tbody id="mealPlanBody">
+                        </tbody>
+                    </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Statistics -->
+        <div class="row mb-4">
+            <div class="col-12 mb-3">
+                <h5 class="mb-3">
+                    <i class="bi bi-graph-up me-2"></i>Current Week Statistics
+                        </h5>
+                    </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <h3 class="text-primary" id="totalCalories">0</h3>
+                    <div class="stat-label">Total Calories</div>
+                    <small class="text-muted" id="avgCalories">Avg: 0/day</small>
+                            </div>
+                            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <h3 class="text-info" id="totalCarbs">0g</h3>
+                    <div class="stat-label">Total Carbs</div>
+                    <small class="text-muted" id="avgCarbs">Avg: 0g/day</small>
+                        </div>
+                    </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <h3 class="text-success" id="totalProtein">0g</h3>
+                    <div class="stat-label">Total Protein</div>
+                    <small class="text-muted" id="avgProtein">Avg: 0g/day</small>
+                            </div>
+                            </div>
+            <div class="col-md-3 mb-3">
+                <div class="stat-card">
+                    <h3 class="text-warning" id="totalFat">0g</h3>
+                    <div class="stat-label">Total Fat</div>
+                    <small class="text-muted" id="avgFat">Avg: 0g/day</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Meal Modal Backdrop -->
+    <div class="modal-backdrop" id="viewMealModalBackdrop" style="display: none;"></div>
+
+    <!-- View Meal Modal -->
+    <div class="modal fade" id="viewMealModal" tabindex="-1" aria-labelledby="viewMealModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewMealModalLabel">Meal Details</h5>
+                    <button type="button" class="btn-close" id="closeViewMealModalBtn" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                        <div class="mb-3">
+                        <h6 class="fw-bold mb-1" id="viewMealHeading">Meal</h6>
+                        <p class="text-muted mb-0" id="viewMealMeta">Date • Meal Type</p>
+                        </div>
+                    <hr>
+                    <h6 class="mb-3">Foods in this meal</h6>
+                    <div id="viewMealFoodsList" class="list-group mb-3">
+                        <div class="text-muted text-center py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">No foods in this meal.</p>
+                    </div>
+                    </div>
+                    <div class="row text-center" id="viewMealTotals">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-primary mb-1" id="viewTotalCalories">0</h5>
+                            <small class="text-muted">Calories</small>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-success mb-1" id="viewTotalProtein">0g</h5>
+                            <small class="text-muted">Protein</small>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-info mb-1" id="viewTotalCarbs">0g</h5>
+                            <small class="text-muted">Carbs</small>
+                        </div>
+                        <div class="col-md-3">
+                            <h5 class="text-warning mb-1" id="viewTotalFat">0g</h5>
+                            <small class="text-muted">Fat</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelViewMealModalBtn">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Meal Modal Backdrop -->
+    <div class="modal-backdrop" id="editMealModalBackdrop" style="display: none;" onclick="if (event.target === this) hideEditModal();"></div>
+
+    <!-- Edit Meal Modal -->
+    <div class="modal fade" id="editMealModal" tabindex="-1" aria-labelledby="editMealModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editMealModalLabel">Edit Meal</h5>
+                    <button type="button" class="btn-close" id="closeEditMealModalBtn" aria-label="Close" onclick="hideEditModal()"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6 class="fw-bold mb-1" id="editMealHeading">Meal</h6>
+                        <p class="text-muted mb-0" id="editMealMeta">Date • Meal Type</p>
+                        </div>
+                        <hr>
+                    <h6 class="mb-3">Foods in this meal</h6>
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Food</th>
+                                    <th scope="col" class="text-center">Amount (g)</th>
+                                    <th scope="col" class="text-center">Calories</th>
+                                    <th scope="col" class="text-center">Protein</th>
+                                    <th scope="col" class="text-center">Carbs</th>
+                                    <th scope="col" class="text-center">Fat</th>
+                                    <th scope="col" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="editMealFoodsTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="row text-center mb-3" id="editMealTotals">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-primary mb-1" id="editTotalCalories">0</h5>
+                                <small class="text-muted">Calories</small>
+                            </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-success mb-1" id="editTotalProtein">0g</h5>
+                                <small class="text-muted">Protein</small>
+                            </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <h5 class="text-info mb-1" id="editTotalCarbs">0g</h5>
+                                <small class="text-muted">Carbs</small>
+                            </div>
+                        <div class="col-md-3">
+                            <h5 class="text-warning mb-1" id="editTotalFat">0g</h5>
+                                <small class="text-muted">Fat</small>
+                            </div>
+                        </div>
+                    <hr>
+                    <h6 class="mb-3">Add food to this meal</h6>
+                    <div class="row g-2 align-items-end">
+                            <div class="col-md-6">
+                            <label for="editFoodSelect" class="form-label">Food</label>
+                            <select class="form-select" id="editFoodSelect">
+                                <option value="">Select food...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                                <label for="editFoodAmount" class="form-label">Amount (grams)</label>
+                            <input type="number" min="1" step="1" class="form-control" id="editFoodAmount" placeholder="100">
+                            </div>
+                        <div class="col-md-3 d-grid">
+                            <button type="button" class="btn btn-primary" onclick="addFoodToCurrentMeal()">
+                                <i class="bi bi-plus-circle me-1"></i>Add Food
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelEditMealModalBtn" onclick="hideEditModal()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="saveMealChanges()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div layout:fragment="scripts">
+    <script>
+            console.log('🚨🚨🚨 SCRIPTS FRAGMENT LOADED');
+            
+            // IMMEDIATE LOG - NO DEPENDENCIES
+            (function() {
+                if (typeof console !== 'undefined' && console.log) {
+                    console.log('🚨🚨🚨 IMMEDIATE EXECUTION - Script tag is being processed');
+                }
+            })();
+            
+            try {
+                console.log('🔵🔵🔵 SCRIPT TAG LOADED - meal-plan.html - FIRST LINE');
+                console.log('🔵🔵🔵 Document ready state:', document.readyState);
+                console.log('🔵🔵🔵 Window object exists:', typeof window !== 'undefined');
+                console.log('🔵🔵🔵 Console object exists:', typeof console !== 'undefined');
+                
+        // Force execution by wrapping in IIFE
+        (function() {
+            'use strict';
+            console.log('=== MAIN SCRIPT TAG STARTING ===');
+                    console.log('🔵 Inside IIFE - script is executing');
+            
+            // Global variables
+        let currentWeekStart = null;
+        let mealsData = {}; // Structure: { "YYYY-MM-DD": { "BREAKFAST": [...], "LUNCH": [...], ... } }
+        let foodsList = []; // All available foods
+        let weekMeals = {}; // Meals for the current week
+        let currentSelectedMeal = null; // { date: string, mealType: string }
+        let editModalRenderAttempts = 0;
+        const MAX_MODAL_RENDER_ATTEMPTS = 10;
+
+
+        function ensureEditModalStructure() {
+            if (document.getElementById('editMealHeading')) {
+                return;
+            }
+            
+            console.warn('Edit modal markup not found in DOM. Creating fallback structure dynamically.');
+
+            const template = document.createElement('div');
+            template.innerHTML = `
+                <div class="modal-backdrop" id="editMealModalBackdrop" style="display: none;"></div>
+                <div class="modal fade" id="editMealModal" tabindex="-1" aria-labelledby="editMealModalLabel" aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editMealModalLabel">Edit Meal</h5>
+                                <button type="button" class="btn-close" id="closeEditMealModalBtn" aria-label="Close" onclick="hideEditModal()"></button>
+                                </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <h6 class="fw-bold mb-1" id="editMealHeading">Meal</h6>
+                                    <p class="text-muted mb-0" id="editMealMeta">Date • Meal Type</p>
+                                </div>
+                                <hr>
+                                <h6 class="mb-3">Foods in this meal</h6>
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-sm align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th scope="col">Food</th>
+                                                <th scope="col" class="text-center">Amount (g)</th>
+                                                <th scope="col" class="text-center">Calories</th>
+                                                <th scope="col" class="text-center">Protein</th>
+                                                <th scope="col" class="text-center">Carbs</th>
+                                                <th scope="col" class="text-center">Fat</th>
+                                                <th scope="col" class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="editMealFoodsTableBody"></tbody>
+                                    </table>
+                                </div>
+                                <div class="row text-center mb-3" id="editMealTotals">
+                                    <div class="col-md-3 mb-3 mb-md-0">
+                                        <h5 class="text-primary mb-1" id="editTotalCalories">0</h5>
+                                            <small class="text-muted">Calories</small>
+                                        </div>
+                                    <div class="col-md-3 mb-3 mb-md-0">
+                                        <h5 class="text-success mb-1" id="editTotalProtein">0g</h5>
+                                            <small class="text-muted">Protein</small>
+                                        </div>
+                                    <div class="col-md-3 mb-3 mb-md-0">
+                                        <h5 class="text-info mb-1" id="editTotalCarbs">0g</h5>
+                                            <small class="text-muted">Carbs</small>
+                                        </div>
+                                    <div class="col-md-3">
+                                        <h5 class="text-warning mb-1" id="editTotalFat">0g</h5>
+                                            <small class="text-muted">Fat</small>
+                                        </div>
+                                    </div>
+                                <hr>
+                                <h6 class="mb-3">Add food to this meal</h6>
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-6">
+                                        <label for="editFoodSelect" class="form-label">Food</label>
+                                        <select class="form-select" id="editFoodSelect">
+                                            <option value="">Select food...</option>
+                                        </select>
+                                </div>
+                                    <div class="col-md-3">
+                                        <label for="editFoodAmount" class="form-label">Amount (grams)</label>
+                                        <input type="number" min="1" step="1" class="form-control" id="editFoodAmount" placeholder="100">
+                                    </div>
+                                    <div class="col-md-3 d-grid">
+                                        <button type="button" class="btn btn-primary" onclick="addFoodToCurrentMeal()">
+                                            <i class="bi bi-plus-circle me-1"></i>Add Food
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" id="cancelEditMealModalBtn" onclick="hideEditModal()">Cancel</button>
+                                <button type="button" class="btn btn-success" onclick="saveMealChanges()">Save Changes</button>
+                            </div>
+                        </div>
+                            </div>
+                        </div>
+                    `;
+
+            const nodes = Array.from(template.children);
+            nodes.forEach(node => {
+                document.body.appendChild(node);
+            });
+
+            const backdrop = document.getElementById('editMealModalBackdrop');
+            if (backdrop) {
+                backdrop.addEventListener('click', function(event) {
+                    if (event.target === backdrop) {
+                    hideEditModal();
+                }
+            });
+            }
+        }
+        
+        console.log('Global variables initialized');
+
+        // Meal types in order (place Snack between workouts)
+        const mealTypes = ['BREAKFAST', 'LUNCH', 'DINNER', 'PRE_WORKOUT', 'SNACK', 'POST_WORKOUT'];
+        const mealTypeLabels = {
+            'BREAKFAST': 'Breakfast',
+            'LUNCH': 'Lunch',
+            'DINNER': 'Dinner',
+            'SNACK': 'Snack',
+            'PRE_WORKOUT': 'Pre-Workout',
+            'POST_WORKOUT': 'Post-Workout'
+        };
+
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded fired');
+            initializeWeek();
+            loadFoods();
+            loadWeekMeals(); // will trigger render + statistics when data loads
+            console.log('Page initialization complete');
+        });
+
+        // Initialize current week (Monday of current week)
+        function initializeWeek() {
+            const now = new Date();
+            const day = now.getDay();
+            const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+            currentWeekStart = new Date(now.setDate(diff));
+            currentWeekStart.setHours(0, 0, 0, 0);
+            updateWeekDisplay();
+        }
+
+        // Update week display
+        function updateWeekDisplay() {
+            if (!currentWeekStart) return;
+
+            const weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            const startStr = currentWeekStart.toLocaleDateString('en-US', options);
+            const endStr = weekEnd.toLocaleDateString('en-US', options);
+            
+            document.getElementById('weekRange').textContent = `${startStr} - ${endStr}`;
+
+            // Determine if week is past, current, or future
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const weekEndDate = new Date(weekEnd);
+            weekEndDate.setHours(0, 0, 0, 0);
+
+            const weekStatusEl = document.getElementById('weekStatus');
+            if (weekStatusEl) {
+                weekStatusEl.classList.add('btn', 'btn-outline-primary', 'btn-sm', 'week-nav-light', 'week-status-link');
+                weekStatusEl.classList.remove('week-status--past', 'week-status--future', 'week-status--current');
+
+            if (weekEndDate < today) {
+                    weekStatusEl.textContent = 'Past Week';
+                    weekStatusEl.classList.add('week-status--past');
+            } else if (currentWeekStart > today) {
+                    weekStatusEl.textContent = 'Future Week';
+                    weekStatusEl.classList.add('week-status--future');
+            } else {
+                    weekStatusEl.textContent = 'Current Week';
+                    weekStatusEl.classList.add('week-status--current');
+                }
+            }
+
+            // Update day headers
+            updateDayHeaders();
+        }
+
+        // Update day headers with dates, styling, and per-day action buttons
+        function updateDayHeaders() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            for (let i = 0; i < 7; i++) {
+                const dayDate = new Date(currentWeekStart);
+                dayDate.setDate(dayDate.getDate() + i);
+
+                const dateStr = formatDate(dayDate);
+                const dayHeader = document.getElementById(`day-${i}`);
+                if (!dayHeader) continue;
+
+                const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'long' });
+                const dayNum = dayDate.getDate();
+                const month = dayDate.toLocaleDateString('en-US', { month: 'short' });
+
+                const isPast = isPastDate(dateStr);
+                const isToday = dayDate.getTime() === today.getTime();
+                const buttonMode = isPast ? 'view' : 'edit';
+                const buttonClass = isPast ? 'btn-outline-primary' : 'btn-outline-success';
+                const iconClass = isPast ? 'bi-eye' : 'bi-pencil';
+                const buttonLabel = isPast ? 'View day' : 'Edit day';
+
+                // Remove previous classes
+                dayHeader.className = 'day-header';
+
+                // Add appropriate class for coloring
+                if (isToday) {
+                    dayHeader.classList.add('today');
+                } else if (isPast) {
+                    dayHeader.classList.add('past');
+                } else {
+                    dayHeader.classList.add('future');
+                }
+
+                dayHeader.innerHTML = `
+                    <div class="d-flex flex-column align-items-center">
+                        <div>
+                            ${dayName}<br>
+                            <small>${month} ${dayNum}</small>
+                        </div>
+                        <button type="button"
+                                class="btn btn-sm ${buttonClass} mt-1"
+                                onclick="openDayInTracker('${dateStr}', '${buttonMode}')">
+                            <i class="bi ${iconClass} me-1"></i>${buttonLabel}
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Navigate weeks
+        function previousWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            updateWeekDisplay();
+            loadWeekMeals();
+        }
+
+        function nextWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            updateWeekDisplay();
+            loadWeekMeals();
+        }
+
+        function goToCurrentWeek() {
+            const now = new Date();
+            const day = now.getDay();
+            const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(now.setDate(diff));
+            monday.setHours(0, 0, 0, 0);
+            currentWeekStart = new Date(monday);
+            updateWeekDisplay();
+            loadWeekMeals();
+        }
+
+        function openDayInTracker(dateStr, mode) {
+            const safeMode = mode === 'view' ? 'view' : 'edit';
+            window.location.href = `/nutrition/food-tracker?date=${encodeURIComponent(dateStr)}&mode=${safeMode}`;
+        }
+
+        // Expose navigation helpers globally for inline onclick handlers
+        window.previousWeek = previousWeek;
+        window.nextWeek = nextWeek;
+        window.goToCurrentWeek = goToCurrentWeek;
+        window.openDayInTracker = openDayInTracker;
+
+        // Load foods from API (placeholder)
+        function loadFoods() {
+            // TODO: Replace with actual API call
+            // fetch('/api/v1/nutrition/foods')
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         foodsList = data;
+            //     });
+
+            // Mock data for now
+            foodsList = [
+                { id: '1', name: 'Chicken Breast', calories: 165, protein: 31, carbohydrates: 0, fat: 3.6, imagePath: null },
+                { id: '2', name: 'Brown Rice', calories: 111, protein: 2.6, carbohydrates: 23, fat: 0.9, imagePath: null },
+                { id: '3', name: 'Broccoli', calories: 34, protein: 2.8, carbohydrates: 7, fat: 0.4, imagePath: null },
+                { id: '4', name: 'Salmon', calories: 208, protein: 20, carbohydrates: 0, fat: 12, imagePath: null },
+                { id: '5', name: 'Oatmeal', calories: 68, protein: 2.4, carbohydrates: 12, fat: 1.4, imagePath: null },
+                { id: '6', name: 'Greek Yogurt', calories: 59, protein: 10, carbohydrates: 3.6, fat: 0.4, imagePath: null },
+                { id: '7', name: 'Eggs', calories: 155, protein: 13, carbohydrates: 1.1, fat: 11, imagePath: null },
+                { id: '8', name: 'Banana', calories: 89, protein: 1.1, carbohydrates: 23, fat: 0.3, imagePath: null }
+            ];
+        }
+
+        // Load week meals from backend for the current week
+        function loadWeekMeals() {
+            if (!currentWeekStart) {
+                return;
+            }
+
+            const weekStartStr = formatDate(currentWeekStart);
+            const weekEndDate = new Date(currentWeekStart);
+            weekEndDate.setDate(weekEndDate.getDate() + 6);
+            const weekEndStr = formatDate(weekEndDate);
+
+            fetch(`/api/v1/nutrition/meals?start=${encodeURIComponent(weekStartStr)}&end=${encodeURIComponent(weekEndStr)}`, {
+                credentials: 'same-origin'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load week meals: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Reset weekMeals and ensure structure for each day of the current week
+                    weekMeals = {};
+                    for (let i = 0; i < 7; i++) {
+                        const date = new Date(currentWeekStart);
+                        date.setDate(date.getDate() + i);
+                        const dateStr = formatDate(date);
+                        weekMeals[dateStr] = {
+                            BREAKFAST: [],
+                            LUNCH: [],
+                            DINNER: [],
+                            SNACK: [],
+                            PRE_WORKOUT: [],
+                            POST_WORKOUT: []
+                        };
+                    }
+
+                    // data is an object: { "yyyy-MM-dd": [ MealFoodView, ... ], ... }
+                    Object.keys(data || {}).forEach(dateStr => {
+                        const dayMeals = data[dateStr] || [];
+                        dayMeals.forEach(item => {
+                            const mealType = (item.mealType || 'BREAKFAST').toUpperCase();
+                            ensureDayStructure(dateStr);
+                            if (!weekMeals[dateStr][mealType]) {
+                                weekMeals[dateStr][mealType] = [];
+                            }
+                            // Store full info needed for counts and macros
+                            weekMeals[dateStr][mealType].push({
+                                id: item.id,
+                                foodId: item.foodId,
+                                name: item.foodName,
+                                imagePath: item.foodImagePath,
+                                amount: item.amount,
+                                calories: item.calories || 0,
+                                carbohydrates: item.carbohydrates || 0,
+                                protein: item.protein || 0,
+                                fat: item.fat || 0
+                            });
+                        });
+                    });
+
+                    renderMealPlan();
+                    updateStatistics();
+                })
+                .catch(error => {
+                    console.error('Error loading week meals:', error);
+                    // On error, just clear weekMeals and render empty state
+                    weekMeals = {};
+                    renderMealPlan();
+                    updateStatistics();
+                });
+        }
+
+        // Format date as YYYY-MM-DD
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Check if a date is before today (past)
+        function isPastDate(dateStr) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const date = new Date(dateStr + 'T00:00:00');
+            date.setHours(0, 0, 0, 0);
+            return date < today;
+        }
+
+        // Check if a date is today or after (current/future)
+        function isCurrentOrFutureDate(dateStr) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const date = new Date(dateStr + 'T00:00:00');
+            date.setHours(0, 0, 0, 0);
+            return date >= today;
+        }
+
+        // Render meal plan table
+        function renderMealPlan() {
+            // If the table already has Thymeleaf-rendered content, we can skip JavaScript rendering
+            // This allows the backend to provide the initial render, and JS can enhance it
+            const tbody = document.getElementById('mealPlanBody');
+            if (!tbody || tbody.children.length > 0) {
+                // Table already has content (from Thymeleaf), just update dynamic parts
+                updateDayHeaders();
+                updateMealCells();
+                return;
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            tbody.innerHTML = mealTypes.map(mealType => {
+                const row = document.createElement('tr');
+                
+                // Meal type header
+                const headerCell = document.createElement('td');
+                const headerCssClass = mealType.toLowerCase().replace('_', '-');
+                headerCell.className = `meal-type-header ${headerCssClass}`;
+                headerCell.innerHTML = `
+                    <strong>${mealTypeLabels[mealType]}</strong>
+                `;
+                row.appendChild(headerCell);
+
+                // Day cells
+                for (let i = 0; i < 7; i++) {
+                    const dayDate = new Date(currentWeekStart);
+                    dayDate.setDate(dayDate.getDate() + i);
+                    const dateStr = formatDate(dayDate);
+                    
+                    const cell = document.createElement('td');
+                    cell.className = 'meal-cell';
+
+                    // Get meals for this day and meal type
+                    const meals = weekMeals[dateStr] ? weekMeals[dateStr][mealType] || [] : [];
+                    
+                    const isPast = isPastDate(dateStr);
+                    const isFutureOrToday = isCurrentOrFutureDate(dateStr);
+                    
+                    if (meals.length === 0) {
+                        cell.innerHTML = `
+                            <div class="meal-item empty">
+                                <small class="text-muted">No foods</small>
+                            </div>
+                        `;
+                    } else {
+                        const foodCountText = `${meals.length} food${meals.length > 1 ? 's' : ''}`;
+                        cell.classList.add('has-food');
+                        cell.innerHTML = `
+                            <div class="meal-item meal-has-food">
+                                <div class="food-count">${foodCountText}</div>
+                            </div>
+                        `;
+                    }
+
+                    row.appendChild(cell);
+                }
+
+                return row.outerHTML;
+            }).join('');
+
+
+            updateDayHeaders();
+        }
+
+        // Update meal cells in existing table (for Thymeleaf-rendered content)
+        function updateMealCells() {
+            const tbody = document.getElementById('mealPlanBody');
+            if (!tbody) return;
+
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach((row) => {
+                const cells = row.querySelectorAll('.meal-cell');
+                const headerCell = row.querySelector('.meal-type-header');
+                if (!headerCell) return;
+                
+                const mealTypeClass = Array.from(headerCell.classList).find(c => 
+                    c !== 'meal-type-header' && mealTypes.includes(c.toUpperCase().replace('-', '_'))
+                );
+                if (!mealTypeClass) return;
+                
+                const mealType = mealTypeClass.toUpperCase().replace('-', '_');
+                
+                cells.forEach((cell, cellIndex) => {
+                    // Skip example cells
+                    if (cell.hasAttribute('data-example')) return;
+                    
+                    const dayDate = new Date(currentWeekStart);
+                    dayDate.setDate(dayDate.getDate() + cellIndex);
+                    const dateStr = formatDate(dayDate);
+                    const meals = weekMeals[dateStr] ? weekMeals[dateStr][mealType] || [] : [];
+                    const isPast = isPastDate(dateStr);
+                    const isFutureOrToday = isCurrentOrFutureDate(dateStr);
+                    
+                    const mealItem = cell.querySelector('.meal-item');
+                    cell.classList.remove('has-food');
+                    if (!mealItem || meals.length === 0) {
+                        cell.innerHTML = `
+                            <div class="meal-item empty">
+                                <small class="text-muted">No foods</small>
+                            </div>
+                        `;
+                    } else {
+                        const foodCountText = `${meals.length} food${meals.length > 1 ? 's' : ''}`;
+                        cell.classList.add('has-food');
+                        cell.innerHTML = `
+                            <div class="meal-item meal-has-food">
+                                <div class="food-count">${foodCountText}</div>
+                            </div>
+                        `;
+                    }
+                });
+            });
+        }
+
+
+        function ensureDayStructure(dateStr) {
+            if (!weekMeals[dateStr]) {
+                weekMeals[dateStr] = {
+                    BREAKFAST: [],
+                    LUNCH: [],
+                    DINNER: [],
+                    SNACK: [],
+                    PRE_WORKOUT: [],
+                    POST_WORKOUT: []
+                };
+            }
+            mealTypes.forEach(type => {
+                if (!weekMeals[dateStr][type]) {
+                    weekMeals[dateStr][type] = [];
+                }
+            });
+        }
+
+        function getMealFoods(dateStr, mealType) {
+            ensureDayStructure(dateStr);
+            return weekMeals[dateStr][mealType] || [];
+        }
+
+        function findFood(foodId) {
+            return foodsList.find(food => String(food.id) === String(foodId));
+        }
+
+        function formatMealHeading(dateStr, mealType) {
+            const date = new Date(dateStr + 'T00:00:00');
+            const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
+            const month = date.toLocaleDateString('en-US', { month: 'long' });
+            const day = date.getDate();
+            const year = date.getFullYear();
+            return {
+                heading: `${weekday}, ${month} ${day}, ${year}`,
+                meta: mealTypeLabels[mealType] || mealType
+            };
+        }
+
+        function calculateTotals(mealFoods) {
+            return mealFoods.reduce((totals, mealFood) => {
+                const calories = mealFood.calories || 0;
+                const protein = mealFood.protein || 0;
+                const carbs = mealFood.carbohydrates || 0;
+                const fat = mealFood.fat || 0;
+
+                totals.calories += calories;
+                totals.protein += protein;
+                totals.carbs += carbs;
+                totals.fat += fat;
+                return totals;
+            }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
+        }
+
+        function renderViewMealModalContent(dateStr, mealType) {
+            const headingEl = document.getElementById('viewMealHeading');
+            const metaEl = document.getElementById('viewMealMeta');
+            const foodsContainer = document.getElementById('viewMealFoodsList');
+            const totalCaloriesEl = document.getElementById('viewTotalCalories');
+            const totalProteinEl = document.getElementById('viewTotalProtein');
+            const totalCarbsEl = document.getElementById('viewTotalCarbs');
+            const totalFatEl = document.getElementById('viewTotalFat');
+                
+            const mealHeading = formatMealHeading(dateStr, mealType);
+            headingEl.textContent = mealHeading.meta;
+            metaEl.textContent = mealHeading.heading;
+            foodsContainer.innerHTML = '';
+
+            const mealFoods = getMealFoods(dateStr, mealType);
+
+            if (mealFoods.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'text-muted text-center py-4';
+                emptyState.innerHTML = `
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">No foods in this meal.</p>
+                `;
+                foodsContainer.appendChild(emptyState);
+            } else {
+                mealFoods.forEach(mealFood => {
+                    const calories = Math.round(mealFood.calories || 0);
+                    const protein = (mealFood.protein || 0).toFixed(1);
+                    const carbs = (mealFood.carbohydrates || 0).toFixed(1);
+                    const fat = (mealFood.fat || 0).toFixed(1);
+
+                    const item = document.createElement('div');
+                    item.className = 'list-group-item';
+                    item.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${mealFood.name || 'Food'}</strong>
+                                <div class="text-muted small">${mealFood.amount || 0}g</div>
+                            </div>
+                            <div class="text-end small">
+                                <div><strong>${calories}</strong> kcal</div>
+                                <div>${protein}g P • ${carbs}g C • ${fat}g F</div>
+                        </div>
+                    </div>
+                `;
+                    foodsContainer.appendChild(item);
+            });
+            }
+
+            const totals = calculateTotals(mealFoods);
+            totalCaloriesEl.textContent = Math.round(totals.calories);
+            totalProteinEl.textContent = `${totals.protein.toFixed(1)}g`;
+            totalCarbsEl.textContent = `${totals.carbs.toFixed(1)}g`;
+            totalFatEl.textContent = `${totals.fat.toFixed(1)}g`;
+        }
+
+        function populateFoodSelectOptions() {
+            const select = document.getElementById('editFoodSelect');
+            if (!select) return;
+
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Select food...</option>';
+            foodsList.forEach(food => {
+                const option = document.createElement('option');
+                option.value = food.id;
+                option.textContent = `${food.name} (${food.calories} kcal / 100g)`;
+                select.appendChild(option);
+            });
+            if (currentValue) {
+                select.value = currentValue;
+            }
+        }
+
+        function renderEditMealModalContent(dateStr, mealType) {
+            const headingEl = document.getElementById('editMealHeading');
+            const metaEl = document.getElementById('editMealMeta');
+            const tableBody = document.getElementById('editMealFoodsTableBody');
+            const totalCaloriesEl = document.getElementById('editTotalCalories');
+            const totalProteinEl = document.getElementById('editTotalProtein');
+            const totalCarbsEl = document.getElementById('editTotalCarbs');
+            const totalFatEl = document.getElementById('editTotalFat');
+
+            if (!headingEl || !metaEl || !tableBody || !totalCaloriesEl || !totalProteinEl || !totalCarbsEl || !totalFatEl) {
+                if (editModalRenderAttempts < MAX_MODAL_RENDER_ATTEMPTS) {
+                    editModalRenderAttempts++;
+                    console.warn('Edit modal elements missing, retrying render...', { headingEl, metaEl, tableBody });
+                    setTimeout(() => renderEditMealModalContent(dateStr, mealType), 50);
+                } else {
+                    console.error('Edit modal elements still missing after retries.');
+                    editModalRenderAttempts = 0;
+                }
+                return;
+            }
+            
+            editModalRenderAttempts = 0;
+
+            const mealHeading = formatMealHeading(dateStr, mealType);
+            headingEl.textContent = mealHeading.meta;
+            metaEl.textContent = mealHeading.heading;
+
+            tableBody.innerHTML = '';
+
+            const mealFoods = getMealFoods(dateStr, mealType);
+
+            if (mealFoods.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">No foods added yet.</p>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                mealFoods.forEach((mealFood, index) => {
+                    const food = findFood(mealFood.foodId);
+                    if (!food) return;
+                    const multiplier = (mealFood.amount || 0) / 100;
+                    const calories = Math.round(food.calories * multiplier);
+                    const protein = (food.protein * multiplier).toFixed(1);
+                    const carbs = (food.carbohydrates * multiplier).toFixed(1);
+                    const fat = (food.fat * multiplier).toFixed(1);
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${food.name}</td>
+                        <td class="text-center">${mealFood.amount || 0}</td>
+                        <td class="text-center">${calories}</td>
+                        <td class="text-center">${protein}</td>
+                        <td class="text-center">${carbs}</td>
+                        <td class="text-center">${fat}</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeFoodFromCurrentMeal(${index})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            const totals = calculateTotals(mealFoods);
+            totalCaloriesEl.textContent = Math.round(totals.calories);
+            totalProteinEl.textContent = `${totals.protein.toFixed(1)}g`;
+            totalCarbsEl.textContent = `${totals.carbs.toFixed(1)}g`;
+            totalFatEl.textContent = `${totals.fat.toFixed(1)}g`;
+            }
+
+
+        window.removeFoodFromCurrentMeal = function(index) {
+            if (!currentSelectedMeal) return;
+            const { date, mealType } = currentSelectedMeal;
+            const mealFoods = getMealFoods(date, mealType);
+            if (index < 0 || index >= mealFoods.length) return;
+            mealFoods.splice(index, 1);
+            renderEditMealModalContent(date, mealType);
+            renderMealPlan();
+            updateStatistics();
+            if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                Momentum.showToast('Food removed from meal', 'success');
+            }
+        };
+
+        window.addFoodToCurrentMeal = function() {
+            if (!currentSelectedMeal) return;
+            const select = document.getElementById('editFoodSelect');
+            const amountInput = document.getElementById('editFoodAmount');
+            if (!select || !amountInput) return;
+
+            const foodId = select.value;
+            const amount = parseFloat(amountInput.value || '0');
+
+            if (!foodId) {
+                if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                    Momentum.showToast('Please select a food to add', 'warning');
+                }
+                return;
+            }
+
+            if (!amount || amount <= 0) {
+                if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                    Momentum.showToast('Enter a valid amount in grams', 'warning');
+                }
+                return;
+            }
+
+            const { date, mealType } = currentSelectedMeal;
+            const mealFoods = getMealFoods(date, mealType);
+            mealFoods.push({ foodId: foodId, amount: amount });
+
+            amountInput.value = '';
+            select.value = '';
+
+            renderEditMealModalContent(date, mealType);
+            renderMealPlan();
+            updateStatistics();
+
+            if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                Momentum.showToast('Food added to meal', 'success');
+            }
+        };
+
+        window.saveMealChanges = function() {
+            hideEditModal();
+            if (typeof Momentum !== 'undefined' && Momentum.showToast) {
+                Momentum.showToast('Meal updated', 'success');
+            }
+        };
+
+
+        // Update statistics
+        function updateStatistics() {
+            let totalCalories = 0;
+            let totalProtein = 0;
+            let totalCarbs = 0;
+            let totalFat = 0;
+            let daysWithMeals = 0;
+
+            // Calculate totals for the week using precomputed macros from weekMeals
+            Object.keys(weekMeals).forEach(dateStr => {
+                let dayCalories = 0;
+                let dayProtein = 0;
+                let dayCarbs = 0;
+                let dayFat = 0;
+
+                mealTypes.forEach(mealType => {
+                    const meals = weekMeals[dateStr][mealType] || [];
+                    meals.forEach(mealFood => {
+                        const calories = mealFood.calories || 0;
+                        const protein = mealFood.protein || 0;
+                        const carbs = mealFood.carbohydrates || 0;
+                        const fat = mealFood.fat || 0;
+
+                        dayCalories += calories;
+                        dayProtein += protein;
+                        dayCarbs += carbs;
+                        dayFat += fat;
+                    });
+                });
+
+                if (dayCalories > 0) {
+                    daysWithMeals++;
+                }
+
+                totalCalories += dayCalories;
+                totalProtein += dayProtein;
+                totalCarbs += dayCarbs;
+                totalFat += dayFat;
+            });
+
+            // Update UI
+            document.getElementById('totalCalories').textContent = Math.round(totalCalories);
+            document.getElementById('totalProtein').textContent = totalProtein.toFixed(1) + 'g';
+            document.getElementById('totalCarbs').textContent = totalCarbs.toFixed(1) + 'g';
+            document.getElementById('totalFat').textContent = totalFat.toFixed(1) + 'g';
+
+            const avgDays = daysWithMeals || 1;
+            document.getElementById('avgCalories').textContent = `Avg: ${Math.round(totalCalories / avgDays)}/day`;
+            document.getElementById('avgProtein').textContent = `Avg: ${(totalProtein / avgDays).toFixed(1)}g/day`;
+            document.getElementById('avgCarbs').textContent = `Avg: ${(totalCarbs / avgDays).toFixed(1)}g/day`;
+            document.getElementById('avgFat').textContent = `Avg: ${(totalFat / avgDays).toFixed(1)}g/day`;
+        }
+
+        // Expose modal helpers globally so inline handlers can use them
+        window.renderViewMealModalContent = renderViewMealModalContent;
+        window.renderEditMealModalContent = renderEditMealModalContent;
+        window.populateFoodSelectOptions = populateFoodSelectOptions;
+        window.openViewMealModal = openViewMealModal;
+        window.openEditMealModal = openEditMealModal;
+        window.hideViewModal = hideViewModal;
+        window.hideEditModal = hideEditModal;
+        window.goToCurrentWeek = goToCurrentWeek;
+
+        function ensureViewModalStructure() {
+            if (document.getElementById('viewMealHeading')) {
+                return;
+            }
+
+            console.warn('View meal modal markup missing; creating fallback structure.');
+
+            const template = document.createElement('div');
+            template.innerHTML = `
+                <div class="modal-backdrop" id="viewMealModalBackdrop" style="display: none;"></div>
+                <div class="modal fade" id="viewMealModal" tabindex="-1" aria-labelledby="viewMealModalLabel" aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="viewMealModalLabel">Meal Details</h5>
+                                <button type="button" class="btn-close" id="closeViewMealModalBtn" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <h6 class="fw-bold mb-1" id="viewMealHeading">Meal</h6>
+                                    <p class="text-muted mb-0" id="viewMealMeta">Date • Meal Type</p>
+                                </div>
+                                <hr>
+                                <h6 class="mb-3">Foods in this meal</h6>
+                                <div id="viewMealFoodsList" class="list-group mb-3">
+                                    <div class="text-muted text-center py-4">
+                                        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                        <p class="mt-2 mb-0">No foods in this meal.</p>
+                                    </div>
+                                </div>
+                                <div class="row text-center" id="viewMealTotals">
+                                    <div class="col-md-3 mb-3 mb-md-0">
+                                        <h5 class="text-primary mb-1" id="viewTotalCalories">0</h5>
+                                        <small class="text-muted">Calories</small>
+                                    </div>
+                                    <div class="col-md-3 mb-3 mb-md-0">
+                                        <h5 class="text-success mb-1" id="viewTotalProtein">0g</h5>
+                                        <small class="text-muted">Protein</small>
+                                    </div>
+                                    <div class="col-md-3 mb-3 mb-md-0">
+                                        <h5 class="text-info mb-1" id="viewTotalCarbs">0g</h5>
+                                        <small class="text-muted">Carbs</small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h5 class="text-warning mb-1" id="viewTotalFat">0g</h5>
+                                        <small class="text-muted">Fat</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" id="cancelViewMealModalBtn">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            Array.from(template.children).forEach(node => document.body.appendChild(node));
+        }
+
+        function showModal(modalId, backdropId) {
+            const modal = document.getElementById(modalId);
+            const backdrop = document.getElementById(backdropId);
+            if (!modal || !backdrop) {
+                return;
+            }
+            backdrop.style.display = 'block';
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            requestAnimationFrame(() => {
+                backdrop.classList.add('show');
+                modal.classList.add('show');
+            });
+        }
+
+        function hideModal(modalId, backdropId) {
+            const modal = document.getElementById(modalId);
+            const backdrop = document.getElementById(backdropId);
+            if (!modal || !backdrop) {
+                return;
+            }
+            document.body.style.overflow = '';
+            backdrop.classList.remove('show');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                backdrop.style.display = 'none';
+                modal.style.display = 'none';
+            }, 150);
+        }
+
+        function openViewMealModal(dateStr, mealType) {
+            ensureViewModalStructure();
+            setupViewModalEventHandlers();
+            currentSelectedMeal = { date: dateStr, mealType };
+            renderViewMealModalContent(dateStr, mealType);
+            showModal('viewMealModal', 'viewMealModalBackdrop');
+        }
+
+        function openEditMealModal(dateStr, mealType) {
+            ensureEditModalStructure();
+            currentSelectedMeal = { date: dateStr, mealType };
+            populateFoodSelectOptions();
+            renderEditMealModalContent(dateStr, mealType);
+            showModal('editMealModal', 'editMealModalBackdrop');
+        }
+
+        function hideViewModal() {
+            hideModal('viewMealModal', 'viewMealModalBackdrop');
+        }
+
+        function hideEditModal() {
+            hideModal('editMealModal', 'editMealModalBackdrop');
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const viewModal = document.getElementById('viewMealModal');
+                const editModal = document.getElementById('editMealModal');
+                if (viewModal && viewModal.classList.contains('show')) {
+                    hideViewModal();
+                }
+                if (editModal && editModal.classList.contains('show')) {
+                    hideEditModal();
+                }
+            }
+        });
+
+        function setupViewModalEventHandlers() {
+            const viewBackdrop = document.getElementById('viewMealModalBackdrop');
+            if (viewBackdrop && !viewBackdrop.hasAttribute('data-handler-attached')) {
+                viewBackdrop.addEventListener('click', function(e) {
+                    if (e.target === viewBackdrop) {
+                        hideModal('viewMealModal', 'viewMealModalBackdrop');
+                    }
+                });
+                viewBackdrop.setAttribute('data-handler-attached', 'true');
+            }
+
+            const closeViewBtn = document.getElementById('closeViewMealModalBtn');
+            if (closeViewBtn && !closeViewBtn.hasAttribute('data-handler-attached')) {
+                closeViewBtn.addEventListener('click', function() {
+                    hideModal('viewMealModal', 'viewMealModalBackdrop');
+                });
+                closeViewBtn.setAttribute('data-handler-attached', 'true');
+            }
+
+            const cancelViewBtn = document.getElementById('cancelViewMealModalBtn');
+            if (cancelViewBtn && !cancelViewBtn.hasAttribute('data-handler-attached')) {
+                cancelViewBtn.addEventListener('click', function() {
+                    hideModal('viewMealModal', 'viewMealModalBackdrop');
+                });
+                cancelViewBtn.setAttribute('data-handler-attached', 'true');
+            }
+        }
+
+        setupViewModalEventHandlers();
+        })(); // End IIFE - force script execution
+        console.log('=== MAIN SCRIPT TAG COMPLETED ===');
+        console.log('🔵🔵🔵 Script execution finished successfully');
+        } catch (error) {
+            console.error('❌❌❌ ERROR IN SCRIPT:', error);
+            console.error('❌❌❌ Error stack:', error.stack);
+            console.error('❌❌❌ Error message:', error.message);
+            console.error('❌❌❌ Error name:', error.name);
+            // Try to alert as well
+            try {
+                alert('JavaScript Error: ' + error.message);
+            } catch (e) {
+                // Ignore if alert fails
+            }
+        }
+    </script>
+        
+        <!-- Scripts will be inserted here by layout -->
+    </div>
+</body>
+</html>

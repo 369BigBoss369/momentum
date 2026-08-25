@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
+<head>
+    <title>Workout Tracker</title>
+    <script>
+        console.log('=== TRACKER SCRIPT IN HEAD ===');
+        console.log('Document ready state:', document.readyState);
+
+        // Define functions in head to ensure they're available
+
+        function startTodaysWorkout() {
+            console.log('=== startTodaysWorkout CALLED ===');
+
+            // Highlight and expand all workout sections
+            const workoutItems = document.querySelectorAll('.workout-item');
+            workoutItems.forEach(item => {
+                item.style.borderColor = '#28a745';
+                item.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
+
+                // Auto-expand all workouts
+                const header = item.querySelector('div[onclick*="toggleWorkoutExpansion"]');
+                if (header) {
+                    const exercisesSection = item.querySelector('.workout-exercises');
+                    const expandIcon = header.querySelector('.expand-icon');
+                    if (exercisesSection && expandIcon) {
+                        exercisesSection.style.display = 'block';
+                        expandIcon.style.transform = 'rotate(180deg)';
+                    }
+                }
+            });
+
+            // Scroll to first workout
+            const firstWorkout = document.querySelector('.workout-item');
+            if (firstWorkout) {
+                firstWorkout.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function viewPlanDetails() {
+            console.log('=== viewPlanDetails CALLED ===');
+            console.log('Global tracker data:', window.trackerData);
+
+            const hasActivePlan = window.trackerData && window.trackerData.hasActivePlan;
+            console.log('Has active plan from global data:', hasActivePlan);
+
+            if (hasActivePlan) {
+                const planId = window.trackerData && window.trackerData.activePlanId;
+                console.log('Plan ID from global data:', planId);
+
+                if (planId && planId !== 'null' && planId !== '' && planId !== '${activePlanId}') {
+                    console.log('Navigating to plan:', planId);
+                    window.location.href = '/fitness/plans/' + planId;
+                } else {
+                    console.error('Plan ID is invalid:', planId);
+                }
+            } else {
+                console.error('No active plan found');
+            }
+        }
+
+        function checkAndUpdateWorkoutCompletion(exerciseButton) {
+            console.log('=== checkAndUpdateWorkoutCompletion ===');
+
+            // Find the workout container
+            const workoutItem = exerciseButton.closest('.workout-item');
+            if (!workoutItem) {
+                console.error('Could not find workout item for exercise button');
+                return;
+            }
+
+            // Find all exercise buttons in this workout
+            const exerciseButtons = workoutItem.querySelectorAll('.exercise-item button');
+            if (exerciseButtons.length === 0) {
+                console.log('No exercise buttons found in workout');
+                return;
+            }
+
+            // Check if all exercises are completed
+            let allCompleted = true;
+            exerciseButtons.forEach(button => {
+                if (!button.disabled || !button.textContent.includes('Completed!')) {
+                    allCompleted = false;
+                }
+            });
+
+            console.log(`Workout completion check: ${exerciseButtons.length} exercises, all completed: ${allCompleted}`);
+
+            if (allCompleted) {
+                // Update workout visual status
+                workoutItem.classList.add('border-success', 'bg-success', 'bg-opacity-10');
+
+                // Find the inner container with gap-2 where the chevron is
+                const gapContainer = workoutItem.querySelector('.d-flex.align-items-center.gap-2');
+                if (gapContainer) {
+                    // Find the gap-2 container where the template places the badge
+                const gapContainer = workoutItem.querySelector('.d-flex.align-items-center.gap-2');
+                if (gapContainer) {
+                    // Remove existing badge if present
+                    const existingBadge = gapContainer.querySelector('.badge.bg-success');
+                    if (existingBadge) {
+                        existingBadge.remove();
+                    }
+
+                    // Add completion badge at the beginning of the gap container (same as template)
+                    const badgeHtml = '<span class="badge bg-success me-2"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>';
+                    gapContainer.insertAdjacentHTML('afterbegin', badgeHtml);
+                }
+
+                    // Find or create restart button in the gap container, before the chevron
+                    const existingRestartBtn = gapContainer.querySelector('button[title*="Restart"]');
+                    if (!existingRestartBtn) {
+                        // Get workout ID and position from the exercise button
+                        const workoutId = exerciseButton.getAttribute('data-workout-id');
+                        const workoutPosition = workoutItem.getAttribute('data-workout-position');
+
+                        const restartBtnHtml = `<button class="btn btn-outline-secondary btn-sm me-2" onclick="event.stopPropagation(); restartWorkout(this)" data-workout-id="${workoutId}" title="Restart workout - delete all completions">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Restart
+                        </button>`;
+
+                        // Insert before the chevron
+                        const chevron = gapContainer.querySelector('.expand-icon');
+                        if (chevron) {
+                            chevron.insertAdjacentHTML('beforebegin', restartBtnHtml);
+                        } else {
+                            gapContainer.insertAdjacentHTML('beforeend', restartBtnHtml);
+                        }
+                    }
+                }
+
+                console.log('Workout marked as completed visually');
+
+                // After marking workout as completed, check if plan day is now completed
+                checkAndUpdatePlanDayCompletion();
+            }
+        }
+
+        function checkAndUpdatePlanDayCompletion() {
+            console.log('=== checkAndUpdatePlanDayCompletion ===');
+
+            // Find all workout items on the page
+            const workoutItems = document.querySelectorAll('.workout-item');
+            if (workoutItems.length === 0) {
+                console.log('No workout items found');
+                return;
+            }
+
+            // Check if all workouts are completed
+            let allWorkoutsCompleted = true;
+            workoutItems.forEach(workoutItem => {
+                // Check if workout has completion styling (green border/background)
+                const hasCompletionStyling = workoutItem.classList.contains('border-success') &&
+                                           workoutItem.classList.contains('bg-success');
+
+                // Also check if it has the completion badge
+                const hasCompletionBadge = workoutItem.querySelector('.badge.bg-success') !== null;
+
+                if (!hasCompletionStyling || !hasCompletionBadge) {
+                    allWorkoutsCompleted = false;
+                }
+            });
+
+            console.log(`Plan day completion check: ${workoutItems.length} workouts, all completed: ${allWorkoutsCompleted}`);
+
+            // Find the plan header
+            const planHeader = document.querySelector('.card-header h5');
+            if (!planHeader) {
+                console.error('Could not find plan header');
+                return;
+            }
+
+            // Find or create the plan day completion badge
+            let dayCompletedBadge = planHeader.querySelector('.badge.bg-success');
+
+            if (allWorkoutsCompleted) {
+                // Add the badge if it doesn't exist
+                if (!dayCompletedBadge) {
+                    const badgeHtml = '<span class="badge bg-success ms-2"><i class="bi bi-check-circle-fill me-1"></i>Day Completed</span>';
+                    planHeader.insertAdjacentHTML('beforeend', badgeHtml);
+                    console.log('Plan day marked as completed visually');
+                }
+            } else {
+                // Remove the badge if it exists
+                if (dayCompletedBadge) {
+                    dayCompletedBadge.remove();
+                    console.log('Plan day completion badge removed');
+                }
+            }
+        }
+
+
+        function toggleWorkoutExpansion(headerElement) {
+            console.log('=== toggleWorkoutExpansion CALLED ===');
+            const workoutItem = headerElement.closest('.workout-item');
+            const exercisesSection = workoutItem.querySelector('.workout-exercises');
+            const expandIcon = headerElement.querySelector('.expand-icon');
+
+            if (exercisesSection.style.display === 'none' || exercisesSection.style.display === '') {
+                exercisesSection.style.display = 'block';
+                expandIcon.style.transform = 'rotate(180deg)';
+                console.log('Expanded workout exercises');
+            } else {
+                exercisesSection.style.display = 'none';
+                expandIcon.style.transform = 'rotate(0deg)';
+                console.log('Collapsed workout exercises');
+            }
+        }
+
+        function markExerciseComplete(buttonElement) {
+            console.log('=== markExerciseComplete CALLED ===');
+
+            // Check if already completed
+            if (buttonElement.disabled || buttonElement.classList.contains('btn-success')) {
+                console.log('Exercise already completed');
+                return;
+            }
+
+            const exerciseId = buttonElement.getAttribute('data-exercise-id');
+            const workoutId = buttonElement.getAttribute('data-workout-id');
+            const workoutItem = buttonElement.closest('.workout-item');
+            const workoutPosition = parseInt(workoutItem.getAttribute('data-workout-position'));
+
+            console.log('=== EXERCISE COMPLETION ===');
+            console.log('Exercise ID (WorkoutExercise ID):', exerciseId);
+            console.log('Workout ID:', workoutId);
+            console.log('Workout Position:', workoutPosition);
+            console.log('Plan Day ID:', window.trackerData.currentPlanDayId);
+            console.log('Sending to backend: type=EXERCISE, targetId=' + exerciseId + ', planDayId=' + window.trackerData.currentPlanDayId + ', workoutPosition=' + workoutPosition);
+
+            if (!exerciseId || exerciseId === '' || exerciseId === 'null' || exerciseId.includes('${')) {
+                console.error('Invalid exercise ID:', exerciseId);
+                return;
+            }
+
+            // Disable button immediately
+            buttonElement.disabled = true;
+            const originalHtml = buttonElement.innerHTML;
+            buttonElement.innerHTML = '<i class="bi bi-hourglass me-1"></i>Completing...';
+
+            // Get CSRF tokens
+            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            if (window.csrfHeader && window.csrfToken) {
+                headers[window.csrfHeader] = window.csrfToken;
+            } else {
+                console.warn('CSRF tokens not found, proceeding without them');
+            }
+
+            // Validate planDayId
+            const planDayIdValue = window.trackerData.currentPlanDayId;
+            if (!planDayIdValue || planDayIdValue === 'null' || planDayIdValue === '') {
+                console.error('ERROR: Invalid planDayId:', planDayIdValue);
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalHtml;
+                return;
+            }
+
+            // Send completion to server
+            fetch('/api/v1/fitness/completions', {
+                method: 'POST',
+                headers: headers,
+                body: new URLSearchParams({
+                    type: 'EXERCISE',
+                    targetId: exerciseId,
+                    planDayId: planDayIdValue,
+                    workoutPosition: workoutPosition
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server responded with status: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Exercise completion successful:', data);
+
+                // Mark as completed visually
+                buttonElement.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Completed!';
+                buttonElement.className = 'btn btn-success btn-sm';
+
+                // Check if workout is now fully completed and update its visual status
+                checkAndUpdateWorkoutCompletion(buttonElement);
+
+                // Check if plan day is now fully completed and update its visual status
+                checkAndUpdatePlanDayCompletion();
+            })
+            .catch(error => {
+                console.error('Exercise completion failed:', error);
+
+                // Re-enable button on error
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalHtml;
+            });
+        }
+
+
+        function restartWorkout(buttonElement) {
+            console.log('=== restartWorkout CALLED ===');
+            const workoutId = buttonElement.getAttribute('data-workout-id');
+            const workoutItem = buttonElement.closest('.workout-item');
+            const workoutPosition = parseInt(workoutItem.getAttribute('data-workout-position'));
+            console.log('Restarting workout:', workoutId, 'at position:', workoutPosition);
+
+            if (!workoutId || workoutId === '' || workoutId === 'null' || workoutId.includes('${')) {
+                console.error('Invalid workout ID:', workoutId);
+                return;
+            }
+
+            // Restarting workout
+
+            // Disable button and show loading state
+            const originalHtml = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<i class="bi bi-hourglass me-1"></i>Restarting...';
+
+            // Get CSRF tokens
+            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            if (window.csrfHeader && window.csrfToken) {
+                headers[window.csrfHeader] = window.csrfToken;
+            } else {
+                console.warn('CSRF tokens not found, proceeding without them');
+            }
+
+            // Send restart request
+            fetch('/api/v1/fitness/workouts/' + workoutId + '/restart?planDayId=' + window.trackerData.currentPlanDayId + '&workoutPosition=' + workoutPosition, {
+                method: 'DELETE',
+                headers: headers
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server responded with status: ' + response.status);
+                }
+                console.log('Workout restart successful');
+
+                // Instantly update the workout's visual status
+                const workoutItem = buttonElement.closest('.workout-item');
+                if (workoutItem) {
+                    // Remove completion styling
+                    workoutItem.classList.remove('border-success', 'bg-success', 'bg-opacity-10');
+
+                    // Remove completion badge
+                    const completionBadge = workoutItem.querySelector('.badge.bg-success');
+                    if (completionBadge) {
+                        completionBadge.remove();
+                    }
+
+                    // Remove restart button
+                    const restartBtn = workoutItem.querySelector('button[title*="Restart"]');
+                    if (restartBtn) {
+                        restartBtn.remove();
+                    }
+
+                    // Reset all exercise buttons in this workout
+                    const exerciseButtons = workoutItem.querySelectorAll('.exercise-item button');
+                    exerciseButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.className = 'btn btn-outline-success btn-sm';
+                        btn.innerHTML = '<i class="bi bi-check me-1"></i>Done';
+                    });
+                }
+
+                // Check if plan day completion badge should be removed
+                checkAndUpdatePlanDayCompletion();
+            })
+            .catch(error => {
+                console.error('Workout restart failed:', error);
+
+                // Restore button state on error
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalHtml;
+            });
+        }
+
+        console.log('Head script functions defined');
+        console.log('startTodaysWorkout:', typeof startTodaysWorkout);
+        console.log('viewPlanDetails:', typeof viewPlanDetails);
+        console.log('markExerciseComplete:', typeof markExerciseComplete);
+        console.log('restartWorkout:', typeof restartWorkout);
+    </script>
+    <style>
+        .fitness-theme {
+            --primary-color: #4facfe;
+            --gradient-primary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .fitness-theme .card-header {
+            background: var(--gradient-primary) !important;
+        }
+        
+        .fitness-theme .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+        }
+        
+        .fitness-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #3d8bfe 0%, #00d9fe 100%);
+        }
+    </style>
+</head>
+<body class="fitness-theme">
+    <div layout:fragment="content">
+
+        <!-- Set global JavaScript variables -->
+        <script>
+            window.trackerData = {
+                activePlanStatus: '[[${activePlanStatus}]]',
+                hasActivePlan: [[${hasActivePlan} ? true : false]],
+                activePlanId: '[[${activePlanId}]]',
+                activePlanExists: [[${activePlan != null} ? true : false]],
+                currentPlanDayId: '[[${currentPlanDay != null ? currentPlanDay.id : null}]]',
+                workouts: []
+            };
+            console.log('=== TRACKER DATA INITIALIZED ===');
+            console.log('Current Plan Day ID:', window.trackerData.currentPlanDayId);
+            console.log('Type of currentPlanDayId:', typeof window.trackerData.currentPlanDayId);
+
+            // Initialize workouts array - populated during HTML rendering
+            window.trackerData.workouts = [];
+        </script>
+
+        <!-- Active Plan Display -->
+        <div th:if="${activePlanStatus == 'YES'}" class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-calendar-week me-2"></i>
+                            <span th:text="${activePlanName}">Current Plan</span>
+                            <small class="text-muted ms-2">(Day <span th:text="${currentDay}">1</span> of <span th:text="${planDaysCount}">7</span>)</small>
+                            <span th:if="${currentPlanDayCompleted}" class="badge bg-success ms-2">
+                                <i class="bi bi-check-circle-fill me-1"></i>Day Completed
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${currentPlanDay}" class="row">
+                            <div class="col-lg-8">
+                                <h4 th:text="${currentPlanDay.type.name() == 'REST' ? 'Rest Day' : currentPlanDay.type.displayName}">Today's Workout</h4>
+                                <p class="text-muted" th:if="${currentPlanDay.type.name() != 'REST'}" th:text="'Day ' + ${currentDay} + ' - ' + ${currentPlanDay.type.displayName} + ' Focus'">Focus on today's training.</p>
+                                <p class="text-muted" th:if="${currentPlanDay.type.name() == 'REST'}">Take time to recover and prepare for your next workout.</p>
+
+                                <!-- Show workouts for current day -->
+                                <div th:if="${currentDayWorkouts != null and !currentDayWorkouts.isEmpty()}" class="mt-3">
+                                    <h6>Workouts:</h6>
+                                    <div th:each="workout, workoutIter : ${currentDayWorkouts}" class="workout-item mb-3 border rounded"
+                                         th:classappend="${workoutCompletionStatus != null and workoutCompletionStatus.get(workout.id + '_' + workoutIter.index) == true} ? ' border-success bg-success bg-opacity-10' : ''"
+                                         th:attr="data-workout-position=${workoutIter.index}">
+                                        <script>
+                                            window.trackerData.workouts.push({
+                                                id: '[[${workout.id}]]',
+                                                name: '[[${workout.name}]]',
+                                                position: [[${workoutIter.index}]]
+                                            });
+                                        </script>
+                                        <!-- Workout Header -->
+                                        <div class="d-flex justify-content-between align-items-center p-3" onclick="toggleWorkoutExpansion(this)" style="cursor: pointer;">
+                                            <div class="flex-grow-1">
+                                                <strong th:text="${workout.name}">Workout Name</strong>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <span th:text="${workout.type.displayName}">Type</span> •
+                                                    <span th:text="${workout.workoutExercises?.size() ?: 0}">0</span> exercises
+                                                </small>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <!-- Completion Badge -->
+                                                <span th:if="${workoutCompletionStatus != null and workoutCompletionStatus.get(workout.id + '_' + workoutIter.index) == true}"
+                                                      class="badge bg-success me-2">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>Completed
+                                                </span>
+
+                                                <!-- Restart Button -->
+                                                <button th:if="${workoutCompletionStatus != null and workoutCompletionStatus.get(workout.id + '_' + workoutIter.index) == true}"
+                                                        class="btn btn-outline-secondary btn-sm"
+                                                        onclick="event.stopPropagation(); restartWorkout(this)"
+                                                        th:attr="data-workout-id=${workout.id}"
+                                                        title="Restart workout - delete all completions">
+                                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Restart
+                                                </button>
+
+                                                <i class="bi bi-chevron-down expand-icon" style="transition: transform 0.2s;"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Expandable Exercises Section -->
+                                        <div class="workout-exercises" style="display: none;">
+                                            <hr class="my-2">
+                                            <div class="px-3 pb-3">
+                                                <h6 class="mb-3">Exercises:</h6>
+                                                <div th:if="${workout.workoutExercises != null and !workout.workoutExercises.isEmpty()}" th:each="exercise, iterStat : ${workout.workoutExercises}" class="exercise-item mb-2 p-2 bg-light rounded">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <strong th:text="${exercise.exercise.name}">Exercise Name</strong>
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                <span th:if="${exercise.reps != null and exercise.reps > 0}">
+                                                                    <span th:text="${exercise.reps}">12</span> reps
+                                                                </span>
+                                                                <span th:if="${exercise.duration != null and exercise.duration > 0}">
+                                                                    <span th:if="${exercise.reps != null and exercise.reps > 0}"> • </span>
+                                                                    <span th:text="${exercise.duration}">30</span> seconds
+                                                                </span>
+                                                                <span th:if="${exercise.weight != null and exercise.weight > 0}"> • <span th:text="${exercise.weight}">0</span> kg</span>
+                                                            </small>
+                                                        </div>
+                                                        <button th:class="${exerciseCompletionStatus != null and exerciseCompletionStatus.get(exercise.id + '_' + workoutIter.index) == true} ? 'btn btn-success btn-sm' : 'btn btn-outline-success btn-sm'"
+                                                                onclick="markExerciseComplete(this)"
+                                                                th:attr="data-exercise-id=${exercise.id}, data-workout-id=${workout.id}"
+                                                                title="Exercise: ${exercise.exercise.name}"
+                                                                th:disabled="${exerciseCompletionStatus != null and exerciseCompletionStatus.get(exercise.id + '_' + workoutIter.index) == true}">
+                                                            <i class="bi bi-check me-1"></i>
+                                                            <span th:text="${exerciseCompletionStatus != null and exerciseCompletionStatus.get(exercise.id + '_' + workoutIter.index) == true} ? 'Completed!' : 'Done'"></span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div th:if="${workout.workoutExercises == null or workout.workoutExercises.isEmpty()}" class="text-muted text-center py-2">
+                                                    <small>No exercises defined for this workout</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div th:if="${currentPlanDay.workouts == null or currentPlanDay.workouts.isEmpty()}" class="text-muted mt-3">
+                                    <i class="bi bi-info-circle me-1"></i>Rest day or no workouts assigned.
+                                </div>
+                            </div>
+                            <div class="col-lg-4 text-lg-end">
+                                <div class="d-grid gap-2">
+                                    <div th:if="${currentPlanDay != null and currentPlanDay.type.name() == 'REST'}" class="alert alert-info text-center">
+                                        <i class="bi bi-moon-stars me-2"></i>
+                                        <strong>Rest Day!</strong> Take it easy and recover.
+                                    </div>
+                                    <button th:if="${currentPlanDay == null or currentPlanDay.type.name() != 'REST'}"
+                                            class="btn btn-primary btn-lg"
+                                            onclick="console.log('Start workout button clicked'); startTodaysWorkout()">
+                                        <i class="bi bi-play-circle me-1"></i>Start Today's Workout
+                                    </button>
+                                    <button class="btn btn-outline-secondary" onclick="console.log('View plan button clicked'); viewPlanDetails()">
+                                        <i class="bi bi-eye me-1"></i>View Plan Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${currentPlanDay == null}" class="text-center py-4">
+                            <i class="bi bi-calendar-x display-4 text-muted mb-3"></i>
+                            <p class="text-muted">No workout planned for today.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Active Plan -->
+        <div th:if="${activePlan == null}" class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-calendar-x display-4 text-muted mb-3"></i>
+                        <h4>No Active Plan</h4>
+                        <p class="text-muted">You don't have any workout plans yet. Create one to start tracking your progress!</p>
+                        <a th:href="@{/fitness/create-activity(tab='plan')}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i>Create Your First Plan
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Dashboard -->
+        <div th:if="${activePlanStatus == 'YES'}" class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-graph-up me-2"></i>Your Progress
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="stats-card primary">
+                                    <h4 class="stats-number" th:text="${totalCompletions}">0</h4>
+                                    <p class="stats-label">Total Completions</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stats-card success">
+                                    <h4 class="stats-number" th:text="${planDaysCount}">0</h4>
+                                    <p class="stats-label">Plan Days</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <small class="text-muted">Current Plan: <strong th:text="${activePlan.name}">Plan Name</strong></small>
+                            <div class="progress mt-2">
+                                <div class="progress-bar bg-primary" role="progressbar"
+                                     th:style="'width: ' + ${planDaysCount > 0 ? (currentDay * 100 / planDaysCount) : 0} + '%'"
+                                     th:aria-valuenow="${currentDay}"
+                                     th:aria-valuemax="${planDaysCount}"></div>
+                            </div>
+                            <small class="text-muted mt-1 d-block">
+                                Day <span th:text="${currentDay}">1</span> of <span th:text="${planDaysCount}">7</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-clock-history me-2"></i>Recent Activity
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${recentCompletions != null and !recentCompletions.isEmpty()}" class="list-group list-group-flush">
+                            <div th:each="completion : ${recentCompletions}" class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted" th:text="${#temporals.format(completion.completedAt, 'MMM dd, HH:mm')}">Date</small>
+                                        <br>
+                                        <span th:text="${completion.type.name() == 'WORKOUT' ? 'Completed workout' : completion.type.name() == 'EXERCISE' ? 'Completed exercise' : 'Completed ' + completion.type.name()}">Activity</span>
+                                    </div>
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${recentCompletions == null or recentCompletions.isEmpty()}" class="text-center py-4">
+                            <i class="bi bi-activity display-4 text-muted mb-3"></i>
+                            <p class="text-muted">No recent activity yet. Complete some workouts to see your progress here!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Workout (shown when workout is in progress) -->
+        <div class="row mb-4" id="activeWorkoutSection" style="display: none;">
+            <div class="col-12">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-activity me-2"></i>Workout in Progress
+                            </h5>
+                            <div class="d-flex align-items-center">
+                                <span class="me-3" id="workoutTimer">00:00</span>
+                                <button class="btn btn-outline-light btn-sm" onclick="pauseWorkout()">
+                                    <i class="bi bi-pause-circle me-1"></i>Pause
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <h4 id="currentExercise">Push-ups</h4>
+                                <p class="text-muted" id="exerciseDescription">Standard push-ups for chest and triceps</p>
+                                
+                                <!-- Exercise Details -->
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Sets</label>
+                                        <input type="number" class="form-control" id="currentSets" value="3" min="1">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Reps</label>
+                                        <input type="number" class="form-control" id="currentReps" value="12" min="1">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Weight (lbs)</label>
+                                        <input type="number" class="form-control" id="currentWeight" value="0" min="0" step="0.5">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success" onclick="completeSet()">
+                                        <i class="bi bi-check-circle me-1"></i>Complete Set
+                                    </button>
+                                    <button class="btn btn-outline-primary" onclick="skipExercise()">
+                                        <i class="bi bi-skip-forward me-1"></i>Skip Exercise
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <h6>Exercise Progress</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 25%"></div>
+                                </div>
+                                <small class="text-muted">2 of 8 exercises completed</small>
+                                
+                                <h6 class="mt-4">Workout Progress</h6>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 15%"></div>
+                                </div>
+                                <small class="text-muted">15 minutes elapsed</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Workouts -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clock-history me-2"></i>Recent Workouts
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Workout</th>
+                                        <th>Duration</th>
+                                        <th>Exercises</th>
+                                        <th>Calories</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Today</td>
+                                        <td>Cardio Blast</td>
+                                        <td>30 min</td>
+                                        <td>5</td>
+                                        <td>320</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewWorkoutHistory(1)">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Yesterday</td>
+                                        <td>Leg Day</td>
+                                        <td>45 min</td>
+                                        <td>7</td>
+                                        <td>450</td>
+                                        <td><span class="badge bg-success">Completed</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewWorkoutHistory(2)">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2 days ago</td>
+                                        <td>Upper Body</td>
+                                        <td>40 min</td>
+                                        <td>6</td>
+                                        <td>380</td>
+                                        <td><span class="badge bg-warning">Incomplete</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="resumeWorkout(3)">
+                                                <i class="bi bi-play-circle me-1"></i>Resume
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout Statistics -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card success">
+                    <h3 class="stats-number">12</h3>
+                    <p class="stats-label">Workouts This Week</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card info">
+                    <h3 class="stats-number">8.5</h3>
+                    <p class="stats-label">Hours This Week</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card warning">
+                    <h3 class="stats-number">2,450</h3>
+                    <p class="stats-label">Calories Burned</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card">
+                    <h3 class="stats-number">7</h3>
+                    <p class="stats-label">Day Streak</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workout Plans Modal -->
+    <div class="modal fade" id="workoutPlansModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Choose Workout Plan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Quick Cardio</h5>
+                                    <p class="card-text">15-minute high-intensity cardio workout</p>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="badge bg-success">15 min</span>
+                                        <span class="badge bg-primary">Cardio</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <button class="btn btn-primary w-100" onclick="selectWorkoutPlan('quick-cardio')">
+                                        Start Workout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Strength Training</h5>
+                                    <p class="card-text">45-minute full body strength workout</p>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="badge bg-warning">45 min</span>
+                                        <span class="badge bg-info">Strength</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <button class="btn btn-primary w-100" onclick="selectWorkoutPlan('strength')">
+                                        Start Workout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+</html>
