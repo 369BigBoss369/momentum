@@ -25,14 +25,8 @@ public interface CompletionRepository extends JpaRepository<Completion, UUID> {
     @Query("SELECT COUNT(c) > 0 FROM Completion c WHERE c.user.id = :userId AND c.targetId = :targetId AND c.type = :type")
     boolean existsByUserIdAndTargetIdAndType(@Param("userId") UUID userId, @Param("targetId") UUID targetId, @Param("type") CompletionType type);
 
-    @Query("SELECT COUNT(c) > 0 FROM Completion c WHERE c.user.id = :userId AND c.targetId = :targetId AND c.type = :type AND c.planDayId = :planDayId")
-    boolean existsByUserIdAndTargetIdAndTypeAndPlanDayId(@Param("userId") UUID userId, @Param("targetId") UUID targetId, @Param("type") CompletionType type, @Param("planDayId") UUID planDayId);
-
     @Query("SELECT COUNT(c) > 0 FROM Completion c WHERE c.user.id = :userId AND c.targetId = :targetId AND c.type = :type AND c.planDayId = :planDayId AND c.workoutPosition = :workoutPosition")
     boolean existsByUserIdAndTargetIdAndTypeAndPlanDayIdAndWorkoutPosition(@Param("userId") UUID userId, @Param("targetId") UUID targetId, @Param("type") CompletionType type, @Param("planDayId") UUID planDayId, @Param("workoutPosition") Integer workoutPosition);
-
-    @Query("SELECT COUNT(c) FROM Completion c WHERE c.user.id = :userId AND c.targetId = :targetId AND c.type = :type AND c.planDayId IS NULL")
-    long countByUserIdAndTargetIdAndTypeAndPlanDayIdIsNull(@Param("userId") UUID userId, @Param("targetId") UUID targetId, @Param("type") CompletionType type);
 
     @Query("SELECT COUNT(c) FROM Completion c WHERE c.user.id = :userId AND c.targetId = :targetId AND c.type = :type AND c.planDayId = :planDayId")
     long countByUserIdAndTargetIdAndTypeAndPlanDayId(@Param("userId") UUID userId, @Param("targetId") UUID targetId, @Param("type") CompletionType type, @Param("planDayId") UUID planDayId);
@@ -44,13 +38,8 @@ public interface CompletionRepository extends JpaRepository<Completion, UUID> {
 
     @Modifying
     @Transactional
-    void deleteByUserIdAndTargetIdAndType(UUID userId, UUID targetId, CompletionType type);
-
-    @Modifying
-    @Transactional
     @Query("DELETE FROM Completion c WHERE c.user.id = :userId AND c.targetId = :targetId AND c.type = :type AND c.planDayId = :planDayId")
     void deleteByUserIdAndTargetIdAndTypeAndPlanDayId(@Param("userId") UUID userId, @Param("targetId") UUID targetId, @Param("type") CompletionType type, @Param("planDayId") UUID planDayId);
-
 
     @Query("SELECT COUNT(c) FROM Completion c WHERE c.user.id = :userId AND c.type = :type AND c.completedAt >= :startDate")
     long countByUserIdAndTypeAndCompletedAtAfter(@Param("userId") UUID userId, @Param("type") CompletionType type, @Param("startDate") LocalDateTime startDate);

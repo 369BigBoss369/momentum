@@ -6,7 +6,6 @@ import com.momentum.core.model.enums.ModerationStatus;
 import com.momentum.exception.UnauthorizedResourceAccessException;
 import com.momentum.exception.fitness.ActivityNotFoundException;
 import com.momentum.exception.fitness.CustomActivityAlreadyExists;
-import com.momentum.exception.nutrition.FoodNotFoundException;
 import com.momentum.fitness.dto.CreatePlanDTO;
 import com.momentum.fitness.dto.CreatePlanDayDTO;
 import com.momentum.fitness.dto.PlanDaySummaryDTO;
@@ -516,12 +515,6 @@ public class PlanService {
             mv.addObject("completionStatusJson", completionStatusJson);
             mv.addObject("planStartDate", planStartDate);
 
-            System.out.println("DEBUG: Adding plan data to model:");
-            System.out.println("DEBUG: planDays size: " + simplifiedPlanDays.size());
-            System.out.println("DEBUG: planDayCompletionStatus size: " + planDayCompletionStatus.size());
-            System.out.println("DEBUG: currentDay: " + trackerData.getCurrentDay());
-            System.out.println("DEBUG: totalDays: " + trackerData.getPlanDaysCount());
-            System.out.println("DEBUG: planStartDate: " + planStartDate);
         } else {
             List<PlanSummaryDTO> planDtos = getPlanSummariesForUser(userId);
             mv.addObject("planSummaries", planDtos);

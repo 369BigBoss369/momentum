@@ -8,6 +8,7 @@ import com.momentum.fitness.model.Plan;
 import com.momentum.fitness.model.PlanDay;
 import com.momentum.fitness.model.Workout;
 import com.momentum.user.service.UserService;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -167,6 +168,7 @@ public class PlanDisplayService {
     }
 
     
+    @Getter
     public static class PlanDisplayData {
         private final Plan activePlan;
         private final List<PlanDay> planDays;
@@ -211,22 +213,10 @@ public class PlanDisplayService {
         }
 
 
-        public Plan getActivePlan() { return activePlan; }
-        public List<PlanDay> getPlanDays() { return planDays; }
-        public Map<UUID, Boolean> getPlanDayCompletionStatus() { return planDayCompletionStatus; }
-        public Integer getCurrentDay() { return currentDay; }
-        public Integer getTotalDays() { return totalDays; }
-        public Integer getTotalWorkouts() { return totalWorkouts; }
-        public List<Map<String, Object>> getSimplifiedPlanDays() { return simplifiedPlanDays; }
-        public List<PlanSummaryDTO> getPlanSummaries() { return planSummaries; }
-        public Integer getPlanCount() { return planCount; }
-        public Integer getTotalWorkoutsInSummaries() { return totalWorkoutsInSummaries; }
-        public LocalDate getPlanStartDate() { return planStartDate; }
-        public String getPlanDaysJson() { return planDaysJson; }
-        public String getCompletionStatusJson() { return completionStatusJson; }
     }
 
     
+    @Getter
     private static class AdaptivePlanData {
         private final List<Map<String, Object>> simplifiedPlanDays;
         private final Set<Integer> skippedDayNumbers;
@@ -236,11 +226,9 @@ public class PlanDisplayService {
             this.skippedDayNumbers = skippedDayNumbers;
         }
 
-        public List<Map<String, Object>> getSimplifiedPlanDays() { return simplifiedPlanDays; }
-        public Set<Integer> getSkippedDayNumbers() { return skippedDayNumbers; }
     }
 
-    
+
     private static class CompletionCounts {
         private final int completedWorkouts;
         private final int totalExercises;

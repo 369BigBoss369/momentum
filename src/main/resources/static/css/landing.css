@@ -1,5 +1,3 @@
-/* Landing Page Styles */
-
 :root {
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -9,12 +7,10 @@
     --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
 }
 
-/* Smooth scrolling */
 html {
     scroll-behavior: smooth;
 }
 
-/* Navigation */
 #mainNav {
     background: rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
@@ -23,7 +19,6 @@ html {
 }
 
 #mainNav.scrolled {
-    /* Keep transparent even when scrolled, but shrink the padding */
     background: rgba(0, 0, 0, 0.1);
     padding: 0.5rem 0;
 }
@@ -42,7 +37,6 @@ html {
     position: relative;
 }
 
-/* Base underline for regular nav links (not dropdown toggles) */
 .nav-link:not(.dropdown-toggle)::after {
     content: '';
     position: absolute;
@@ -59,10 +53,6 @@ html {
     width: 100%;
 }
 
-/* Dropdown-specific underlines are now defined in style.css */
-/* (style.css loads after landing.css, so those rules take precedence) */
-
-/* Hero Section */
 .hero-section {
     position: relative;
     min-height: 100vh;
@@ -226,7 +216,6 @@ html {
     margin: 0;
 }
 
-/* Phone Mockup */
 .phone-mockup {
     position: relative;
     width: 300px;
@@ -356,7 +345,6 @@ html {
     color: rgba(255, 255, 255, 0.8);
 }
 
-/* Features Section */
 .features-section {
     background: #f8f9fa;
     position: relative;
@@ -470,7 +458,7 @@ html {
     margin-bottom: 0;
 }
 
-/* How It Works Section */
+
 .how-it-works-section {
     background: white;
 }
@@ -538,7 +526,6 @@ html {
     margin: 0 auto;
 }
 
-/* CTA Section */
 .cta-section {
     background: var(--primary-gradient);
     position: relative;
@@ -574,7 +561,6 @@ html {
     z-index: 2;
 }
 
-/* Footer */
 .footer {
     background: #2c3e50;
     color: white;
@@ -658,7 +644,6 @@ html {
     color: white;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .hero-title {
         font-size: 2.5rem;
@@ -684,7 +669,6 @@ html {
     }
 }
 
-/* Loading Animation */
 .loading {
     position: fixed;
     top: 0;
@@ -736,10 +720,3 @@ html {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-
-
-
-
-
-
-

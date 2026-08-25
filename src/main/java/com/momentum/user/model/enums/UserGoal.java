@@ -2,8 +2,6 @@ package com.momentum.user.model.enums;
 
 import lombok.Getter;
 
-
-
 @Getter
 
 public enum UserGoal {

@@ -123,26 +123,22 @@
                           th:text="${action == 'updated'} ? 'Your plan has been updated to keep you on track.' : 'Your custom plan has been saved and is ready to guide your fitness journey.'"></span>
                 </p>
                 <div class="action-buttons">
-                    <!-- Exercise: encourage creating another exercise -->
                     <a th:if="${activityType == 'exercise'}"
                        th:href="@{/fitness/create-activity(tab='exercise')}"
                        class="btn btn-primary">
                         <i class="bi bi-plus-circle activity-icon"></i>Create Another Exercise
                     </a>
-                    <!-- Workout: encourage creating another workout -->
                     <a th:if="${activityType == 'workout'}"
                        th:href="@{/fitness/create-activity(tab='workout')}"
                        class="btn btn-primary">
                         <i class="bi bi-plus-circle activity-icon"></i>Create Another Workout
                     </a>
-                    <!-- Plan: encourage creating another plan -->
                     <a th:if="${activityType == 'plan'}"
                        th:href="@{/fitness/create-activity(tab='plan')}"
                        class="btn btn-primary">
                         <i class="bi bi-plus-circle activity-icon"></i>Create Another Plan
                     </a>
 
-                    <!-- All activities go to fitness dashboard -->
                     <a th:href="@{/fitness/dashboard}" class="btn btn-outline-primary">
                         <i class="bi bi-house-door activity-icon"></i>Go to Dashboard
                     </a>

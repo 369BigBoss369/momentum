@@ -7,15 +7,11 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
-
-
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-
-
 
 @Entity
 @Table(name = "foods")

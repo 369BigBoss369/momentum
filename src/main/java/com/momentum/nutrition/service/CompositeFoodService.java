@@ -13,7 +13,6 @@ import com.momentum.nutrition.dto.seed.CompositeFoodSeedDTO;
 import com.momentum.nutrition.model.CompositeFood;
 import com.momentum.nutrition.model.enums.CompositeFoodType;
 import com.momentum.nutrition.repository.CompositeFoodRepository;
-import com.momentum.security.AuthenticationMetadata;
 import com.momentum.user.model.User;
 import com.momentum.user.service.NutritionActivityService;
 import com.momentum.user.service.UserService;

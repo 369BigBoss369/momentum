@@ -495,7 +495,6 @@
 </head>
 <body class="nutrition-theme">
     <div layout:fragment="content">
-        <!-- Banner Header -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="meal-plan-banner">
@@ -508,7 +507,6 @@
             </div>
         </div>
 
-        <!-- Week Navigation with Meal Plan Header -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
@@ -555,7 +553,6 @@
             </div>
         </div>
 
-        <!-- Weekly Statistics -->
         <div class="row mb-4">
             <div class="col-12 mb-3">
                 <h5 class="mb-3">
@@ -593,10 +590,8 @@
         </div>
     </div>
 
-    <!-- View Meal Modal Backdrop -->
     <div class="modal-backdrop" id="viewMealModalBackdrop" style="display: none;"></div>
 
-    <!-- View Meal Modal -->
     <div class="modal fade" id="viewMealModal" tabindex="-1" aria-labelledby="viewMealModalLabel" aria-hidden="true" style="display: none;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -643,10 +638,8 @@
         </div>
     </div>
 
-    <!-- Edit Meal Modal Backdrop -->
     <div class="modal-backdrop" id="editMealModalBackdrop" style="display: none;" onclick="if (event.target === this) hideEditModal();"></div>
 
-    <!-- Edit Meal Modal -->
     <div class="modal fade" id="editMealModal" tabindex="-1" aria-labelledby="editMealModalLabel" aria-hidden="true" style="display: none;">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -725,12 +718,9 @@
     </div>
     <div layout:fragment="scripts">
     <script>
-            console.log('🚨🚨🚨 SCRIPTS FRAGMENT LOADED');
-            
-            // IMMEDIATE LOG - NO DEPENDENCIES
             (function() {
                 if (typeof console !== 'undefined' && console.log) {
-                    console.log('🚨🚨🚨 IMMEDIATE EXECUTION - Script tag is being processed');
+                    console.log('Script tag is being processed');
                 }
             })();
             
@@ -740,18 +730,15 @@
                 console.log('🔵🔵🔵 Window object exists:', typeof window !== 'undefined');
                 console.log('🔵🔵🔵 Console object exists:', typeof console !== 'undefined');
                 
-        // Force execution by wrapping in IIFE
         (function() {
             'use strict';
             console.log('=== MAIN SCRIPT TAG STARTING ===');
-                    console.log('🔵 Inside IIFE - script is executing');
+                    console.log('Inside IIFE - script is executing');
             
-            // Global variables
         let currentWeekStart = null;
-        let mealsData = {}; // Structure: { "YYYY-MM-DD": { "BREAKFAST": [...], "LUNCH": [...], ... } }
-        let foodsList = []; // All available foods
-        let weekMeals = {}; // Meals for the current week
-        let currentSelectedMeal = null; // { date: string, mealType: string }
+        let foodsList = [];
+        let weekMeals = {};
+        let currentSelectedMeal = null;
         let editModalRenderAttempts = 0;
         const MAX_MODAL_RENDER_ATTEMPTS = 10;
 
@@ -860,7 +847,6 @@
         
         console.log('Global variables initialized');
 
-        // Meal types in order (place Snack between workouts)
         const mealTypes = ['BREAKFAST', 'LUNCH', 'DINNER', 'PRE_WORKOUT', 'SNACK', 'POST_WORKOUT'];
         const mealTypeLabels = {
             'BREAKFAST': 'Breakfast',
@@ -872,26 +858,23 @@
         };
 
 
-        // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOMContentLoaded fired');
             initializeWeek();
             loadFoods();
-            loadWeekMeals(); // will trigger render + statistics when data loads
+            loadWeekMeals();
             console.log('Page initialization complete');
         });
 
-        // Initialize current week (Monday of current week)
         function initializeWeek() {
             const now = new Date();
             const day = now.getDay();
-            const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+            const diff = now.getDate() - day + (day === 0 ? -6 : 1);
             currentWeekStart = new Date(now.setDate(diff));
             currentWeekStart.setHours(0, 0, 0, 0);
             updateWeekDisplay();
         }
 
-        // Update week display
         function updateWeekDisplay() {
             if (!currentWeekStart) return;
 
@@ -904,7 +887,6 @@
             
             document.getElementById('weekRange').textContent = `${startStr} - ${endStr}`;
 
-            // Determine if week is past, current, or future
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const weekEndDate = new Date(weekEnd);
@@ -927,11 +909,9 @@
                 }
             }
 
-            // Update day headers
             updateDayHeaders();
         }
 
-        // Update day headers with dates, styling, and per-day action buttons
         function updateDayHeaders() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -955,10 +935,8 @@
                 const iconClass = isPast ? 'bi-eye' : 'bi-pencil';
                 const buttonLabel = isPast ? 'View day' : 'Edit day';
 
-                // Remove previous classes
                 dayHeader.className = 'day-header';
 
-                // Add appropriate class for coloring
                 if (isToday) {
                     dayHeader.classList.add('today');
                 } else if (isPast) {
@@ -983,7 +961,6 @@
             }
         }
 
-        // Navigate weeks
         function previousWeek() {
             currentWeekStart.setDate(currentWeekStart.getDate() - 7);
             updateWeekDisplay();
@@ -1012,22 +989,12 @@
             window.location.href = `/nutrition/food-tracker?date=${encodeURIComponent(dateStr)}&mode=${safeMode}`;
         }
 
-        // Expose navigation helpers globally for inline onclick handlers
         window.previousWeek = previousWeek;
         window.nextWeek = nextWeek;
         window.goToCurrentWeek = goToCurrentWeek;
         window.openDayInTracker = openDayInTracker;
 
-        // Load foods from API (placeholder)
         function loadFoods() {
-            // TODO: Replace with actual API call
-            // fetch('/api/v1/nutrition/foods')
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         foodsList = data;
-            //     });
-
-            // Mock data for now
             foodsList = [
                 { id: '1', name: 'Chicken Breast', calories: 165, protein: 31, carbohydrates: 0, fat: 3.6, imagePath: null },
                 { id: '2', name: 'Brown Rice', calories: 111, protein: 2.6, carbohydrates: 23, fat: 0.9, imagePath: null },
@@ -1040,7 +1007,6 @@
             ];
         }
 
-        // Load week meals from backend for the current week
         function loadWeekMeals() {
             if (!currentWeekStart) {
                 return;
@@ -1061,7 +1027,6 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Reset weekMeals and ensure structure for each day of the current week
                     weekMeals = {};
                     for (let i = 0; i < 7; i++) {
                         const date = new Date(currentWeekStart);
@@ -1077,7 +1042,6 @@
                         };
                     }
 
-                    // data is an object: { "yyyy-MM-dd": [ MealFoodView, ... ], ... }
                     Object.keys(data || {}).forEach(dateStr => {
                         const dayMeals = data[dateStr] || [];
                         dayMeals.forEach(item => {
@@ -1086,7 +1050,6 @@
                             if (!weekMeals[dateStr][mealType]) {
                                 weekMeals[dateStr][mealType] = [];
                             }
-                            // Store full info needed for counts and macros
                             weekMeals[dateStr][mealType].push({
                                 id: item.id,
                                 foodId: item.foodId,
@@ -1106,14 +1069,12 @@
                 })
                 .catch(error => {
                     console.error('Error loading week meals:', error);
-                    // On error, just clear weekMeals and render empty state
                     weekMeals = {};
                     renderMealPlan();
                     updateStatistics();
                 });
         }
 
-        // Format date as YYYY-MM-DD
         function formatDate(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -1121,7 +1082,6 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Check if a date is before today (past)
         function isPastDate(dateStr) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -1130,7 +1090,6 @@
             return date < today;
         }
 
-        // Check if a date is today or after (current/future)
         function isCurrentOrFutureDate(dateStr) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -1139,13 +1098,9 @@
             return date >= today;
         }
 
-        // Render meal plan table
         function renderMealPlan() {
-            // If the table already has Thymeleaf-rendered content, we can skip JavaScript rendering
-            // This allows the backend to provide the initial render, and JS can enhance it
             const tbody = document.getElementById('mealPlanBody');
             if (!tbody || tbody.children.length > 0) {
-                // Table already has content (from Thymeleaf), just update dynamic parts
                 updateDayHeaders();
                 updateMealCells();
                 return;
@@ -1157,7 +1112,6 @@
             tbody.innerHTML = mealTypes.map(mealType => {
                 const row = document.createElement('tr');
                 
-                // Meal type header
                 const headerCell = document.createElement('td');
                 const headerCssClass = mealType.toLowerCase().replace('_', '-');
                 headerCell.className = `meal-type-header ${headerCssClass}`;
@@ -1166,7 +1120,6 @@
                 `;
                 row.appendChild(headerCell);
 
-                // Day cells
                 for (let i = 0; i < 7; i++) {
                     const dayDate = new Date(currentWeekStart);
                     dayDate.setDate(dayDate.getDate() + i);
@@ -1175,7 +1128,6 @@
                     const cell = document.createElement('td');
                     cell.className = 'meal-cell';
 
-                    // Get meals for this day and meal type
                     const meals = weekMeals[dateStr] ? weekMeals[dateStr][mealType] || [] : [];
                     
                     const isPast = isPastDate(dateStr);
@@ -1207,7 +1159,6 @@
             updateDayHeaders();
         }
 
-        // Update meal cells in existing table (for Thymeleaf-rendered content)
         function updateMealCells() {
             const tbody = document.getElementById('mealPlanBody');
             if (!tbody) return;
@@ -1226,7 +1177,6 @@
                 const mealType = mealTypeClass.toUpperCase().replace('-', '_');
                 
                 cells.forEach((cell, cellIndex) => {
-                    // Skip example cells
                     if (cell.hasAttribute('data-example')) return;
                     
                     const dayDate = new Date(currentWeekStart);
@@ -1522,7 +1472,6 @@
         };
 
 
-        // Update statistics
         function updateStatistics() {
             let totalCalories = 0;
             let totalProtein = 0;
@@ -1530,7 +1479,6 @@
             let totalFat = 0;
             let daysWithMeals = 0;
 
-            // Calculate totals for the week using precomputed macros from weekMeals
             Object.keys(weekMeals).forEach(dateStr => {
                 let dayCalories = 0;
                 let dayProtein = 0;
@@ -1562,7 +1510,6 @@
                 totalFat += dayFat;
             });
 
-            // Update UI
             document.getElementById('totalCalories').textContent = Math.round(totalCalories);
             document.getElementById('totalProtein').textContent = totalProtein.toFixed(1) + 'g';
             document.getElementById('totalCarbs').textContent = totalCarbs.toFixed(1) + 'g';
@@ -1575,7 +1522,6 @@
             document.getElementById('avgFat').textContent = `Avg: ${(totalFat / avgDays).toFixed(1)}g/day`;
         }
 
-        // Expose modal helpers globally so inline handlers can use them
         window.renderViewMealModalContent = renderViewMealModalContent;
         window.renderEditMealModalContent = renderEditMealModalContent;
         window.populateFoodSelectOptions = populateFoodSelectOptions;
@@ -1741,24 +1687,12 @@
         }
 
         setupViewModalEventHandlers();
-        })(); // End IIFE - force script execution
-        console.log('=== MAIN SCRIPT TAG COMPLETED ===');
-        console.log('🔵🔵🔵 Script execution finished successfully');
+        })();
         } catch (error) {
-            console.error('❌❌❌ ERROR IN SCRIPT:', error);
-            console.error('❌❌❌ Error stack:', error.stack);
-            console.error('❌❌❌ Error message:', error.message);
-            console.error('❌❌❌ Error name:', error.name);
-            // Try to alert as well
-            try {
-                alert('JavaScript Error: ' + error.message);
-            } catch (e) {
-                // Ignore if alert fails
-            }
+            console.error('Error message:', error.message);
         }
     </script>
         
-        <!-- Scripts will be inserted here by layout -->
     </div>
 </body>
 </html>

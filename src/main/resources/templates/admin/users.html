@@ -5,7 +5,6 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <!-- Header -->
     <div class="row mb-4" data-aos="fade-up">
         <div class="col-12">
             <div class="card bg-gradient-primary text-white morphing-shape">
@@ -24,7 +23,6 @@
         </div>
     </div>
 
-    <!-- Success/Error Messages -->
     <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
         <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -52,7 +50,6 @@
                 <strong>Important:</strong> After changing a user's role, they must log out and log back in for the changes to take effect.
             </div>
 
-            <!-- Search -->
             <form method="get" th:action="@{/admin/users}" class="row g-2 mb-4 align-items-end">
                 <div class="col-md-6 col-lg-4">
                     <label class="form-label small mb-1">Search</label>

@@ -369,10 +369,6 @@ public class UserService implements UserDetailsService {
         return null;
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
     @Transactional
     public void updateUserRole(UUID userId, UserRole newRole) {
         User user = self.getById(userId);

@@ -595,10 +595,8 @@
 </head>
 <body class="nutrition-theme">
     <div layout:fragment="content">
-        <!-- Add Food Modal Backdrop -->
         <div class="modal-backdrop" id="addFoodModalBackdrop" style="display: none;"></div>
         
-        <!-- Add Food Modal -->
         <div class="modal fade" id="addFoodModal" tabindex="-1" aria-labelledby="addFoodModalLabel" aria-hidden="true" style="display: none;">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -609,12 +607,10 @@
 
                     <div class="modal-body">
                         <form id="addFoodForm" novalidate>
-                            <!-- Food Type Selection View -->
                             <div id="foodTypeSelectionView">
                                 <div class="mb-3">
                                     <label class="form-label">Select Food Type <span class="text-danger">*</span></label>
                                     <div class="food-type-list" id="foodTypeList">
-                                        <!-- Products -->
                                         <div class="food-type-category">
                                             <div class="food-type-category-title">Products</div>
                                             <div th:each="productType : ${productTypes}" class="food-type-item" 
@@ -628,7 +624,6 @@
                                             </div>
                                         </div>
                                         
-                                        <!-- Composite Foods -->
                                         <div class="food-type-category">
                                             <div class="food-type-category-title">Composite Foods</div>
                                             <div th:each="compositeType : ${compositeFoodTypes}" class="food-type-item" 
@@ -647,7 +642,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Food Selection View -->
                             <div id="foodSelectionView" style="display: none;">
                                 <div class="mb-3">
                                     <label class="form-label">Search and Select Food <span class="text-danger">*</span></label>
@@ -664,7 +658,6 @@
                                     <div class="invalid-feedback">Please enter an amount (minimum 1 gram).</div>
                                 </div>
                                 
-                                <!-- Nutrition Information Display -->
                                 <div class="nutrition-info" id="nutritionInfo">
                                     <div class="nutrition-info-title">Nutrition Information</div>
                                     <div class="nutrition-values">
@@ -705,9 +698,7 @@
                 </div>
             </div>
         </div>
-        <!-- Today's Meals -->
         <div class="row" data-aos="fade-up" data-aos-delay="200">
-            <!-- Breakfast -->
             <div class="col-lg-4 mb-4" data-aos="zoom-in" data-aos-delay="300">
                 <div class="card h-100 hover-lift meal-breakfast">
                     <div class="card-header glass">
@@ -734,7 +725,6 @@
                 </div>
             </div>
 
-            <!-- Lunch -->
             <div class="col-lg-4 mb-4" data-aos="zoom-in" data-aos-delay="400">
                 <div class="card h-100 hover-lift meal-lunch">
                     <div class="card-header glass">
@@ -761,7 +751,6 @@
                 </div>
             </div>
 
-            <!-- Dinner -->
             <div class="col-lg-4 mb-4" data-aos="zoom-in" data-aos-delay="500">
                 <div class="card h-100 hover-lift meal-dinner">
                     <div class="card-header glass">
@@ -789,9 +778,7 @@
             </div>
         </div>
 
-        <!-- Optional Meals -->
         <div class="row optional-meals-row" data-aos="fade-up" data-aos-delay="600">
-            <!-- Pre-Workout -->
             <div class="col-lg-4 mb-4" data-aos="zoom-in" data-aos-delay="700">
                 <div class="card h-100 hover-lift meal-pre-workout">
                     <div class="card-header glass">
@@ -818,7 +805,6 @@
                 </div>
             </div>
 
-            <!-- Snack -->
             <div class="col-lg-4 mb-4" data-aos="zoom-in" data-aos-delay="800">
                 <div class="card h-100 hover-lift meal-snack">
                     <div class="card-header glass">
@@ -845,7 +831,6 @@
                 </div>
             </div>
 
-            <!-- Post-Workout -->
             <div class="col-lg-4 mb-4" data-aos="zoom-in" data-aos-delay="900">
                 <div class="card h-100 hover-lift meal-post-workout">
                     <div class="card-header glass">
@@ -873,7 +858,6 @@
             </div>
         </div>
 
-        <!-- Daily Totals -->
         <div class="row daily-totals-row" data-aos="fade-up" data-aos-delay="700">
             <div class="col-12 mb-3">
                 <h5 class="mb-3">
@@ -913,7 +897,6 @@
     
     <div layout:fragment="scripts">
         <script>
-            // Add Food Modal functionality
             (function() {
                 let currentMealType = null;
                 let selectedFoodType = null;
@@ -943,24 +926,20 @@
                     selectedFoodType = null;
                     selectedFoodData = null;
                     
-                    // Disable Add button initially
                     if (confirmBtn) {
                         confirmBtn.disabled = true;
                     }
                     
-                    // Reset form and views
                     if (addFoodForm) {
                         addFoodForm.classList.remove('was-validated');
                         addFoodForm.reset();
                     }
                     
-                    // Clear Select2
                     if ($('#foodSearchSelect').data('select2')) {
                         $('#foodSearchSelect').select2('destroy');
                     }
                     $('#foodSearchSelect').html('<option value="">Type to search foods...</option>');
                     
-                    // Clear amount and nutrition
                     if (foodAmountInput) {
                         foodAmountInput.value = '';
                     }
@@ -971,7 +950,6 @@
                         nutritionInfo.classList.remove('show');
                     }
                     
-                    // Show food type selection view, hide food selection view
                     if (foodTypeSelectionView) {
                         foodTypeSelectionView.style.display = 'block';
                     }
@@ -979,18 +957,15 @@
                         foodSelectionView.style.display = 'none';
                     }
                     
-                    // Hide back button
                     if (backToTypesBtn) {
                         backToTypesBtn.style.display = 'none';
                     }
                     
-                    // Clear visual selections
                     if (foodTypeList) {
                         const selectedItems = foodTypeList.querySelectorAll('.food-type-item.selected');
                         selectedItems.forEach(item => item.classList.remove('selected'));
                     }
                     
-                    // Show modal
                     if (backdrop) {
                         backdrop.style.display = 'block';
                         backdrop.classList.add('show');
@@ -1003,7 +978,6 @@
                 }
                 
                 function hideModal() {
-                    // Hide modal
                     if (backdrop) {
                         backdrop.classList.remove('show');
                         backdrop.style.display = 'none';
@@ -1014,19 +988,16 @@
                         document.body.style.overflow = '';
                     }
                     
-                    // Reset form and views
                     if (addFoodForm) {
                         addFoodForm.classList.remove('was-validated');
                         addFoodForm.reset();
                     }
                     
-                    // Clear Select2
                     if ($('#foodSearchSelect').data('select2')) {
                         $('#foodSearchSelect').select2('destroy');
                     }
                     $('#foodSearchSelect').html('<option value="">Type to search foods...</option>');
                     
-                    // Clear amount and nutrition
                     if (foodAmountInput) {
                         foodAmountInput.value = '';
                     }
@@ -1037,7 +1008,6 @@
                         nutritionInfo.classList.remove('show');
                     }
                     
-                    // Reset views
                     if (foodTypeSelectionView) {
                         foodTypeSelectionView.style.display = 'block';
                     }
@@ -1045,12 +1015,10 @@
                         foodSelectionView.style.display = 'none';
                     }
                     
-                    // Hide back button
                     if (backToTypesBtn) {
                         backToTypesBtn.style.display = 'none';
                     }
                     
-                    // Clear visual selections
                     if (foodTypeList) {
                         const selectedItems = foodTypeList.querySelectorAll('.food-type-item.selected');
                         selectedItems.forEach(item => item.classList.remove('selected'));
@@ -1061,9 +1029,7 @@
                     selectedFoodData = null;
                 }
                 
-                // Search and filtering now handled by Select2 AJAX
-                
-                // Select2 custom templates for displaying food items with images
+
                 function formatFoodResult(food) {
                     if (!food.id) {
                         return food.text;
@@ -1083,15 +1049,12 @@
                 }
                 
                 function initializeSelect2ForType(type, foodTypeValue) {
-                    // Destroy existing Select2 if any
                     if ($('#foodSearchSelect').data('select2')) {
                         $('#foodSearchSelect').select2('destroy');
                     }
                     
-                    // Clear and reset the select
                     $('#foodSearchSelect').html('<option value="">Type to search foods...</option>');
                     
-                    // Initialize Select2 with AJAX
                     $('#foodSearchSelect').select2({
                         theme: 'bootstrap-5',
                         placeholder: 'Type to search foods...',
@@ -1131,7 +1094,6 @@
                         templateSelection: formatFoodSelection
                     });
                     
-                    // Show food selection view
                                 if (foodTypeSelectionView) {
                                     foodTypeSelectionView.style.display = 'none';
                                 }
@@ -1142,15 +1104,12 @@
                                     backToTypesBtn.style.display = 'block';
                                 }
                     
-                    // Handle food selection
                     $('#foodSearchSelect').on('select2:select', function(e) {
                         const selectedFood = e.params.data;
                         console.log('Selected food:', selectedFood);
                         
-                        // Store selected food data
                         selectedFoodIdInput.value = selectedFood.id;
                         
-                        // Enable Add button when food is selected
                         if (confirmBtn) {
                             confirmBtn.disabled = false;
                         }
@@ -1164,7 +1123,6 @@
                             fat: selectedFood.fat
                         };
                             
-                        // Show amount section
                         if (amountSection) {
                             amountSection.style.display = 'block';
                             if (foodAmountInput) {
@@ -1172,16 +1130,13 @@
                             }
                         }
                         
-                        // Update nutrition display for 100g (default)
                         calculateNutrition(100);
                     });
                     
-                    // Handle clearing selection
                     $('#foodSearchSelect').on('select2:clear', function() {
                         selectedFoodIdInput.value = '';
                         selectedFoodData = null;
                         
-                        // Disable Add button when food is cleared
                         if (confirmBtn) {
                             confirmBtn.disabled = true;
                         }
@@ -1195,18 +1150,15 @@
                         });
                 }
                 
-                // Determine current context (date and mode) from URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const currentDateParam = urlParams.get('date');
                 const currentModeParam = urlParams.get('mode');
 
-                // Compute whether this date is in the past (past days are always read-only)
                 function isPastSelectedDate() {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
 
                     if (!currentDateParam) {
-                        // No date param → treat as today
                         return false;
                     }
 
@@ -1216,12 +1168,8 @@
                 }
 
                 const pastSelectedDate = isPastSelectedDate();
-                // Read-only rules:
-                // - Any past date is always read-only (backend also enforces this)
-                // - For today/future: read-only only when mode=view
                 const isReadOnly = pastSelectedDate || currentModeParam === 'view';
 
-                // Global function to show modal (called from onclick handlers)
                 window.showAddFoodModal = function(mealType) {
                     if (isReadOnly) {
                         return;
@@ -1229,35 +1177,28 @@
                     showModal(mealType);
                 };
                 
-                // Food type selection handler
                 if (foodTypeList) {
                     foodTypeList.addEventListener('click', function(e) {
                         const foodTypeItem = e.target.closest('.food-type-item');
                         if (foodTypeItem) {
-                            // Remove previous selection
                             const selectedItems = foodTypeList.querySelectorAll('.food-type-item.selected');
                             selectedItems.forEach(item => item.classList.remove('selected'));
                             
-                            // Add selection to clicked item
                             foodTypeItem.classList.add('selected');
                             
-                            // Store selected food type data
                             selectedFoodType = {
                                 type: foodTypeItem.dataset.type,
                                 value: foodTypeItem.dataset.value,
                                 name: foodTypeItem.dataset.name
                             };
                             
-                            // Initialize Select2 for this type
                             initializeSelect2ForType(selectedFoodType.type, selectedFoodType.value);
                         }
                     });
                 }
                 
-                // Back to types button handler
                 if (backToTypesBtn) {
                     backToTypesBtn.addEventListener('click', function() {
-                        // Show food type selection view, hide food selection view
                         if (foodTypeSelectionView) {
                             foodTypeSelectionView.style.display = 'block';
                         }
@@ -1265,26 +1206,21 @@
                             foodSelectionView.style.display = 'none';
                         }
                         
-                        // Hide back button
                         backToTypesBtn.style.display = 'none';
                         
-                        // Clear food selection
                         selectedFoodData = null;
                         if (selectedFoodIdInput) {
                             selectedFoodIdInput.value = '';
                         }
                         
-                        // Disable Add button when going back to types
                         if (confirmBtn) {
                             confirmBtn.disabled = true;
                         }
                         
-                        // Clear Select2
                         if ($('#foodSearchSelect').data('select2')) {
                             $('#foodSearchSelect').val(null).trigger('change');
                         }
                         
-                        // Clear amount and nutrition
                         if (foodAmountInput) {
                             foodAmountInput.value = '';
                         }
@@ -1296,9 +1232,7 @@
                         }
                     });
                 }
-                
-                // Search now handled by Select2
-                
+
                 function calculateNutrition(amount) {
                     if (!selectedFoodData || !amount || amount <= 0) {
                         if (nutritionInfo) {
@@ -1307,14 +1241,12 @@
                         return;
                     }
                     
-                    // Nutritional values are per 100g, so calculate based on amount
                     const multiplier = amount / 100;
                     const calories = (parseInt(selectedFoodData.calories) || 0) * multiplier;
                     const carbs = (parseFloat(selectedFoodData.carbs) || 0) * multiplier;
                     const protein = (parseFloat(selectedFoodData.protein) || 0) * multiplier;
                     const fat = (parseFloat(selectedFoodData.fat) || 0) * multiplier;
                     
-                    // Update nutrition display
                     if (nutritionCalories) {
                         nutritionCalories.textContent = Math.round(calories);
                     }
@@ -1328,7 +1260,6 @@
                         nutritionFat.textContent = fat.toFixed(1);
                     }
                     
-                    // Show nutrition info
                     if (nutritionInfo) {
                         nutritionInfo.classList.add('show');
                     }
@@ -1338,14 +1269,12 @@
                     if (isReadOnly) {
                         return;
                     }
-                    // Log request data for debugging
                     console.log('Adding food to meal:', {
                         mealType: mealType,
                         foodId: foodData.id,
                         amount: foodData.amount
                     });
                     
-                    // Get CSRF token from meta tag
                     const csrfToken = document.querySelector('meta[name="_csrf"]').content;
                     const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
                     
@@ -1356,12 +1285,11 @@
                         params.append('date', currentDateParam);
                     }
 
-                    // Save to backend first
                     fetch(baseUrl + '?' + params.toString(), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            [csrfHeader]: csrfToken  // Include CSRF token in header
+                            [csrfHeader]: csrfToken
                         },
                         body: JSON.stringify({
                             foodId: foodData.id,
@@ -1380,7 +1308,6 @@
                         return response;
                     })
                     .then(() => {
-                        // Success - add to UI (without mealFoodId since it's a new item)
                         addFoodToMealUI(mealType, foodData);
                         updateDailyTotals();
                     })
@@ -1398,7 +1325,6 @@
                     const mealItems = mealCard.querySelector('.meal-items');
                     if (!mealItems) return;
                     
-                    // Calculate total calories from all meal items
                     const foodItems = mealItems.querySelectorAll('.meal-item');
                     let totalCalories = 0;
                     
@@ -1407,14 +1333,12 @@
                         totalCalories += calories;
                     });
                     
-                    // Update total display
                     const totalElement = mealCard.querySelector('.total-bg .fw-bold');
                     if (totalElement) {
                         totalElement.textContent = `${Math.round(totalCalories)} calories`;
                     }
                 }
                 
-                // Load meals for current date (if ?date= is present) or today by default
                 function loadMealsForCurrentDate() {
                     const baseUrl = '/api/v1/nutrition/meals';
                     const url = currentDateParam
@@ -1459,32 +1383,26 @@
                         });
                 }
                 
-                // Add food to meal UI without saving to backend (for loading existing meals)
                 function addFoodToMealUI(mealType, foodData, mealFoodId) {
-                    // Find the meal card for this meal type
                     const mealCard = document.querySelector(`.meal-${mealType}`);
                     if (!mealCard) {
                         console.error(`Meal card not found for type: ${mealType}`);
                         return;
                     }
                     
-                    // Find the meal-items container
                     const mealItems = mealCard.querySelector('.meal-items');
                     if (!mealItems) {
                         console.error(`Meal items container not found for type: ${mealType}`);
                         return;
                     }
                     
-                    // Remove "No items added yet" message if present
                     const noItemsMsg = mealItems.querySelector('p.text-muted.text-center');
                     if (noItemsMsg) {
                         noItemsMsg.remove();
                     }
                     
-                    // Create unique ID for this food item
                     const foodItemId = `food-${mealFoodId || foodData.id}-${Date.now()}`;
                     
-                    // Create the meal item element
                     const mealItem = document.createElement('div');
                     mealItem.className = 'meal-item d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded';
                     mealItem.id = foodItemId;
@@ -1494,7 +1412,7 @@
                     mealItem.dataset.protein = foodData.protein;
                     mealItem.dataset.carbs = foodData.carbs;
                     mealItem.dataset.fat = foodData.fat;
-                    mealItem.dataset.mealFoodId = mealFoodId; // Store backend ID for deletion
+                    mealItem.dataset.mealFoodId = mealFoodId;
                     
                     const foodImagePath = foodData.imagePath || '/images/products/vegetable.png';
                     const removeBtnHtml = isReadOnly ? '' : `
@@ -1516,15 +1434,12 @@
                         </div>
                     `;
                     
-                    // Add to meal items
                     mealItems.appendChild(mealItem);
                     
-                    // Update total calories
                     updateMealTotal(mealType);
                     updateDailyTotals();
                 }
                 
-                // Global function to remove food from meal (with backend deletion)
                 window.removeFoodFromMeal = function(foodItemId, mealType) {
                     if (isReadOnly) {
                         return;
@@ -1533,11 +1448,9 @@
                     if (foodItem) {
                         const mealFoodId = foodItem.dataset.mealFoodId;
 
-                        // If we don't have a backend ID, just remove from UI
                         const removeFromUi = () => {
                             foodItem.remove();
 
-                            // Check if meal-items is now empty
                             const mealCard = document.querySelector(`.meal-${mealType}`);
                             if (mealCard) {
                                 const mealItems = mealCard.querySelector('.meal-items');
@@ -1546,7 +1459,6 @@
                                 }
                             }
 
-                            // Update totals
                             updateMealTotal(mealType);
                             updateDailyTotals();
                         };
@@ -1578,9 +1490,6 @@
                     }
                 };
                 
-                // Food selection now handled by Select2 (see initializeSelect2ForType function)
-                
-                // Amount input handler
                 if (foodAmountInput) {
                     foodAmountInput.addEventListener('input', function(e) {
                         const amount = parseFloat(e.target.value);
@@ -1588,12 +1497,10 @@
                     });
                 }
                 
-                // Close button handlers
                 if (closeBtn) {
                     closeBtn.addEventListener('click', hideModal);
                 }
                 
-                // Close on backdrop click
                 if (backdrop) {
                     backdrop.addEventListener('click', function(e) {
                         if (e.target === backdrop) {
@@ -1602,24 +1509,19 @@
                     });
                 }
                 
-                // Close on ESC key
                 document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
                         hideModal();
                     }
                 });
                 
-                // Confirm button handler
                 if (confirmBtn && addFoodForm && selectedFoodIdInput && foodAmountInput) {
                     confirmBtn.addEventListener('click', function() {
-                        // If button is disabled, do nothing
                         if (this.disabled) {
                             return;
                         }
                         
-                        // Validate food selection
                         if (!selectedFoodData || !selectedFoodIdInput.value) {
-                            // Disable button if no food selected
                             this.disabled = true;
                             selectedFoodIdInput.setCustomValidity('Please select a food.');
                             addFoodForm.classList.add('was-validated');
@@ -1628,7 +1530,6 @@
                             selectedFoodIdInput.setCustomValidity('');
                         }
                         
-                        // Validate amount
                         if (!foodAmountInput.value || parseFloat(foodAmountInput.value) <= 0) {
                             foodAmountInput.setCustomValidity('Please enter a valid amount (minimum 1 gram).');
                             addFoodForm.classList.add('was-validated');
@@ -1640,27 +1541,22 @@
                             foodAmountInput.setCustomValidity('');
                         }
                         
-                        // Check HTML5 validation
                         if (!addFoodForm.checkValidity()) {
                             addFoodForm.classList.add('was-validated');
-                            // Focus on first invalid field
                             if (!foodAmountInput.validity.valid) {
                                 foodAmountInput.focus();
                             }
                             return;
                         }
                         
-                        // Form is valid, proceed
                         const amount = parseFloat(foodAmountInput.value);
                         const multiplier = amount / 100;
                         
-                        // Calculate nutrition values for the specified amount
                         const calories = Math.round((parseInt(selectedFoodData.calories) || 0) * multiplier);
                         const carbs = (parseFloat(selectedFoodData.carbs) || 0) * multiplier;
                         const protein = (parseFloat(selectedFoodData.protein) || 0) * multiplier;
                         const fat = (parseFloat(selectedFoodData.fat) || 0) * multiplier;
                         
-                        // Prepare food data
                         const foodData = {
                             id: selectedFoodData.id,
                             name: selectedFoodData.name,
@@ -1672,15 +1568,11 @@
                             imagePath: selectedFoodData.imagePath
                         };
                         
-                        // Add food to meal
                         addFoodToMeal(currentMealType, foodData);
-                        
-                        // Hide modal
                         hideModal();
                     });
                 }
                 
-                // If read-only, visually disable "Add Food" buttons
                 if (isReadOnly) {
                     const addButtons = document.querySelectorAll('[onclick^="showAddFoodModal"]');
                     addButtons.forEach(btn => {
@@ -1719,14 +1611,11 @@
                     if (fatEl) fatEl.textContent = `${totalFat.toFixed(1)}g`;
                 }
 
-                // Load meals when page loads
                 loadMealsForCurrentDate();
-                // Ensure daily totals are computed after initial load (in case UI is populated asynchronously)
                 setTimeout(updateDailyTotals, 500);
             })();
         </script>
         
-        <!-- jQuery and Select2 -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     </div>

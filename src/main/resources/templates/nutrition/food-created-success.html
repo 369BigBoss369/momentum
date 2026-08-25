@@ -112,13 +112,11 @@
                     Your custom food has been saved and is now available for use.
                 </p>
                 <div class="action-buttons">
-                    <!-- Created: encourage adding another food -->
                     <a th:if="${action != 'updated'}"
                        th:href="@{/nutrition/create-food}"
                        class="btn btn-primary">
                         <i class="bi bi-plus-circle me-2"></i>Add Another Food
                     </a>
-                    <!-- Updated: encourage browsing foods -->
                     <a th:if="${action == 'updated'}"
                        th:href="@{/nutrition/foods}"
                        class="btn btn-primary">

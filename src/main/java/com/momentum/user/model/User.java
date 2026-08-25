@@ -9,8 +9,6 @@ import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,8 +19,6 @@ import java.util.UUID;
 @Builder
 @Getter
 @Setter
-
-
 
 @Entity
 @Table(name = "users")

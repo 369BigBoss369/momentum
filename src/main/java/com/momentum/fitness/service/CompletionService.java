@@ -9,6 +9,8 @@ import com.momentum.fitness.repository.CompletionRepository;
 import com.momentum.fitness.repository.WorkoutRepository;
 import com.momentum.user.model.User;
 import com.momentum.util.FitnessMath;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -125,13 +127,7 @@ public class CompletionService {
     }
 
     public boolean isExerciseCompleted(UUID userId, UUID exerciseId, UUID planDayId, Integer workoutPosition) {
-        boolean result = completionRepository.existsByUserIdAndTargetIdAndTypeAndPlanDayIdAndWorkoutPosition(userId, exerciseId, CompletionType.EXERCISE, planDayId, workoutPosition);
-        System.out.println("DEBUG: Checking completion - User: " + userId + ", Exercise: " + exerciseId + ", PlanDay: " + planDayId + ", Position: " + workoutPosition + ", Result: " + result);
-
-        long totalCompletions = completionRepository.countByUserIdAndTargetIdAndTypeAndPlanDayId(userId, exerciseId, CompletionType.EXERCISE, planDayId);
-        System.out.println("DEBUG: Total completions for this exercise in plan day (any position): " + totalCompletions);
-
-        return result;
+        return completionRepository.existsByUserIdAndTargetIdAndTypeAndPlanDayIdAndWorkoutPosition(userId, exerciseId, CompletionType.EXERCISE, planDayId, workoutPosition);
     }
 
     public void deleteCompletionsForWorkout(UUID userId, UUID workoutId, UUID planDayId, Integer workoutPosition) {
@@ -326,29 +322,13 @@ public class CompletionService {
     }
 
 
+    @Getter
+    @Setter
     public static class RecentWorkoutDTO {
         private String workoutName;
         private String workoutType;
         private int durationMinutes;
         private int caloriesBurned;
         private LocalDate completedAt;
-
-        public RecentWorkoutDTO() {}
-
-        public String getWorkoutName() { return workoutName; }
-        public void setWorkoutName(String workoutName) { this.workoutName = workoutName; }
-
-        public String getWorkoutType() { return workoutType; }
-        public void setWorkoutType(String workoutType) { this.workoutType = workoutType; }
-
-        public int getDurationMinutes() { return durationMinutes; }
-        public void setDurationMinutes(int durationMinutes) { this.durationMinutes = durationMinutes; }
-
-        public int getCaloriesBurned() { return caloriesBurned; }
-        public void setCaloriesBurned(int caloriesBurned) { this.caloriesBurned = caloriesBurned; }
-
-        public LocalDate getCompletedAt() { return completedAt; }
-        public void setCompletedAt(LocalDate completedAt) { this.completedAt = completedAt; }
     }
 }
-

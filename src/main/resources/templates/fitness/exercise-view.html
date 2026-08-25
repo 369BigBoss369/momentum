@@ -189,7 +189,6 @@
 <body class="fitness-theme">
     <div layout:fragment="content">
         <div class="container">
-            <!-- Back Button -->
             <div class="row mb-3">
                 <div class="col-12">
                     <a href="/fitness/exercises" class="btn btn-outline-secondary">
@@ -198,7 +197,6 @@
                 </div>
             </div>
 
-            <!-- Exercise Header -->
             <div class="exercise-header">
                 <div class="row align-items-center">
                     <div class="col-md-4" th:if="${exercise.imageUrl}">
@@ -233,7 +231,6 @@
                 </div>
             </div>
 
-            <!-- Exercise Details -->
             <div class="exercise-details">
                 <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Exercise Information</h3>
 
@@ -249,7 +246,6 @@
                 </p>
             </div>
 
-            <!-- Video Section -->
             <div class="video-section" th:if="${exercise.videoUrl != null and !exercise.videoUrl.trim().isEmpty()}">
                 <h3 class="mb-4"><i class="bi bi-play-circle me-2"></i>Exercise Tutorial</h3>
                 <a th:href="${exercise.videoUrl}" target="_blank" class="btn btn-primary btn-lg">
@@ -257,7 +253,6 @@
                 </a>
             </div>
 
-            <!-- Action Buttons -->
             <div class="row mt-4">
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center">
@@ -301,12 +296,10 @@
                         if (!response.ok) {
                             throw new Error('Unable to update library membership right now.');
                         }
-                        // Toggle the button appearance and state
                         const icon = button.querySelector('i');
                         const label = button.querySelector('span');
 
                 if (currentlyInLibrary) {
-                    // Was in library, now removed - change to "Add to Library"
                     button.classList.remove('btn-danger');
                     button.classList.add('btn-light');
                     icon.classList.remove('bi-bookmark-dash');
@@ -314,7 +307,6 @@
                     label.textContent = 'Add to Library';
                     button.dataset.inLibrary = 'false';
                 } else {
-                    // Was not in library, now added - change to "Remove from Library"
                     button.classList.remove('btn-light');
                     button.classList.add('btn-danger');
                     icon.classList.remove('bi-bookmark-plus');

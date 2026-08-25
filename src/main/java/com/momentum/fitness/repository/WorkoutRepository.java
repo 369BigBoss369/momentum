@@ -24,14 +24,6 @@ public interface WorkoutRepository extends JpaRepository<Workout, UUID> {
         SELECT w FROM Workout w
         LEFT JOIN FETCH w.workoutExercises we
         LEFT JOIN FETCH we.exercise e
-        WHERE w.id = :id
-    """)
-    Optional<Workout> findByIdWithExercises(UUID id, UUID userId);
-
-    @Query("""
-        SELECT w FROM Workout w
-        LEFT JOIN FETCH w.workoutExercises we
-        LEFT JOIN FETCH we.exercise e
         WHERE (w.source = 'DEFAULT' OR
                (w.source = 'CUSTOM' AND w.ownerId = :userId) OR
                (w.source = 'SHARED' AND EXISTS (SELECT 1 FROM w.sharedUsers u WHERE u.id = :userId)))

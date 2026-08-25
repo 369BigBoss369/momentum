@@ -370,7 +370,6 @@
 </head>
 <body class="nutrition-theme">
     <div layout:fragment="content">
-        <!-- Nutrition Theme Header -->
         <div class="page-header-nutrition" data-aos="fade-down">
             <div class="row align-items-center">
                 <div class="col-md-8">
@@ -387,7 +386,6 @@
             </div>
         </div>
 
-        <!-- Daily Nutrition Summary -->
         <div class="row mb-4" data-aos="fade-up" data-aos-delay="100">
             <div class="col-12">
                 <div class="card hover-lift">
@@ -398,7 +396,6 @@
                     </div>
                     <div class="card-body">
                         <div class="nutrition-summary-row">
-                            <!-- Calories - Centered on top -->
                             <div class="text-center mb-4" style="width: 100%; max-width: 300px;"
                                  th:with="caloriesPercent=${dailyNutritionView.caloriesGoal > 0 ? (dailyNutritionView.caloriesConsumed * 100.0 / dailyNutritionView.caloriesGoal) : 0}">
                                 <h3 class="text-primary" th:text="${dailyNutritionView.caloriesConsumed}">0</h3>
@@ -410,9 +407,7 @@
                                 <small>Goal: <span th:text="${dailyNutritionView.caloriesGoal}">0</span></small>
                             </div>
                             
-                            <!-- Macros - Protein centered, Carbs left, Fats right -->
                             <div class="nutrition-macros-row">
-                                <!-- Carbs - Left (now blue/info) -->
                                 <div class="nutrition-macro-item"
                                      th:with="carbsPercent=${dailyNutritionView.carbsGoal > 0 ? (dailyNutritionView.carbsConsumed * 100.0 / dailyNutritionView.carbsGoal) : 0}">
                                     <h3 class="text-info" th:text="${dailyNutritionView.carbsConsumed} + 'g'">0g</h3>
@@ -424,7 +419,6 @@
                                     <small>Goal: <span th:text="${dailyNutritionView.carbsGoal}">0</span>g</small>
                                 </div>
                                 
-                                <!-- Protein - Center (green/success) -->
                                 <div class="nutrition-macro-item"
                                      th:with="proteinPercent=${dailyNutritionView.proteinGoal > 0 ? (dailyNutritionView.proteinConsumed * 100.0 / dailyNutritionView.proteinGoal) : 0}">
                                     <h3 class="text-success" th:text="${dailyNutritionView.proteinConsumed} + 'g'">0g</h3>
@@ -436,7 +430,6 @@
                                     <small>Goal: <span th:text="${dailyNutritionView.proteinGoal}">0</span>g</small>
                                 </div>
                                 
-                                <!-- Fats - Right (now yellow/warning) -->
                                 <div class="nutrition-macro-item"
                                      th:with="fatPercent=${dailyNutritionView.fatGoal > 0 ? (dailyNutritionView.fatConsumed * 100.0 / dailyNutritionView.fatGoal) : 0}">
                                     <h3 class="text-warning" th:text="${dailyNutritionView.fatConsumed} + 'g'">0g</h3>
@@ -450,7 +443,6 @@
                             </div>
                         </div>
                         
-                        <!-- Advanced Nutrition Section -->
                         <div class="mt-4">
                             <button class="btn btn-outline-secondary w-100" type="button" data-bs-toggle="collapse" 
                                     data-bs-target="#advancedNutrition" aria-expanded="false" aria-controls="advancedNutrition">
@@ -460,7 +452,6 @@
                             <div class="collapse mt-3" id="advancedNutrition">
                                 <div class="card card-body bg-light" style="backdrop-filter: none !important;">
                                     <div class="row">
-                                        <!-- Carbohydrates Breakdown -->
                                         <div class="col-md-6 mb-4">
                                             <h6 class="text-info mb-3">
                                                 <i class="bi bi-activity me-2"></i>Carbohydrates Breakdown
@@ -513,7 +504,6 @@
                                             </div>
                                         </div>
                                         
-                                        <!-- Fats Breakdown -->
                                         <div class="col-md-6 mb-4">
                                             <h6 class="text-warning mb-3">
                                                 <i class="bi bi-droplet-fill me-2"></i>Fats Breakdown
@@ -570,7 +560,6 @@
                                             </div>
                                         </div>
                                         
-                                        <!-- Vitamins & Minerals -->
                                         <div class="col-md-6 mb-4">
                                             <h6 class="text-success mb-3">
                                                 <i class="bi bi-capsule me-2"></i>Vitamins & Minerals
@@ -625,7 +614,6 @@
                 </div>
             </div>
                                         
-                                        <!-- Other Nutrients -->
                                         <div class="col-md-6 mb-4">
                                             <h6 class="text-danger mb-3">
                                                 <i class="bi bi-flask me-2"></i>Other Nutrients
@@ -676,7 +664,6 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
         <div class="row mb-4" data-aos="fade-up" data-aos-delay="200">
             <div class="col-md-6 col-xl-3 mb-3 d-flex">
                 <a href="/nutrition/food-tracker" class="card hover-lift text-decoration-none w-100">
@@ -724,7 +711,6 @@
             </div>
         </div>
 
-        <!-- Water Intake Tracker -->
         <div id="water-intake-section" class="row mb-4" data-aos="fade-up" data-aos-delay="300">
             <div class="col-12">
                 <div class="card hover-lift">
@@ -752,7 +738,6 @@
             </div>
         </div>
 
-        <!-- Water Intake Modal -->
         <div class="modal fade" id="waterIntakeModal" tabindex="-1" aria-labelledby="waterIntakeModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -787,7 +772,6 @@
             </div>
         </div>
 
-        <!-- Recent Nutrition Activity -->
         <div class="row" data-aos="fade-up" data-aos-delay="400">
             <div class="col-12">
                 <div class="card hover-lift">
@@ -815,7 +799,6 @@
                                 </tbody>
                             </table>
                         </div>
-                        <!-- Pagination -->
                         <nav aria-label="Activity pagination" id="activityPagination" style="display: none;" class="mt-3">
                             <ul class="pagination justify-content-center mb-0">
                                 <li class="page-item" id="prevPageBtn">
@@ -841,7 +824,6 @@
     
     <div layout:fragment="scripts">
         <script>
-            // Toggle chevron icon when advanced nutrition section is expanded/collapsed
             const advancedNutritionCollapse = document.getElementById('advancedNutrition');
             const advancedToggleIcon = document.getElementById('advancedToggleIcon');
             
@@ -856,10 +838,9 @@
                     advancedToggleIcon.classList.add('bi-chevron-down');
                 });
             }
-            
-            // Water intake functionality
-            let currentWaterIntake = 0; // ml - will be loaded from backend
-            let waterGoal = 2000; // ml - default, will be overridden from backend if available
+
+            let currentWaterIntake = 0;
+            let waterGoal = 2000;
             
             function updateWaterGlass() {
                 const waterFill = document.getElementById('waterFill');
@@ -875,34 +856,25 @@
                     waterConsumed.textContent = currentWaterIntake.toLocaleString();
                 }
                 
-            // Update animation based on fill level
             if (waterWave && waterFill) {
-                // Remove all animation classes first
                 waterWave.classList.remove('calm', 'full');
                 waterFill.classList.remove('full', 'empty');
                 
-                // Small delay to ensure class removal is processed
                 setTimeout(() => {
                     if (percentage <= 0) {
-                        // Empty - hide water but keep element for smooth fill animation
                         waterFill.classList.add('empty');
                         waterWave.style.cssText = 'opacity: 0; visibility: hidden; animation: none !important;';
                     } else if (percentage >= 100) {
-                        // Full - no animation and hide wave layers for flat surface
                         waterWave.classList.add('full');
                         waterFill.classList.add('full');
-                        // Force stop with inline styles and hide
                         waterWave.style.cssText = 'animation: none !important; -webkit-animation: none !important; opacity: 0; visibility: hidden;';
                     } else if (percentage >= 90) {
-                        // Almost full (90-99.9%) - very calm, minimal animation
                         waterWave.classList.add('calm');
                         waterWave.style.cssText = 'opacity: 1; visibility: visible;';
                         waterFill.classList.remove('empty');
                     } else if (percentage > 0) {
-                        // Below 90% but above 0% - default animation, show wave
                         waterWave.style.cssText = 'opacity: 1; visibility: visible; animation: waterSlosh 2s ease-in-out infinite;';
                         waterFill.classList.remove('empty');
-                        // Small delay to ensure wave animation starts
                         setTimeout(() => {
                             if (waterWave && !waterWave.classList.contains('full') && !waterWave.classList.contains('calm')) {
                                 waterWave.style.animation = 'waterSlosh 2s ease-in-out infinite';
@@ -913,7 +885,6 @@
             }
         }
 
-        // Make function available globally for testing
         window.updateWaterGlass = updateWaterGlass;
 
         function loadTodayWater() {
@@ -946,7 +917,6 @@
                 });
         }
 
-        // Quick select buttons
         document.querySelectorAll('.quick-water-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const amount = parseInt(this.getAttribute('data-amount'));
@@ -954,7 +924,6 @@
             });
         });
 
-        // Submit water intake
         document.getElementById('submitWaterIntake')?.addEventListener('click', function() {
             const amount = parseInt(document.getElementById('waterAmount').value);
 
@@ -1000,14 +969,11 @@
                         }
                         updateWaterGlass();
 
-                        // Close modal
                         const modal = bootstrap.Modal.getInstance(document.getElementById('waterIntakeModal'));
                         modal.hide();
 
-                        // Reset input
                         document.getElementById('waterAmount').value = 250;
 
-                        // Show success message (you can integrate with your toast system)
                         if (typeof Momentum !== 'undefined' && Momentum.showToast) {
                             Momentum.showToast('Water logged successfully!', 'success');
                         }
@@ -1098,7 +1064,6 @@
                         `;
                     }).join('');
 
-                    // Update pagination controls
                     updatePaginationControls(data);
                 })
                 .catch(error => {
@@ -1142,15 +1107,12 @@
             loadActivityPage(0);
         }
 
-        // Initialize widgets on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadTodayWater();
             loadRecentActivity();
 
-            // Handle URL hash for scrolling to sections
             const hash = window.location.hash;
             if (hash === '#water-intake-section') {
-                // Small delay to ensure page is fully loaded
                 setTimeout(() => {
                     const waterSection = document.getElementById('water-intake-section');
                     if (waterSection) {
@@ -1159,7 +1121,6 @@
                             block: 'center'
                         });
 
-                        // Add highlight effect
                         const card = waterSection.querySelector('.card');
                         if (card) {
                             card.style.boxShadow = '0 0 30px rgba(17, 153, 142, 0.6)';

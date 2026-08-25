@@ -381,7 +381,6 @@
 <body class="fitness-theme">
     <div layout:fragment="content">
         <div class="container">
-            <!-- Back Button -->
             <div class="row mb-3">
                 <div class="col-12">
                     <a href="/fitness/exercises" class="btn btn-outline-secondary">
@@ -390,7 +389,6 @@
                 </div>
             </div>
 
-            <!-- Workout Header -->
             <div class="workout-header">
                 <div class="row align-items-center">
                     <div class="col-12">
@@ -410,7 +408,6 @@
                 </div>
             </div>
 
-            <!-- Workout Details -->
             <div class="workout-details">
                 <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Workout Information</h3>
 
@@ -433,7 +430,6 @@
                 </div>
             </div>
 
-            <!-- Exercise List -->
             <div class="workout-info" th:if="${workout.workoutExercises != null and !workout.workoutExercises.isEmpty()}">
                 <h3 class="mb-4"><i class="bi bi-clipboard-check me-2"></i>Exercise Sequence</h3>
 
@@ -443,13 +439,11 @@
                         <div class="flex-grow-1">
                             <h5 class="mb-3" th:text="${workoutExercise.exercise.name}">Exercise Name</h5>
 
-                            <!-- Exercise Image -->
                             <div class="exercise-image-container" th:if="${workoutExercise.exercise.imageUrl}">
                                 <img th:src="${workoutExercise.exercise.imageUrl}"
                                      th:alt="${workoutExercise.exercise.name}"
                                      class="exercise-image"
                                      onerror="this.src='/images/exercises/default.png'">
-                                <!-- Type Badge Below Image -->
                                 <div class="exercise-type-below-image" th:if="${workoutExercise.exercise.type != null}">
                                     <div class="exercise-stat-badge">
                                         <i class="bi bi-activity"></i>
@@ -473,7 +467,6 @@
                                 </div>
                             </div>
 
-                            <!-- Muscle Targets -->
                             <div class="exercise-meta">
                                 <div th:each="muscleGroup : ${workoutExercise.exercise.muscleGroupTarget}" class="muscle-group-item">
                                     <i class="bi bi-bullseye"></i>
@@ -485,7 +478,6 @@
                 </div>
             </div>
 
-            <!-- Empty State -->
             <div class="workout-details" th:if="${workout.workoutExercises == null or workout.workoutExercises.isEmpty()}">
                 <div class="empty-workout">
                     <i class="bi bi-clipboard-x"></i>
@@ -494,7 +486,6 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
             <div class="row mt-4">
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center">
@@ -537,21 +528,18 @@
                     if (!response.ok) {
                         throw new Error('Failed to update library');
                     }
-                    // Handle empty response body
                     const contentType = response.headers.get('content-type');
                     if (contentType && contentType.includes('application/json')) {
                         return response.json();
                     } else {
-                        return {}; // Return empty object for non-JSON responses
+                        return {};
                     }
                 })
                 .then(data => {
-                    // Toggle the button appearance and state
                     const icon = button.querySelector('i');
                     const label = button.querySelector('span');
 
                 if (currentlyInLibrary) {
-                    // Was in library, now removed - change to "Remove from Library"
                     button.classList.remove('btn-danger');
                     button.classList.add('btn-light');
                     icon.classList.remove('bi-bookmark-dash');
@@ -559,7 +547,6 @@
                     label.textContent = 'Add to Library';
                     button.dataset.inLibrary = 'false';
                 } else {
-                    // Was not in library, now added - change to "Add to Library"
                     button.classList.remove('btn-light');
                     button.classList.add('btn-danger');
                     icon.classList.remove('bi-bookmark-plus');

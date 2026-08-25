@@ -42,7 +42,6 @@ public class UserController {
     private final UserService userService;
     private final MealService mealService;
     private final WaterIntakeService waterIntakeService;
-    private final NutritionActivityService nutritionActivityService;
     private final CompletionService completionService;
     private final PlanService planService;
 
@@ -56,7 +55,6 @@ public class UserController {
         this.userService = userService;
         this.mealService = mealService;
         this.waterIntakeService = waterIntakeService;
-        this.nutritionActivityService = nutritionActivityService;
         this.completionService = completionService;
         this.planService = planService;
     }

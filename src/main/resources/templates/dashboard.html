@@ -18,7 +18,6 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <!-- Welcome Section -->
     <div class="row mb-5" data-aos="fade-up">
         <div class="col-12">
             <div class="card bg-gradient-primary text-white morphing-shape">
@@ -37,7 +36,6 @@
         </div>
     </div>
 
-    <!-- Quick Stats -->
     <div class="row mb-5 justify-content-center" data-aos="fade-up" data-aos-delay="200">
         <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
             <div class="stats-card danger hover-lift">
@@ -68,9 +66,7 @@
         </div>
     </div>
 
-    <!-- Main Content Row -->
     <div class="row" data-aos="fade-up" data-aos-delay="300">
-        <!-- Nutrition Overview -->
         <div class="col-lg-6 mb-4" data-aos="slide-in-left" data-aos-delay="400">
             <div class="card h-100 hover-lift">
                 <div class="card-header glass">
@@ -94,7 +90,6 @@
                         </div>
                     </div>
 
-                    <!-- Macronutrients -->
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1">
                             <span>Protein</span>
@@ -140,7 +135,6 @@
             </div>
         </div>
 
-        <!-- Workout Overview -->
         <div class="col-lg-6 mb-4" data-aos="slide-in-right" data-aos-delay="500">
             <div class="card h-100 hover-lift">
                 <div class="card-header glass">
@@ -181,7 +175,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Completed workout -->
                                     <a th:if="${entry.completed}"
                                        href="/fitness/tracker"
                                        class="btn btn-sm flex-shrink-0 text-white workout-completed-btn">
@@ -189,7 +182,6 @@
                                         Check
                                     </a>
 
-                                    <!-- Workout not completed -->
                                     <a th:unless="${entry.completed}"
                                        href="/fitness/tracker"
                                        class="btn btn-primary btn-sm flex-shrink-0">
@@ -202,7 +194,6 @@
                         </div>
                     </div>
 
-                    <!-- No workouts today -->
                     <div th:if="${todaysWorkouts.isEmpty()}" class="text-center">
                         <i class="bi bi-activity text-muted" style="font-size: 3rem;"></i>
 
@@ -222,7 +213,6 @@
         </div>
     </div>
 
-    <!-- Hub Navigation Cards -->
     <div class="row mt-5" data-aos="fade-up" data-aos-delay="700">
         <div class="col-lg-6 col-md-6 mb-4">
             <a href="/nutrition/dashboard" class="hub-navigation-card nutrition-hub-card" id="nutritionHubLink">
@@ -250,7 +240,6 @@
         </div>
     </div>
 
-    <!-- Transition Overlay -->
     <div id="transitionOverlay" class="transition-overlay"></div>
 </div>
 </body>
@@ -265,7 +254,6 @@
                 drinkWaterBtn.addEventListener('click', function(e) {
                     e.preventDefault();
 
-                    // Redirect to nutrition dashboard and scroll to water intake section
                     window.location.href = '/nutrition/dashboard#water-intake-section';
                 });
             }

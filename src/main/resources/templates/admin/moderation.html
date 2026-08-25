@@ -5,7 +5,6 @@
 </head>
 <body>
 <div layout:fragment="content">
-    <!-- Header -->
     <div class="row mb-4" data-aos="fade-up">
         <div class="col-12">
             <div class="card bg-gradient-primary text-white morphing-shape">
@@ -80,32 +79,26 @@
 
             <div class="tab-content" id="moderationTabsContent">
 
-                <!-- Products -->
                 <div class="tab-pane fade show active" id="products-tab-pane" role="tabpanel">
                     <div th:replace="~{::moderationTable(${queue.pendingProducts}, ${queue.usernamesByOwnerId}, 'product', '/nutrition/products/')}"></div>
                 </div>
 
-                <!-- Composite Foods -->
                 <div class="tab-pane fade" id="composites-tab-pane" role="tabpanel">
                     <div th:replace="~{::moderationTable(${queue.pendingCompositeFoods}, ${queue.usernamesByOwnerId}, 'composite', '/nutrition/composites/')}"></div>
                 </div>
 
-                <!-- Recipes -->
                 <div class="tab-pane fade" id="recipes-tab-pane" role="tabpanel">
                     <div th:replace="~{::moderationTable(${queue.pendingRecipes}, ${queue.usernamesByOwnerId}, 'recipe', '/nutrition/recipes/')}"></div>
                 </div>
 
-                <!-- Exercises -->
                 <div class="tab-pane fade" id="exercises-tab-pane" role="tabpanel">
                     <div th:replace="~{::moderationTable(${queue.pendingExercises}, ${queue.usernamesByOwnerId}, 'exercise', '/fitness/exercises/')}"></div>
                 </div>
 
-                <!-- Workouts -->
                 <div class="tab-pane fade" id="workouts-tab-pane" role="tabpanel">
                     <div th:replace="~{::moderationTable(${queue.pendingWorkouts}, ${queue.usernamesByOwnerId}, 'workout', '/fitness/workouts/')}"></div>
                 </div>
 
-                <!-- Plans -->
                 <div class="tab-pane fade" id="plans-tab-pane" role="tabpanel">
                     <div th:replace="~{::moderationTable(${queue.pendingPlans}, ${queue.usernamesByOwnerId}, 'plan', '/fitness/plans/')}"></div>
                 </div>

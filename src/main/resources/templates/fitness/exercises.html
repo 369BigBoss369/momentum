@@ -189,11 +189,9 @@
 </head>
 <body class="fitness-theme">
     <div layout:fragment="content">
-        <!-- CRITICAL: Load jQuery and Select2 FIRST so they're available -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-        <!-- Search Banner Header -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="search-banner">
@@ -206,12 +204,10 @@
             </div>
         </div>
 
-        <!-- Search and Filter Section -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <!-- Name / Owner -->
                         <div class="row mb-3">
                             <div class="col-md-6 mb-3">
                                 <label for="exerciseNameSearch" class="form-label">
@@ -232,7 +228,6 @@
                                 </select>
                             </div>
                         </div>
-                        <!-- Item Type / Activity Type Filter -->
                         <div class="row mb-3">
                             <div class="col-md-6 mb-3">
                                 <label for="itemTypeFilter" class="form-label">
@@ -250,16 +245,12 @@
                                 </label>
                                 <select class="form-select" id="activityTypeFilter">
                                     <option value="all">All Types</option>
-                                    <!-- Exercise types accessed directly via Thymeleaf -->
                                     <option th:each="exerciseType : ${T(com.momentum.fitness.model.enums.ExerciseType).values()}" th:value="${exerciseType.name()}" th:text="${exerciseType.displayName}" class="exercise-type"></option>
-                                    <!-- Workout types accessed directly via Thymeleaf -->
                                     <option th:each="workoutType : ${T(com.momentum.fitness.model.enums.WorkoutType).values()}" th:value="${workoutType.name()}" th:text="${workoutType.displayName}" class="workout-type"></option>
-                                    <!-- Plan types accessed directly via Thymeleaf -->
                                     <option th:each="planType : ${T(com.momentum.fitness.model.enums.PlanType).values()}" th:value="${planType.name()}" th:text="${planType.displayName}" class="plan-type"></option>
                                 </select>
                             </div>
                         </div>
-                        <!-- Library Filter (shown only when Community Items is selected) -->
                         <div class="row mb-3">
                             <div class="col-md-6 mb-3" id="libraryFilterGroup" style="display: none;">
                                 <label for="libraryFilter" class="form-label">
@@ -273,7 +264,6 @@
                                 <small class="text-muted">Filter items by library status.</small>
                             </div>
                         </div>
-                        <!-- Search Button -->
                         <div class="row">
                             <div class="col-12 text-end">
                                 <button class="btn btn-primary" id="searchBtn">
@@ -286,7 +276,6 @@
             </div>
         </div>
 
-        <!-- Results Section -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
@@ -294,16 +283,13 @@
                         <h4>Search Results</h4>
                     </div>
                     <div class="card-body">
-                        <!-- Results List -->
                         <div class="row" id="exerciseList" style="display: none;">
-                            <!-- Exercise/Workout items will be dynamically loaded here -->
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Empty State (shown when no items found after search) -->
         <div class="row mt-4" id="emptyState" style="display: none;">
             <div class="col-12">
                 <div class="card">
@@ -316,7 +302,6 @@
             </div>
         </div>
 
-        <!-- Loading State -->
         <div class="row mt-4" id="loadingState" style="display: none;">
             <div class="col-12">
                 <div class="card">
@@ -329,42 +314,33 @@
             </div>
         </div>
 
-        <!-- JavaScript for search functionality -->
         <script>
             $(document).ready(function() {
-                // Initialize search functionality
                 initializeExerciseLibrary();
 
                 function initializeExerciseLibrary() {
                     console.log('Initializing Exercise Library...');
 
-                    // Bind search button
                     $('#searchBtn').on('click', performSearch);
 
-                    // Bind enter key on search input
                     $('#exerciseNameSearch').on('keypress', function(e) {
-                        if (e.which === 13) { // Enter key
+                        if (e.which === 13) {
                             performSearch();
                         }
                     });
 
-                    // Bind item type change to filter activity types
                     $('#itemTypeFilter').on('change', function() {
                         updateActivityTypeOptions();
                     });
 
-                    // Bind owner filter change to show/hide library filter
                     $('#exerciseOwnerFilter').on('change', function() {
                         updateLibraryFilterVisibility();
                     });
 
-                    // Initialize activity type options
                     updateActivityTypeOptions();
 
-                    // Initialize library filter visibility
                     updateLibraryFilterVisibility();
 
-                    // Perform initial search to show all items
                     performSearch();
                 }
 
@@ -372,10 +348,8 @@
                     const itemType = $('#itemTypeFilter').val();
                     const activityTypeSelect = $('#activityTypeFilter');
 
-                    // Reset to "All Types"
                     activityTypeSelect.val('all');
 
-                    // Show/hide options based on item type
                     if (itemType === 'EXERCISE') {
                         $('.exercise-type').show();
                         $('.workout-type').hide();
@@ -395,12 +369,10 @@
                     const ownerFilter = $('#exerciseOwnerFilter').val();
                     const libraryGroup = $('#libraryFilterGroup');
 
-                    // Library filter only visible for Community Items (others)
                     if (ownerFilter === 'others') {
                         libraryGroup.show();
                     } else {
                         libraryGroup.hide();
-                        // Clear library filter value when hidden
                         $('#libraryFilter').val('');
                     }
                 }
@@ -420,12 +392,10 @@
                         libraryFilter
                     });
 
-                    // Show loading state
                     $('#loadingState').show();
                     $('#exerciseList').hide();
                     $('#emptyState').hide();
 
-                    // Build API URL
                     let apiUrl = '/api/v1/fitness/activities?';
                     const params = new URLSearchParams();
 
@@ -448,7 +418,6 @@
 
                     console.log('API URL:', apiUrl);
 
-                    // Make API call
                     fetch(apiUrl)
                         .then(response => {
                             if (!response.ok) {
@@ -479,24 +448,20 @@
                         return;
                     }
 
-                    // Group results by type for better organization
                     const exercises = results.filter(item => item.type === 'EXERCISE');
                     const workouts = results.filter(item => item.type === 'WORKOUT');
                     const plans = results.filter(item => item.type === 'PLAN');
 
-                    // Display exercises first
                     exercises.forEach(exercise => {
                         const exerciseCard = createExerciseCard(exercise);
                         exerciseList.append(exerciseCard);
                     });
 
-                    // Display workouts
                     workouts.forEach(workout => {
                         const workoutCard = createWorkoutCard(workout);
                         exerciseList.append(workoutCard);
                     });
 
-                    // Display plans
                     plans.forEach(plan => {
                         const planCard = createPlanCard(plan);
                         exerciseList.append(planCard);
@@ -515,7 +480,6 @@
                     const isPublic = exercise.isPublic || false;
 
 
-                    // Create badges following nutrition counterpart pattern
                     const ownerBadge = isMyActivity
                         ? '<span class="badge bg-success me-1"><i class="bi bi-person-check me-1"></i>My Activity</span>'
                         : '<span class="badge bg-info me-1"><i class="bi bi-globe me-1"></i>Community Activity</span>';
@@ -531,9 +495,8 @@
                     const sharedUsersBadgeClass = isInLibrary ? 'bg-success' : 'bg-secondary';
                     const sharedUsersBadge = isPublic ? '<span class="badge ' + sharedUsersBadgeClass + '"><i class="bi bi-people me-1"></i>' + sharedUsers + ' user' + (sharedUsers !== 1 ? 's' : '') + '</span>' : '';
 
-                    // Generate buttons HTML
                     let buttonHtml = '';
-                    let viewButtonClass = 'mb-1'; // Consistent spacing
+                    let viewButtonClass = 'mb-1';
                     buttonHtml += '<button class="btn btn-primary btn-sm w-100 ' + viewButtonClass + '" onclick="viewFitnessActivity(\'' + exercise.id + '\', \'exercise\')">View Details</button>';
                     if (isMyActivity) {
                         buttonHtml += '<button class="btn btn-outline-secondary btn-sm w-100" onclick="window.location.href=\'/fitness/exercises/' + exercise.id + '/edit\'">Edit</button>';
@@ -567,7 +530,6 @@
 
                     console.log('Final exerciseCount for display:', exerciseCount);
 
-                    // Create badges following nutrition counterpart pattern
                     const ownerBadge = isMyActivity
                         ? '<span class="badge bg-success me-1"><i class="bi bi-person-check me-1"></i>My Activity</span>'
                         : '<span class="badge bg-info me-1"><i class="bi bi-globe me-1"></i>Community Activity</span>';
@@ -583,9 +545,8 @@
                     const sharedUsersBadgeClass = isInLibrary ? 'bg-success' : 'bg-secondary';
                     const sharedUsersBadge = isPublic ? '<span class="badge ' + sharedUsersBadgeClass + '"><i class="bi bi-people me-1"></i>' + sharedUsers + ' user' + (sharedUsers !== 1 ? 's' : '') + '</span>' : '';
 
-                    // Generate buttons HTML
                     let buttonHtml = '';
-                    let viewButtonClass = 'mb-1'; // Consistent spacing
+                    let viewButtonClass = 'mb-1';
                     buttonHtml += '<button class="btn btn-primary btn-sm w-100 ' + viewButtonClass + '" onclick="viewFitnessActivity(\'' + workout.id + '\', \'workout\')">View Details</button>';
                     if (isMyActivity) {
                         buttonHtml += '<button class="btn btn-outline-secondary btn-sm w-100" onclick="window.location.href=\'/fitness/workouts/' + workout.id + '/edit\'">Edit</button>';
@@ -617,7 +578,6 @@
 
                     console.log('Final exerciseCount for plan display:', exerciseCount);
 
-                    // Create badges following nutrition counterpart pattern
                     const ownerBadge = isMyActivity
                         ? '<span class="badge bg-success me-1"><i class="bi bi-person-check me-1"></i>My Activity</span>'
                         : '<span class="badge bg-info me-1"><i class="bi bi-globe me-1"></i>Community Activity</span>';
@@ -635,9 +595,8 @@
                     const sharedUsersBadgeClass = isInLibrary ? 'bg-success' : 'bg-secondary';
                     const sharedUsersBadge = isPublic ? '<span class="badge ' + sharedUsersBadgeClass + '"><i class="bi bi-people me-1"></i>' + sharedUsers + ' user' + (sharedUsers !== 1 ? 's' : '') + '</span>' : '';
 
-                    // Generate buttons HTML
                     let buttonHtml = '';
-                    let viewButtonClass = 'mb-1'; // Consistent spacing
+                    let viewButtonClass = 'mb-1';
                     buttonHtml += '<button class="btn btn-primary btn-sm w-100 ' + viewButtonClass + '" onclick="viewFitnessActivity(\'' + plan.id + '\', \'plan\')">View Details</button>';
                     if (isMyActivity) {
                         buttonHtml += '<button class="btn btn-outline-secondary btn-sm w-100" onclick="window.location.href=\'/fitness/plans/' + plan.id + '/edit\'">Edit</button>';
@@ -659,11 +618,9 @@
                 }
 
                 function showError(message) {
-                    // Simple error display - could be enhanced with a toast notification
                     alert(message);
                 }
 
-                // Define viewFitnessActivity globally for fitness activities
                 window.viewFitnessActivity = function(activityId, type) {
                     if (type === 'exercise') {
                         window.location.href = '/fitness/exercises/' + activityId;

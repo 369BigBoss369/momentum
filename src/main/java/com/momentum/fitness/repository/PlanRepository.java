@@ -17,7 +17,6 @@ import java.util.UUID;
 public interface PlanRepository extends JpaRepository<Plan, UUID> {
     Optional<Plan> findByOwnerIdAndName(UUID ownerId, String name);
     List<Plan> findAllByOwnerId(UUID ownerId);
-    Optional<Plan> findFirstByOwnerIdOrderByCreatedAtDesc(UUID ownerId);
     List<Plan> findByIsPublicTrueAndModerationStatus(ModerationStatus status);
 
     @Query("""

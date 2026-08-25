@@ -17,7 +17,6 @@
             background: linear-gradient(135deg, #3d8bfe 0%, #00d9fe 100%);
         }
 
-        /* Banner Header */
         .workout-plan-banner {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
@@ -347,7 +346,6 @@
 </head>
 <body class="fitness-theme">
 <div layout:fragment="content">
-    <!-- Banner Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="workout-plan-banner">
@@ -362,9 +360,7 @@
         </div>
     </div>
 
-    <!-- Active Plan View -->
     <div th:if="${activePlan}">
-        <!-- Plan Navigation -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
@@ -417,7 +413,6 @@
             </div>
         </div>
 
-        <!-- Weekly Statistics -->
         <div class="row mb-4">
             <div class="col-12 mb-3">
                 <h5 class="mb-3">
@@ -451,7 +446,6 @@
         </div>
     </div>
 
-    <!-- No Active Plan - Show Plan Library -->
     <div th:if="${activePlan == null}">
         <div class="row mb-4">
             <div class="col-12">
@@ -544,7 +538,6 @@
         </div>
     </div>
 
-    <!-- Navigation Footer -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
@@ -562,26 +555,22 @@
 </div>
 
 <div layout:fragment="scripts">
-    <!-- JavaScript data -->
     <script th:inline="javascript">
-        window.planStartDate = /*[[${planStartDate != null ? planStartDate : null}]]*/ null;
+        window.planStartDate = null;
         window.planDaysJson = /*[[${planDaysJson}]]*/ '[]';
         window.completionStatusJson = /*[[${completionStatusJson}]]*/ '{}';
 
-        // Debug: log the raw data
         console.log('DEBUG: Raw planStartDate:', window.planStartDate);
         console.log('DEBUG: Raw planDaysJson:', window.planDaysJson);
         console.log('DEBUG: Raw completionStatusJson:', window.completionStatusJson);
     </script>
 
     <script>
-        // Global variables for week navigation
         let currentWeekStart = null;
         let planStartDate = null;
         let planDays = [];
         let planDayCompletionStatus = {};
 
-        // Initialize page when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             loadPlanData();
             initializeWeek();
@@ -589,7 +578,6 @@
             updatePlanCells();
         });
 
-        // Load plan data from inline JavaScript variables
         function loadPlanData() {
             planStartDate = window.planStartDate;
 
@@ -611,54 +599,46 @@
             console.log('Loaded planDays:', planDays, 'length:', planDays ? planDays.length : 'null');
             console.log('Loaded completionStatus:', planDayCompletionStatus);
 
-            // Update statistics after loading plan data
             updatePlanStatistics();
         }
 
-        // Update plan statistics dynamically based on loaded data
         function updatePlanStatistics() {
             if (!planDays || planDays.length === 0) {
                 console.log('No plan data available for statistics');
                 return;
             }
 
-            // Calculate statistics
-            let totalDays = 0; // Days completed by user
-            let totalWorkouts = 0; // Workouts completed by user
+            let totalDays = 0;
+            let totalWorkouts = 0;
             let activeDays = [];
             let currentDay = 1;
 
-            // Count completed days and workouts, collect active days
             for (let planDay of planDays) {
                 if (planDay.isCompleted) {
                     totalDays++;
                 }
-                // Count individual completed workouts
                 totalWorkouts += planDay.completedWorkoutsCount || 0;
                 if (!planDay.isSkipped) {
                     activeDays.push(planDay);
                 }
             }
 
-            // Find current day - the highest day number that's today or before today
             let today = new Date();
             today.setHours(0, 0, 0, 0);
 
             for (let planDay of planDays) {
                 if (!planDay.isSkipped) {
-                    // Calculate the date for this plan day
                     let planDayDate = new Date(planStartDate + 'T00:00:00');
                     planDayDate.setDate(planDayDate.getDate() + planDay.dayNumber - 1);
 
                     if (planDayDate <= today) {
-                        currentDay = planDay.dayNumber; // Use original day number
+                        currentDay = planDay.dayNumber;
                     }
                 }
             }
 
             let daysRemaining = activeDays.length;
 
-            // Update the UI elements
             const totalDaysEl = document.getElementById('total-days');
             const totalWorkoutsEl = document.getElementById('total-workouts');
             const currentDayEl = document.getElementById('current-day');
@@ -678,23 +658,19 @@
             });
         }
 
-        // Initialize current week based on plan start date or current week
         function initializeWeek() {
             if (planStartDate) {
-                // If there's a plan start date, show the week containing the current plan day
                 const planStart = new Date(planStartDate + 'T00:00:00');
                 const currentDay = /*[[${currentDay}]]*/ 1;
                 const currentPlanDate = new Date(planStart);
-                currentPlanDate.setDate(planStart.getDate() + currentDay - 1); // Day 1 = start date, Day 2 = start + 1, etc.
+                currentPlanDate.setDate(planStart.getDate() + currentDay - 1);
 
-                // Find Monday of the week containing the current plan day
                 const day = currentPlanDate.getDay();
                 const diff = currentPlanDate.getDate() - day + (day === 0 ? -6 : 1);
                 currentWeekStart = new Date(currentPlanDate);
                 currentWeekStart.setDate(diff);
                 currentWeekStart.setHours(0, 0, 0, 0);
             } else {
-                // Fallback to current week if no plan start date
                 const now = new Date();
                 const day = now.getDay();
                 const diff = now.getDate() - day + (day === 0 ? -6 : 1);
@@ -704,7 +680,6 @@
             updateWeekDisplay();
         }
 
-        // Update week display
         function updateWeekDisplay() {
             if (!currentWeekStart) return;
 
@@ -717,7 +692,6 @@
 
             document.getElementById('weekRange').textContent = `${startStr} - ${endStr}`;
 
-            // Determine if week is past, current, or future
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const weekEndDate = new Date(weekEnd);
@@ -740,12 +714,10 @@
                 }
             }
 
-            // Update day headers and plan cells
             updateDayHeaders();
             updatePlanCells();
         }
 
-        // Update day headers with dates, styling, and per-day action buttons
         function updateDayHeaders() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -765,10 +737,8 @@
                 const isPast = isPastDate(dateStr);
                 const isToday = dayDate.getTime() === today.getTime();
 
-                // Remove previous classes
                 dayHeader.className = 'day-header';
 
-                // Add appropriate class for coloring
                 if (isToday) {
                     dayHeader.classList.add('today');
                 } else if (isPast) {
@@ -787,7 +757,6 @@
             }
         }
 
-        // Update plan cells based on current week
         function updatePlanCells() {
             console.log('=== updatePlanCells called ===');
             console.log('planStartDate:', planStartDate, typeof planStartDate);
@@ -795,24 +764,22 @@
             console.log('planDayCompletionStatus:', planDayCompletionStatus);
             console.log('currentWeekStart:', currentWeekStart);
 
-            // Check if table cells exist
             const allCells = document.querySelectorAll('[data-day-index]');
             console.log('Found table cells:', allCells.length);
 
             if (!planStartDate || !planDays || planDays.length === 0) {
-                console.log('❌ No plan data available, skipping cell updates');
+                console.log('No plan data available, skipping cell updates');
                 return;
             }
 
             const planStart = new Date(planStartDate + 'T00:00:00');
             console.log('planStart date object:', planStart);
 
-            // Update each cell
             for (let i = 0; i < 7; i++) {
                 const cell = document.querySelector(`[data-day-index="${i}"]`);
                 console.log(`Looking for cell ${i}, found:`, cell);
                 if (!cell) {
-                    console.log(`❌ Cell ${i} not found`);
+                    console.log(`Cell ${i} not found`);
                     continue;
                 }
 
@@ -820,8 +787,7 @@
                 cellDate.setDate(currentWeekStart.getDate() + i);
                 console.log(`Cell ${i} date:`, cellDate.toDateString());
 
-                // Calculate which plan day this calendar day corresponds to
-                const daysDiff = Math.floor((cellDate - planStart) / (1000 * 60 * 60 * 24)) + 1; // +1 because Day 1 = start date
+                const daysDiff = Math.floor((cellDate - planStart) / (1000 * 60 * 60 * 24)) + 1;
                 console.log(`Cell ${i} daysDiff:`, daysDiff);
 
                 let planDay = null;
@@ -832,11 +798,9 @@
                     console.log(`Cell ${i} no planDay found (daysDiff: ${daysDiff}, planDays.length: ${planDays.length})`);
                 }
 
-                // Update cell content and styling
-                cell.className = 'workout-cell'; // Reset classes
+                cell.className = 'workout-cell';
 
                 if (planDay) {
-                    // Has plan day
                     const isCompleted = planDay.isCompleted === true;
                     console.log(`Cell ${i} isCompleted:`, isCompleted);
 
@@ -848,7 +812,6 @@
                         const totalWorkouts = planDay.workoutCount || 0;
                         const completedWorkouts = planDay.completedWorkoutsCount || 0;
 
-                        // Show workout completion count for skipped days that have workouts completed
                         let displayText = 'Skipped';
                         if (completedWorkouts > 0 && totalWorkouts > 0) {
                             displayText = `${completedWorkouts}/${totalWorkouts} workouts`;
@@ -862,7 +825,6 @@
                             `;
                         console.log(`🚫 Cell ${i} set to SKIPPED day with ${completedWorkouts}/${totalWorkouts} workouts completed`);
                     } else if (planDay.type === 'REST') {
-                        // Check if this rest day is current or in the past (completed)
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
                         const isCurrentOrPastRestDay = cellDate <= today;
@@ -877,7 +839,7 @@
                                     <div class="workout-count">Rest</div>
                                 </div>
                             `;
-                        console.log(`✅ Cell ${i} set to REST day${isCurrentOrPastRestDay ? ' (current/past)' : ''}`);
+                        console.log(`Cell ${i} set to REST day${isCurrentOrPastRestDay ? ' (current/past)' : ''}`);
                     } else {
                         if (isCompleted) {
                             cell.classList.add('has-workouts', 'completed');
@@ -894,23 +856,21 @@
                                     <div class="workout-count">${workoutText}</div>
                                 </div>
                             `;
-                        console.log(`✅ Cell ${i} set to workout day with ${completedWorkouts}/${totalWorkouts} workouts completed`);
+                        console.log(`Cell ${i} set to workout day with ${completedWorkouts}/${totalWorkouts} workouts completed`);
                     }
                 } else {
-                    // No plan day
                     cell.classList.add('empty-day');
                     cell.innerHTML = `
                             <div class="workout-item">
                                 <div class="workout-count">-</div>
                             </div>
                         `;
-                    console.log(`⭕ Cell ${i} set to empty day`);
+                    console.log(`Cell ${i} set to empty day`);
                 }
             }
             console.log('=== updatePlanCells finished ===');
         }
 
-        // Navigate weeks
         function previousWeek() {
             currentWeekStart.setDate(currentWeekStart.getDate() - 7);
             updateWeekDisplay();
@@ -934,7 +894,6 @@
             updatePlanCells();
         }
 
-        // Utility functions
         function formatDate(date) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -973,21 +932,18 @@
                     if (!response.ok) {
                         throw new Error('Failed to update library');
                     }
-                    // Handle empty response body
                     const contentType = response.headers.get('content-type');
                     if (contentType && contentType.includes('application/json')) {
                         return response.json();
                     } else {
-                        return {}; // Return empty object for non-JSON responses
+                        return {};
                     }
                 })
                 .then(data => {
-                    // Toggle the button appearance and state
                     const icon = button.querySelector('i');
                     const label = button.querySelector('span');
 
                     if (currentlyInLibrary) {
-                        // Was in library, now removed - change to "Add to Library"
                         button.classList.remove('btn-danger');
                         button.classList.add('btn-outline-success');
                         icon.classList.remove('bi-bookmark-dash');
@@ -995,7 +951,6 @@
                         label.textContent = 'Add to Library';
                         button.dataset.inLibrary = 'false';
                     } else {
-                        // Was not in library, now added - change to "Remove from Library"
                         button.classList.remove('btn-outline-success');
                         button.classList.add('btn-danger');
                         icon.classList.remove('bi-bookmark-plus');

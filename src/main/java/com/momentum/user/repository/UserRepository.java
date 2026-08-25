@@ -17,7 +17,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
     User findByProviderAndProviderId(AuthProvider provider, String providerId);
-    List<User> findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(String username, String email);
     List<User> findByRole(UserRole role);
     long countByRole(UserRole role);
 

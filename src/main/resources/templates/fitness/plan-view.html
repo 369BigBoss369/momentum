@@ -542,7 +542,6 @@
 <body class="fitness-theme">
     <div layout:fragment="content">
         <div class="container">
-            <!-- Back Button -->
             <div class="row mb-3">
                 <div class="col-12">
                     <a href="/fitness/exercises" class="btn btn-outline-secondary">
@@ -551,7 +550,6 @@
                 </div>
             </div>
 
-            <!-- Plan Header -->
             <div class="plan-header">
                 <div class="row align-items-center">
                     <div class="col-md-8">
@@ -591,7 +589,6 @@
                 </div>
             </div>
 
-            <!-- Plan Details -->
             <div class="plan-details">
                 <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Plan Information</h3>
 
@@ -621,7 +618,6 @@
                 </div>
             </div>
 
-            <!-- Day List -->
             <div class="plan-info" th:if="${plan.planDays != null and !plan.planDays.isEmpty()}">
                 <h3 class="mb-4"><i class="bi bi-calendar-week me-2"></i>Training Schedule</h3>
 
@@ -638,7 +634,6 @@
                                 </div>
                             </div>
 
-                            <!-- Show workouts for non-rest days -->
                             <div th:if="${planDay.type != T(com.momentum.fitness.model.enums.PlanDayType).REST}">
                                 <div th:if="${planDay.workouts != null and !planDay.workouts.isEmpty()}" th:each="workout : ${planDay.workouts}" class="workout-item">
                                     <div class="workout-header">
@@ -694,7 +689,6 @@
                                 </div>
                             </div>
 
-                            <!-- Rest day message -->
                             <div th:if="${planDay.type == T(com.momentum.fitness.model.enums.PlanDayType).REST}" class="text-muted small">
                                 <i class="bi bi-moon-stars me-1"></i>Rest day - take it easy and recover!
                             </div>
@@ -703,7 +697,6 @@
                 </div>
             </div>
 
-            <!-- Empty State -->
             <div class="plan-details" th:if="${plan.planDays == null or plan.planDays.isEmpty()}">
                 <div class="empty-plan">
                     <i class="bi bi-calendar-x"></i>
@@ -712,7 +705,6 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
             <div class="row mt-5">
                 <div class="col-12">
                     <div class="d-flex justify-content-between align-items-center">
@@ -729,7 +721,6 @@
             </div>
         </div>
 
-        <!-- Start Plan Confirmation Modal -->
         <div class="modal fade" id="startPlanModal" tabindex="-1" aria-labelledby="startPlanModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg">
@@ -774,7 +765,6 @@
 
         <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            // Add event listeners to all workout headers
             const workoutHeaders = document.querySelectorAll('.workout-header');
             workoutHeaders.forEach(header => {
                 header.addEventListener('click', function() {
@@ -819,21 +809,18 @@
                 if (!response.ok) {
                     throw new Error('Failed to update library');
                 }
-                // Handle empty response body
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
                     return response.json();
                 } else {
-                    return {}; // Return empty object for non-JSON responses
+                    return {};
                 }
             })
             .then(data => {
-                // Toggle the button appearance and state
                 const icon = button.querySelector('i');
                 const label = button.querySelector('span');
 
                 if (currentlyInLibrary) {
-                    // Was in library, now removed - change to "Add to Library"
                     button.classList.remove('btn-danger');
                     button.classList.add('btn-light');
                     icon.classList.remove('bi-bookmark-dash');
@@ -841,7 +828,6 @@
                     label.textContent = 'Add to Library';
                     button.dataset.inLibrary = 'false';
                 } else {
-                    // Was not in library, now added - change to "Remove from Library"
                     button.classList.remove('btn-light');
                     button.classList.add('btn-danger');
                     icon.classList.remove('bi-bookmark-plus');
@@ -860,9 +846,7 @@
         }
 
         function confirmStartPlan(button) {
-            // Store the button reference for later use
             window.startPlanButton = button;
-            // Show the confirmation modal
             const modal = new bootstrap.Modal(document.getElementById('startPlanModal'));
             modal.show();
         }
@@ -872,7 +856,6 @@
             const confirmBtn = document.getElementById('confirmStartPlanBtn');
             const originalText = confirmBtn.innerHTML;
 
-            // Update button to show loading state
             confirmBtn.disabled = true;
             confirmBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Starting...';
 
@@ -891,14 +874,12 @@
                 if (!response.ok) {
                     throw new Error('Failed to start plan');
                 }
-                return response.json().catch(() => ({})); // Handle empty response
+                return response.json().catch(() => ({}));
             })
             .then(data => {
-                // Hide modal and redirect to tracker with success feedback
                 const modal = bootstrap.Modal.getInstance(document.getElementById('startPlanModal'));
                 modal.hide();
 
-                // Show success toast or redirect
                 showSuccessMessage();
                 setTimeout(() => {
                     window.location.href = '/fitness/tracker';
@@ -906,7 +887,6 @@
             })
             .catch(error => {
                 console.error('Error starting plan:', error);
-                // Show error in modal
                 showErrorInModal('Failed to start plan. Please try again.');
             })
             .finally(() => {
@@ -916,7 +896,6 @@
         }
 
         function showSuccessMessage() {
-            // Create and show a success toast
             const toastHtml = `
                 <div class="toast align-items-center text-white bg-success border-0 position-fixed"
                      style="top: 20px; right: 20px; z-index: 9999;" role="alert">
@@ -945,7 +924,6 @@
             modalBody.insertAdjacentHTML('beforeend', alertHtml);
         }
 
-        // Add event listener for modal confirm button
         document.addEventListener('DOMContentLoaded', function() {
             const confirmBtn = document.getElementById('confirmStartPlanBtn');
             if (confirmBtn) {

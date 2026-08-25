@@ -4,7 +4,6 @@ import com.momentum.core.model.enums.ModerationStatus;
 import com.momentum.exception.fitness.ActivityNotFoundException;
 import com.momentum.exception.fitness.CustomActivityAlreadyExists;
 import com.momentum.exception.UnauthorizedResourceAccessException;
-import com.momentum.exception.nutrition.FoodNotFoundException;
 import com.momentum.fitness.dto.CreateExerciseDTO;
 import com.momentum.fitness.model.Exercise;
 import com.momentum.fitness.model.enums.ExerciseType;

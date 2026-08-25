@@ -39,12 +39,7 @@ public class PlanStartService {
 
         userService.save(user);
 
-        log.info("Plan {} started successfully for user {} with start date {}",
-                plan.getName(), userId, startDate);
-
-
-
-
+        log.info("Plan {} started successfully for user {} with start date {}", plan.getName(), userId, startDate);
     }
 }
 

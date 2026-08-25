@@ -6,11 +6,9 @@
 <head>
     <title th:text="${editMode == true ? (editType == 'EXERCISE' ? 'Edit Exercise' : editType == 'WORKOUT' ? 'Edit Workout' : editType == 'PLAN' ? 'Edit Plan' : 'Create Custom Exercise / Workout / Plan') : 'Create Custom Exercise / Workout / Plan'}">Create Custom Exercise / Workout / Plan</title>
 
-    <!-- Select2 CSS - Load before custom styles -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
-    <!-- jQuery and Select2 JS - load in head so `$` is available for inline scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
@@ -924,7 +922,6 @@
 <div layout:fragment="content">
     <div class="container mt-4" th:attr="data-active-tab=${activeTab}">
 
-        <!-- Page Header -->
         <div class="page-header-fitness">
             <h2 class="mb-0">
                 <i class="bi" th:class="${editMode} ? 'bi-pencil me-2' : 'bi-plus-circle me-2'"></i>
@@ -938,7 +935,6 @@
             </p>
         </div>
 
-        <!-- Tabs Navigation -->
         <ul class="nav nav-tabs mb-4" id="fitnessBuilderTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active"
@@ -969,22 +965,17 @@
             </li>
         </ul>
 
-        <!-- Tab Content -->
         <div class="tab-content" id="fitnessBuilderTabsContent">
-            <!-- Exercise Tab -->
             <div class="tab-pane fade show active" id="exercise" role="tabpanel" aria-labelledby="exercise-tab">
                 <div class="card">
                     <div class="card-body">
-                        <!-- Display service exceptions -->
                         <div th:if="${error}" class="alert alert-danger mb-3">
                             <i class="bi bi-exclamation-triangle me-2"></i>
                             <span th:text="${error}">Error message</span>
                         </div>
 
-                        <!-- Exercise fields based on Exercise entity -->
                         <form th:action="${editMode and 'EXERCISE'.equals(editType)} ? @{/fitness/exercises/{id}(id=${editId})} : @{/fitness/create/exercise}"
                               th:method="${editMode and 'EXERCISE'.equals(editType)} ? 'put' : 'post'">
-                            <!-- Basic Information (Exercise.name, Exercise.type) -->
                             <div class="form-section">
                                 <h6><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
                                 <div class="row">
@@ -1010,9 +1001,7 @@
                                 </div>
                             </div>
 
-                            <!-- Muscle Targets & Metrics -->
                             <div class="form-section">
-                                <!-- Muscle Targets Section -->
                                 <div class="mb-4">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h6 class="mb-0"><i class="bi bi-bullseye me-2"></i>Muscle Targets</h6>
@@ -1023,7 +1012,6 @@
                                     </div>
 
                                     <div id="muscleGroupsContainer" class="d-flex justify-content-center flex-wrap gap-3">
-                                        <!-- Muscle group entries will be added here dynamically -->
                                         <div class="muscle-group-entry card shadow-sm" data-index="0" style="width: 280px;">
                                                 <div class="card-header bg-light py-2 px-3">
                                                     <div class="d-flex justify-content-between align-items-center">
@@ -1061,7 +1049,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Advanced Muscle Selection -->
                                 <div id="advancedMusclesToggleWrapper" style="display: none;" class="mt-3">
                                     <div class="card border-info">
                                         <div class="card-header bg-info bg-opacity-10 py-2">
@@ -1094,7 +1081,6 @@
                                 </div>
 
 
-                            <!-- Media (imageUrl, videoUrl) -->
                             <div class="form-section">
                                 <h6><i class="bi bi-image me-2"></i>Media</h6>
                                 <div class="row g-3">
@@ -1113,7 +1099,6 @@
                                 </div>
                             </div>
 
-                            <!-- Technique (optional descriptive text) -->
                             <div class="form-section">
                                 <h6><i class="bi bi-journal-text me-2"></i>Technique & Cues</h6>
                                 <div class="mb-3">
@@ -1123,7 +1108,6 @@
                                 </div>
                             </div>
 
-                            <!-- Visibility (ShareableEntity.isPublic) -->
                             <div class="form-section">
                                 <h6>
                                     <i class="bi bi-share me-2"></i>Visibility
@@ -1159,19 +1143,15 @@
                                 </button>
                             </div>
 
-                            <!-- Hidden container for muscle target inputs -->
                             <div id="exerciseMuscleTargetsContainer" style="display: none;">
-                                <!-- Muscle target inputs will be added here -->
                             </div>
 
-                            <!-- Hidden script with muscle targets data for JavaScript -->
                             <script th:inline="javascript">
-                                /*<![CDATA[*/
                                 window.muscleTargetsData = /*[[${simplifiedMuscleTargets}]]*/ [];
                                 window.editMode = /*[[${editMode}]]*/ false;
                                 window.editType = '[[${editType}]]';
                                 window.planData = /*[[${createPlanDTO != null ? planJson : '{}'}]]*/ {};
-                                /*]]>*/
+
                             </script>
                         </form>
                     </div>
@@ -1179,11 +1159,9 @@
 
             </div>
 
-            <!-- Workout Tab -->
             <div class="tab-pane fade" id="workout" role="tabpanel" aria-labelledby="workout-tab">
                 <div class="card">
                     <div class="card-body">
-                        <!-- Display service exceptions -->
                         <div th:if="${error}" class="alert alert-danger mb-3">
                             <i class="bi bi-exclamation-triangle me-2"></i>
                             <span th:text="${error}">Error message</span>
@@ -1192,7 +1170,6 @@
                         <form th:action="${editMode and 'WORKOUT'.equals(editType)} ? @{/fitness/workouts/{id}(id=${editId})} : @{/fitness/create/workout}"
                               method="post" id="workoutForm">
                             <input type="hidden" name="_method" th:value="${editMode and 'WORKOUT'.equals(editType)} ? 'PUT' : 'POST'">
-                            <!-- Workout fields based on Workout entity (name, type, exercises) -->
                             <div class="form-section">
                                 <h6><i class="bi bi-info-circle me-2"></i>Workout Details</h6>
                                 <div class="row">
@@ -1218,7 +1195,6 @@
                                 </div>
                             </div>
 
-                            <!-- AI Generated Exercises Display -->
                             <div th:if="${aiGeneratedWorkoutExercises != null and !aiGeneratedWorkoutExercises.isEmpty()}" class="form-section">
                                 <h6><i class="bi bi-robot me-2"></i>AI Suggested Exercises</h6>
                                 <div class="alert alert-info">
@@ -1245,7 +1221,6 @@
                                 </div>
                             </div>
 
-                            <!-- Visibility (ShareableEntity.isPublic) -->
                             <div class="form-section">
                                 <h6>
                                     <i class="bi bi-share me-2"></i>Visibility
@@ -1274,7 +1249,6 @@
                                 </p>
                             </div>
 
-                            <!-- Exercises selection with search -->
                             <div class="form-section no-animation">
                                 <h6><i class="bi bi-search me-2"></i>Exercises in this Workout</h6>
                                 <p class="small-hint mb-3">
@@ -1282,7 +1256,6 @@
                                     <span class="text-danger fw-bold">*</span> <small class="text-muted">At least one exercise is required</small>
                                 </p>
 
-                                <!-- Exercise Search -->
                                 <div class="mb-4">
                                     <label class="form-label">
                                         <i class="bi bi-search me-2"></i>Search and Select Exercises
@@ -1296,7 +1269,6 @@
                                     </small>
                                 </div>
 
-                                <!-- Selected exercises container -->
                                 <div id="exerciseInputsContainer">
                                     <div id="noExercisesText" class="text-center py-5">
                                         <div class="text-muted">
@@ -1307,7 +1279,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Warning for no exercises -->
                                 <div id="exerciseWarning" class="alert alert-warning mt-3 d-none">
                                     <i class="bi bi-exclamation-triangle me-2"></i>
                                     <strong>No Exercises Selected</strong><br>
@@ -1316,7 +1287,6 @@
                             </div>
 
                             <script>
-                                // Initialize Select2 for exercise search
                                 $(document).ready(function() {
                                     $('#exerciseSelect').select2({
                                         placeholder: 'Type to search exercises...',
@@ -1345,7 +1315,6 @@
                                             },
                                             cache: true
                                         },
-                                        // Start searching only after user has typed at least 2 characters
                                         minimumInputLength: 2,
                                         escapeMarkup: function (markup) {
                                             return markup;
@@ -1370,34 +1339,28 @@
                                         }
                                     });
 
-                                    // Load initial exercises when dropdown opens
                                     $('#exerciseSelect').on('select2:open', function() {
                                         const select2Instance = $(this).data('select2');
                                         if (!select2Instance || !select2Instance.dropdown || !select2Instance.dropdown.$dropdown) return;
 
-                                        // If no search term, trigger search to load initial results
                                         const searchInput = select2Instance.dropdown.$search || select2Instance.dropdown.$dropdown.find('input');
                                         if (searchInput && !searchInput.val()) {
-                                            // Trigger initial load
                                             setTimeout(function() {
                                                 searchInput.val('').trigger('input');
                                             }, 10);
                                         }
                                     });
 
-                                    // Handle exercise selection
                                     $('#exerciseSelect').on('select2:select', function (e) {
                                         const exercise = e.params.data;
                                         addExerciseToWorkout(exercise);
-                                        $(this).val(null).trigger('change'); // Clear selection
+                                        $(this).val(null).trigger('change');
                                     });
                                 });
 
-                                // Global variables to track selected exercises
                                 let selectedExercises = [];
 
                                 function addExerciseToWorkout(exercise) {
-                                    // Always allow adding the exercise (even duplicates)
                                     selectedExercises.push(exercise);
                                     updateSelectedExercisesDisplay();
                                 }
@@ -1431,7 +1394,6 @@
                                     if (exerciseIndex >= 0 && exerciseIndex < selectedExercises.length) {
                                         const exercise = selectedExercises[exerciseIndex];
 
-                                        // Convert value based on field type
                                         if (field === 'reps' || field === 'duration') {
                                             exercise[field] = value ? parseInt(value) : null;
                                         } else if (field === 'weight') {
@@ -1447,7 +1409,6 @@
                                     const exerciseWarning = document.getElementById('exerciseWarning');
 
                                     if (selectedExercises.length === 0) {
-                                        // Re-render the "no exercises" placeholder
                                         container.innerHTML = '' +
                                             '<div id="noExercisesText" class="text-center py-5">' +
                                                 '<div class="text-muted">' +
@@ -1474,7 +1435,6 @@
                                         const muscleGroups = exercise.muscleGroups ? exercise.muscleGroups.join(', ') : '';
                                         const defaultImage = '/images/exercises/default.png';
 
-                                        // Determine which fields to show based on exercise type
                                         const exerciseType = exercise.type || 'STRENGTH';
                                         const showReps = ['STRENGTH', 'PLYOMETRIC'].includes(exerciseType);
                                         const showWeight = ['STRENGTH'].includes(exerciseType);
@@ -1485,13 +1445,11 @@
                                                 '<div class="card border-0 shadow-sm">' +
                                                     '<div class="card-body p-3">' +
                                                         '<div class="d-flex align-items-stretch">' +
-                                                            // Left block: big square image
                                                             '<div class="me-3 flex-shrink-0 d-flex align-items-center">' +
                                                                 '<img src="' + imageUrl + '" class="exercise-image rounded" ' +
                                                                     'style="width: 200px; height: 200px; object-fit: cover;" ' +
                                                                     'onerror="this.src=\'' + defaultImage + '\'">' +
                                                             '</div>' +
-                                                            // Right block: flex column with metadata + fields stacked
                                                             '<div class="flex-grow-1 d-flex flex-column justify-content-between">' +
                                                                 '<div>' +
                                                                     '<div class="d-flex justify-content-between align-items-start mb-2">' +
@@ -1553,7 +1511,6 @@
                                     console.log('Setting container HTML:', exercisesHtml);
                                     container.innerHTML = exercisesHtml;
 
-                                    // Add event listeners for remove buttons
                                     document.querySelectorAll('.remove-exercise-btn').forEach(btn => {
                                         btn.addEventListener('click', function() {
                                             const exerciseIndex = this.getAttribute('data-exercise-id');
@@ -1563,7 +1520,6 @@
                                     });
                                 }
 
-                                // Frontend validation for workout creation
                                 document.getElementById('workoutForm').addEventListener('submit', function(e) {
                                     console.log('=== FORM SUBMISSION STARTED ===');
                                     console.log('Form submission triggered');
@@ -1572,7 +1528,6 @@
                                         console.log(`Exercise ${idx}: id=${ex.id}, exerciseId=${ex.exerciseId}, text=${ex.text}, type=${ex.type}`);
                                     });
 
-                                    // Log form data
                                     const formData = new FormData(this);
                                     console.log('Form data entries:');
                                     for (let [key, value] of formData.entries()) {
@@ -1580,7 +1535,6 @@
                                     }
                                     console.log('=== FORM SUBMISSION END ===');
 
-                                    // Get current selected exercises count
                                     const exerciseItems = document.querySelectorAll('#exerciseInputsContainer .exercise-item');
                                     const currentExercises = exerciseItems.length;
                                     console.log('Validation: Found', currentExercises, 'exercise items in DOM');
@@ -1591,10 +1545,8 @@
                                         e.preventDefault();
                                         e.stopImmediatePropagation();
 
-                                        // Check if warning is already visible
                                         const existingWarning = document.getElementById('exerciseWarning');
                                         if (existingWarning && !existingWarning.classList.contains('d-none')) {
-                                            // Warning is visible, just scroll to it
                                             document.querySelector('#workout .form-section:nth-of-type(2)').scrollIntoView({
                                                 behavior: 'smooth',
                                                 block: 'center'
@@ -1602,22 +1554,18 @@
                                             return false;
                                         }
 
-                                        // Show error message
                                         const errorDiv = document.createElement('div');
                                         errorDiv.className = 'alert alert-danger mt-3 border border-danger';
                                         errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Exercise Selection Required</strong><br>Please select at least one exercise for your workout before creating it.';
 
-                                        // Remove existing error if present
                                         const existingError = document.querySelector('.alert-danger');
                                         if (existingError) {
                                             existingError.remove();
                                         }
 
-                                        // Add error after the button container
                                         const buttonContainer = document.querySelector('.d-flex.justify-content-end');
                                         buttonContainer.insertAdjacentElement('afterend', errorDiv);
 
-                                        // Scroll to exercises section
                                         document.querySelector('#workout .form-section:nth-of-type(2)').scrollIntoView({
                                             behavior: 'smooth',
                                             block: 'center'
@@ -1626,7 +1574,6 @@
                                         return false;
                                     }
 
-                                    // Validate exercise performance fields based on exercise type
                                     let hasValidationErrors = false;
                                     exerciseItems.forEach((item, index) => {
                                         const exerciseType = item.getAttribute('data-exercise-type');
@@ -1663,7 +1610,6 @@
                                         e.preventDefault();
                                         e.stopImmediatePropagation();
 
-                                        // Scroll to first error
                                         const firstError = document.querySelector('.field-error');
                                         if (firstError) {
                                             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1671,7 +1617,6 @@
                                         return false;
                                     }
 
-                                    // If validation passes, allow form submission to proceed
                                     console.log('Validation: Passed - allowing form submission to proceed');
                                 });
                             </script>
@@ -1687,19 +1632,14 @@
                             </div>
 
                             <script>
-                                // Initialize workout exercises for edit mode
                                 function initializeWorkoutExercisesForEdit() {
-                                    // Parse JSON string from server
-                                    // Thymeleaf renders: /*[json_data]*/
                                     const rawJson = '/*[[${safeWorkoutExercisesJson}]]*/';
                                     console.log('Raw Thymeleaf output:', rawJson);
 
-                                    // Extract JSON from between the comment markers (including brackets)
                                     const jsonMatch = rawJson.match(/\/\*\[([\s\S]*)\]\*\//);
                                     console.log('Regex match result:', jsonMatch);
                                     let exercisesJson = jsonMatch && jsonMatch[1] ? '[' + jsonMatch[1] + ']' : '[]';
 
-                                    // Decode HTML entities (&quot; -> ")
                                     const textarea = document.createElement('textarea');
                                     textarea.innerHTML = exercisesJson;
                                     exercisesJson = textarea.value;
@@ -1717,32 +1657,27 @@
                                     if (workoutExercises && workoutExercises.length > 0) {
                                         const container = document.getElementById('exerciseInputsContainer');
 
-                                        // Clear the "no exercises" placeholder
                                         container.innerHTML = '';
 
-                                        // Add each exercise
                                         workoutExercises.forEach((exerciseDto, index) => {
                                             console.log('Adding exercise:', exerciseDto);
 
-                                            // Create exercise object with basic info
                                             const exercise = {
-                                                id: exerciseDto.id, // Use WorkoutExercise ID for uniqueness
-                                                exerciseId: exerciseDto.exerciseId, // Keep for API calls
-                                                text: 'Loading...', // Will be updated when exercise data is fetched
-                                                name: 'Loading...', // For compatibility
+                                                id: exerciseDto.id,
+                                                exerciseId: exerciseDto.exerciseId,
+                                                text: 'Loading...',
+                                                name: 'Loading...',
                                                 type: exerciseDto.type,
                                                 typeDisplayName: exerciseDto.type.displayName || exerciseDto.type,
-                                                imagePath: null, // Will be updated when exercise data is fetched
-                                                imageUrl: null, // Will be updated when exercise data is fetched
+                                                imagePath: null,
+                                                imageUrl: null,
                                                 reps: exerciseDto.reps,
                                                 weight: exerciseDto.weight,
                                                 duration: exerciseDto.duration
                                             };
 
-                                            // Add to workout immediately
                                             addExerciseToWorkout(exercise);
 
-                                            // Fetch full exercise details
                                             fetch(`/api/v1/fitness/exercises/${exerciseDto.exerciseId}`)
                                                 .then(response => {
                                                     if (!response.ok) {
@@ -1752,7 +1687,6 @@
                                                 })
                                                 .then(exerciseData => {
                                                     console.log('Fetched exercise data:', exerciseData);
-                                                    // Update the exercise object with real data
                                                     exercise.text = exerciseData.name;
                                                     exercise.name = exerciseData.name;
                                                     exercise.imagePath = exerciseData.imageUrl;
@@ -1760,41 +1694,33 @@
                                                     exercise.muscleGroups = exerciseData.muscleGroupTarget ?
                                                         exerciseData.muscleGroupTarget.map(target => target.muscle) : [];
 
-                                                    // Re-render the exercises to show updated data
                                                     updateSelectedExercisesDisplay();
                                                 })
                                                 .catch(error => {
                                                     console.error('Error fetching exercise data:', error);
-                                                    // Keep the "Loading..." text if fetch fails
                                                 });
                                         });
                                     }
                                 }
 
-                                // Helper function to show field validation errors
                                 function showFieldError(inputElement, message) {
                                     if (!inputElement) return;
 
-                                    // Remove existing error for this field
                                     const existingError = inputElement.parentElement.querySelector('.field-error');
                                     if (existingError) {
                                         existingError.remove();
                                     }
 
-                                    // Add error class to input
                                     inputElement.classList.add('is-invalid');
 
-                                    // Create error message
                                     const errorDiv = document.createElement('div');
                                     errorDiv.className = 'field-error invalid-feedback d-block';
                                     errorDiv.textContent = message;
 
-                                    // Add error after input
                                     inputElement.parentElement.appendChild(errorDiv);
                                 }
 
 
-                                // Clear field errors when user starts typing
                                 document.addEventListener('input', function(e) {
                                     if (e.target.classList.contains('is-invalid')) {
                                         e.target.classList.remove('is-invalid');
@@ -1805,9 +1731,7 @@
                                     }
                                 });
 
-                                // Frontend validation for workout creation
                                 document.getElementById('workoutForm').addEventListener('submit', function(e) {
-                                    // Get selected exercises count (count exercise items, not inputs)
                                     const exerciseItems = document.querySelectorAll('#exerciseInputsContainer .exercise-item');
                                     const currentExercises = exerciseItems.length;
 
@@ -1815,10 +1739,8 @@
                                         e.preventDefault();
                                         e.stopImmediatePropagation();
 
-                                        // Check if warning is already visible
                                         const existingWarning = document.getElementById('exerciseWarning');
                                         if (existingWarning && !existingWarning.classList.contains('d-none')) {
-                                            // Warning is visible, just scroll to it
                                             document.querySelector('#workout .form-section:nth-of-type(2)').scrollIntoView({
                                                 behavior: 'smooth',
                                                 block: 'center'
@@ -1826,22 +1748,18 @@
                                             return false;
                                         }
 
-                                        // Show error message
                                         const errorDiv = document.createElement('div');
                                         errorDiv.className = 'alert alert-danger mt-3 border border-danger';
                                         errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Exercise Selection Required</strong><br>Please select at least one exercise for your workout before creating it.';
 
-                                        // Remove existing error if present
                                         const existingError = document.querySelector('.alert-danger');
                                         if (existingError) {
                                             existingError.remove();
                                         }
 
-                                        // Add error after the button container
                                         const buttonContainer = document.querySelector('.d-flex.justify-content-end');
                                         buttonContainer.insertAdjacentElement('afterend', errorDiv);
 
-                                        // Scroll to exercises section
                                         document.querySelector('#workout .form-section:nth-of-type(2)').scrollIntoView({
                                             behavior: 'smooth',
                                             block: 'center'
@@ -1850,7 +1768,6 @@
                                         return false;
                                     }
 
-                                    // Validate exercise performance fields based on exercise type
                                     let hasValidationErrors = false;
                                     exerciseItems.forEach((item, index) => {
                                         const exerciseType = item.getAttribute('data-exercise-type');
@@ -1887,7 +1804,6 @@
                                         e.preventDefault();
                                         e.stopImmediatePropagation();
 
-                                        // Scroll to first error
                                         const firstError = document.querySelector('.field-error');
                                         if (firstError) {
                                             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1895,7 +1811,6 @@
                                         return false;
                                     }
 
-                                    // If validation passes, allow form submission to proceed
                                     console.log('Validation: Passed - allowing form submission to proceed');
                                 });
                             </script>
@@ -1905,11 +1820,9 @@
 
             </div>
 
-            <!-- Plan Tab -->
             <div class="tab-pane fade" id="plan" role="tabpanel" aria-labelledby="plan-tab">
                 <div class="card">
                     <div class="card-body">
-                        <!-- Display service exceptions -->
                         <div th:if="${error}" class="alert alert-danger mb-3">
                             <i class="bi bi-exclamation-triangle me-2"></i>
                             <span th:text="${error}">Error message</span>
@@ -1917,34 +1830,28 @@
 
                         <form id="planForm" th:action="${editMode and 'PLAN'.equals(editType) ? '/fitness/plans/' + editId : '/fitness/create/plan'}"
                               th:method="${editMode and 'PLAN'.equals(editType) ? 'put' : 'post'}">
-                            <!-- Plan fields based on Plan entity (name, description, type) -->
 
                             <script>
-                                // Plan form validation - prevent creation with 0 days or days without workouts
                                 document.getElementById('planForm').addEventListener('submit', function(e) {
                                     console.log('Plan form submit event triggered');
 
-                                    // Debug: Check all inputs in the form
                                     const allInputs = this.querySelectorAll('input[name]');
                                     console.log('All form inputs:', allInputs.length);
                                     allInputs.forEach((input, index) => {
                                         console.log(`Input ${index}: ${input.name} = '${input.value}' (length: ${input.value.length})`);
                                     });
 
-                                    // Specifically check workout inputs
                                     const workoutInputs = this.querySelectorAll('input[name*="workoutIds"]');
                                     console.log('Workout inputs specifically:', workoutInputs.length);
                                     workoutInputs.forEach((input, index) => {
                                         console.log(`Workout input ${index}: ${input.name} = '${input.value}' (empty: ${input.value === ''}, null: ${input.value == null})`);
                                     });
 
-                                    // Check for any empty or null inputs
                                     const emptyInputs = Array.from(workoutInputs).filter(input => !input.value || input.value.trim() === '');
                                     if (emptyInputs.length > 0) {
                                         console.warn('Found empty/null workout inputs:', emptyInputs.map(input => `${input.name} = '${input.value}'`));
                                     }
 
-                                    // Debug: Log form data
                                     const formData = new FormData(this);
                                     console.log('FormData entries:', [...formData.entries()].length);
                                     for (let [key, value] of formData.entries()) {
@@ -1956,23 +1863,19 @@
 
                                     console.log('Found', dayCards.length, 'day cards');
 
-                                    // Remove any existing error message
                                     const existingError = document.getElementById('planValidationError');
                                     if (existingError) {
                                         existingError.remove();
                                         console.log('Removed existing error message');
                                     }
 
-                                    // Collect all validation errors
                                     const validationErrors = [];
 
-                                    // First check: Must have at least one day
                                     if (dayCards.length === 0) {
                                         console.log('Validation failed: no days found');
                                         validationErrors.push('Please add at least one day to your plan before creating it.');
                                     }
 
-                                    // Second check: Each non-REST day must have at least one workout
                                     dayCards.forEach((dayCard, index) => {
                                         const dayNumber = index + 1;
                                         const dayTypeSelect = dayCard.querySelector('.day-type-select');
@@ -1994,7 +1897,6 @@
                                         console.log('Validation failed:', validationErrors);
                                         e.preventDefault();
                                         e.stopPropagation();
-                                        // Add icon to each error line
                                         const errorsWithIcons = validationErrors.map(error =>
                                             `<i class="bi bi-exclamation-triangle-fill me-2"></i>${error}`
                                         );
@@ -2006,7 +1908,6 @@
                                     return true;
                                 });
 
-                                // Helper function to show validation errors
                                 function showValidationError(message) {
                                     const errorDiv = document.createElement('div');
                                     errorDiv.id = 'planValidationError';
@@ -2015,19 +1916,16 @@
                                     errorDiv.innerHTML = message;
                                     console.log('Created error div:', errorDiv);
 
-                                    // Insert error message at the top of the plan tab content
                                     const planTabContent = document.getElementById('plan');
                                     const firstFormSection = planTabContent.querySelector('.form-section');
                                     if (firstFormSection) {
                                         firstFormSection.parentNode.insertBefore(errorDiv, firstFormSection);
                                         console.log('Error message inserted before first form section');
                                     } else {
-                                        // Fallback: insert at the very top of plan tab
                                         planTabContent.insertBefore(errorDiv, planTabContent.firstElementChild);
                                         console.log('Error message inserted at top of plan tab (fallback)');
                                     }
 
-                                    // Scroll to error message
                                     setTimeout(() => {
                                         errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                         console.log('Scrolled to error message');
@@ -2067,7 +1965,6 @@
 
                             </div>
 
-                            <!-- Visibility (ShareableEntity.isPublic) -->
                             <div class="form-section">
                                 <h6>
                                     <i class="bi bi-share me-2"></i>Visibility
@@ -2096,7 +1993,6 @@
                                 </p>
                             </div>
 
-                            <!-- AI Generated Plan Days Display -->
                             <div th:if="${aiGeneratedPlanDays != null and !aiGeneratedPlanDays.isEmpty()}" class="form-section">
                                 <h6><i class="bi bi-robot me-2"></i>AI Suggested Plan Structure</h6>
                                 <div class="alert alert-info">
@@ -2164,18 +2060,15 @@
 <div layout:fragment="scripts">
     <script>
         (function () {
-            // --- Advanced muscles UI based on MuscleGroup enum ---
             function parseMuscles(raw) {
                 if (!raw) {
                     return [];
                 }
-                // raw is now like "UPPER_CHEST,MIDDLE_CHEST" from data-muscles attribute
                 return raw
                     .split(',')
                     .map(s => s.trim())
                     .filter(Boolean)
                     .map(name => {
-                        // Format display name similar to MuscleType.formatDisplayName
                         let cleaned = name
                             .replace(/TRICEPS/g, '')
                             .replace(/BICEPS/g, '')
@@ -2190,10 +2083,9 @@
                     });
             }
 
-            // Track checked muscles: { muscleName: boolean }
             let checkedMuscles = {};
-            let muscleGroupIndex = 1; // Start at 1 since we have one default entry
-            let currentMuscleTargets = {}; // Global variable to store current muscle targets
+            let muscleGroupIndex = 1;
+            let currentMuscleTargets = {};
 
             function collectAllSelectedMuscleGroups() {
                 const groups = [];
@@ -2225,11 +2117,9 @@
             }
 
             function validateMuscleGroupSelection(event) {
-                // Re-validate ALL selects whenever any select changes or cards are removed
                 const allSelects = document.querySelectorAll('.muscle-group-select');
-                const selectedGroups = new Map(); // value -> array of selects
+                const selectedGroups = new Map();
 
-                // First pass: collect all selections
                 allSelects.forEach(select => {
                     const value = select.value;
                     if (value) {
@@ -2240,14 +2130,12 @@
                     }
                 });
 
-                // Second pass: update UI for each select
                 allSelects.forEach(select => {
                     const entry = select.closest('.muscle-group-entry');
                     const warningElement = entry.querySelector('.duplicate-warning');
                     const value = select.value;
 
                     if (value && selectedGroups.has(value) && selectedGroups.get(value).length > 1) {
-                        // This is a duplicate
                         if (!warningElement) {
                             const warning = document.createElement('div');
                             warning.className = 'duplicate-warning alert alert-warning py-1 px-2 mt-2 mb-0 small';
@@ -2256,7 +2144,6 @@
                         }
                         select.classList.add('is-invalid');
                     } else {
-                        // Not a duplicate
                         if (warningElement) {
                             warningElement.remove();
                         }
@@ -2271,7 +2158,6 @@
                 let hasDuplicates = false;
                 let hasEmptySelections = false;
 
-                // Clear any existing validation messages
                 document.querySelectorAll('.form-validation-error').forEach(el => el.remove());
 
                 allSelects.forEach(select => {
@@ -2282,7 +2168,6 @@
                         }
                         selectedGroups.add(value);
 
-                        // Check if intensity is selected for this muscle group
                         const entry = select.closest('.muscle-group-entry');
                         const intensitySelect = entry.querySelector('[name*="intensity"]');
                         if (!intensitySelect || !intensitySelect.value) {
@@ -2294,7 +2179,6 @@
                     }
                 });
 
-                // Check for validation errors
                 if (hasDuplicates) {
                     showFormError('Duplicate muscle groups selected. Each target must have a unique muscle group.');
                     return false;
@@ -2309,23 +2193,19 @@
             }
 
             function showFormError(message) {
-                // Remove any existing error
                 const existingError = document.querySelector('.form-validation-error');
                 if (existingError) {
                     existingError.remove();
                 }
 
-                // Add new error message at the top of the form
                 const form = document.querySelector('#exercise form');
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'form-validation-error alert alert-danger mb-3';
                 errorDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>' + message;
                 form.insertBefore(errorDiv, form.firstChild);
 
-                // Scroll to top of form to show error
                 errorDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-                // Auto-remove error after 5 seconds
                 setTimeout(() => {
                     if (errorDiv.parentNode) {
                         errorDiv.remove();
@@ -2354,16 +2234,14 @@
 
                 hint.textContent = 'Click to select/deselect specific muscles:';
 
-                // Collect all muscles from selected groups
                 const allMuscles = new Set();
                 selectedGroups.forEach(group => {
                     group.muscles.forEach(muscle => allMuscles.add(muscle));
                 });
 
-                // Initialize checkedMuscles for new muscles (preserve existing state)
                 Array.from(allMuscles).forEach(muscle => {
                     if (!(muscle in checkedMuscles)) {
-                        checkedMuscles[muscle] = true; // Default to checked for new muscles
+                        checkedMuscles[muscle] = true;
                     }
                 });
 
@@ -2398,7 +2276,6 @@
             function removeMuscleGroup(event) {
                 const entry = event.target.closest('.muscle-group-entry');
                 if (entry) {
-                    // Remove the wrapper div as well
                     const wrapper = entry.closest('.col-md-6');
                     if (wrapper) {
                         wrapper.remove();
@@ -2408,7 +2285,7 @@
                     updateFormIndices();
                     updateRemoveButtonVisibility();
                     updateAdvancedMusclesVisibility();
-                    validateMuscleGroupSelection(); // Re-validate after removal
+                    validateMuscleGroupSelection();
                 }
             }
 
@@ -2426,7 +2303,6 @@
                         intensitySelect.name = `muscleGroupTarget[${index}].intensity`;
                     }
 
-                    // Update the label
                     const label = entry.querySelector('.text-muted');
                     if (label) {
                         label.textContent = index === 0 ? 'Primary Target' : `Target ${index + 1}`;
@@ -2462,18 +2338,15 @@
             }
 
             function findEnumKeyForMuscle(displayMuscle, muscleTargets) {
-                // Try exact match first
                 if (displayMuscle in muscleTargets) {
                     return displayMuscle;
                 }
 
-                // Try converting display name to enum name
                 const enumKey = displayMuscle.toUpperCase().replace(/ /g, '_');
                 if (enumKey in muscleTargets) {
                     return enumKey;
                 }
 
-                // Try some common conversions
                 const conversions = {
                     'Glutes': 'GLUTES',
                     'Hip Flexors': 'HIP_FLEXORS',
@@ -2490,17 +2363,14 @@
             function updateSelectedMuscleTypes() {
                 
 
-                // Remove existing hidden inputs for muscle targets
                 const existingTargets = document.querySelectorAll('input[name^="muscleTargets"]');
                 const existingGroups = document.querySelectorAll('input[name^="muscleGroupTarget"]');
                 existingTargets.forEach(input => input.remove());
                 existingGroups.forEach(input => input.remove());
                 
 
-                // Collect muscle targets from muscle group cards
                 const muscleGroupEntries = document.querySelectorAll('.muscle-group-entry');
-                muscleTargets = {}; // Reset the local variable
-                
+                muscleTargets = {};
 
                 muscleGroupEntries.forEach((entry, entryIndex) => {
                     const muscleGroupSelect = entry.querySelector('.muscle-group-select');
@@ -2511,7 +2381,6 @@
                         const muscleGroup = muscleGroupSelect.value;
                         const intensity = intensitySelect.value;
 
-                        // Parse the data-muscles attribute to get individual muscles
                         const musclesData = muscleGroupSelect.selectedOptions[0]?.getAttribute('data-muscles');
                         if (musclesData) {
                             const muscles = musclesData.split(',');
@@ -2525,21 +2394,14 @@
                     }
                 });
 
-                // Process advanced muscle selections (only include checked ones, remove unchecked)
-                
-                
-
                 Object.keys(checkedMuscles).forEach(muscle => {
                     if (checkedMuscles[muscle]) {
-                        // Use LOW intensity for advanced selections if not already set by muscle group
-                        // Try to find the muscle in muscleTargets (handle display name vs enum name mismatch)
                         const enumKey = findEnumKeyForMuscle(muscle, muscleTargets);
                         if (enumKey) {
                             muscleTargets[enumKey] = muscleTargets[enumKey] || 'LOW';
                             
                         }
                     } else {
-                        // Remove unchecked muscles (even if they were added by group selection)
                         const enumKey = findEnumKeyForMuscle(muscle, muscleTargets);
                         if (enumKey) {
                             delete muscleTargets[enumKey];
@@ -2548,14 +2410,9 @@
                     }
                 });
 
-                
-
-                // Add hidden inputs for muscle targets as indexed properties
-                // Always try to find and use the exercise form directly
                 let container = document.querySelector('#exercise form');
 
                 if (!container) {
-                    // Fallback: find form containing our container
                     const exerciseContainer = document.getElementById('exerciseMuscleTargetsContainer');
                     if (exerciseContainer) {
                         container = exerciseContainer.closest('form');
@@ -2564,41 +2421,28 @@
                 }
 
                 if (!container) {
-                    // Last resort: use the container itself
                     container = document.getElementById('exerciseMuscleTargetsContainer') || document.body;
-                    
                 }
 
-                
-                
-
                 const muscleTargetEntries = Object.entries(muscleTargets);
-                
 
                 muscleTargetEntries.forEach(([muscle, intensity], index) => {
-                    // Create hidden input for muscle (enum value)
                     const muscleInput = document.createElement('input');
                     muscleInput.type = 'hidden';
                     muscleInput.name = `muscleTargets[${index}].muscle`;
-                    muscleInput.value = muscle; // Should be enum name
+                    muscleInput.value = muscle;
                     container.appendChild(muscleInput);
 
-                    // Create hidden input for intensity (enum value)
                     const intensityInput = document.createElement('input');
                     intensityInput.type = 'hidden';
                     intensityInput.name = `muscleTargets[${index}].intensity`;
-                    intensityInput.value = intensity; // Should be enum name
+                    intensityInput.value = intensity;
                     container.appendChild(intensityInput);
 
                 });
 
-                // Final check - count all muscleTargets inputs
                 const allMuscleInputs = document.querySelectorAll('input[name^="muscleTargets"]');
-
-                // Store current muscle targets globally for validation
                 currentMuscleTargets = { ...muscleTargets };
-
-                
             }
 
             function toggleAdvancedMuscles() {
@@ -2618,7 +2462,6 @@
                 }
 
                 if (isHidden) {
-                    // Just render the muscles when opening the panel (state is preserved)
                     renderAdvancedMuscles();
                 }
             }
@@ -2651,7 +2494,6 @@
                 { value: 'LEGS', text: 'Legs', muscles: ['GLUTES','HIP_FLEXORS','ABDUCTOR','QUADRICEPS','HAMSTRINGS','ADDUCTORS','CALVES'] }
             ];
 
-            // Populate muscle group options for a select element
             function populateMuscleGroupOptions(selectElement, selectedValue) {
                 selectElement.innerHTML = '<option value="">Select Group</option>';
                 muscleGroupDefinitions.forEach(option => {
@@ -2767,41 +2609,32 @@
                 updateAdvancedMusclesVisibility();
             }
 
-            // Initialize exercise muscle targets (for edit mode or AI-generated)
             function initializeExerciseMuscleTargets(muscleTargets) {
                 console.log('Initializing exercise muscle targets:', muscleTargets);
 
-                // Group muscles by muscle group and collect intensities
                 const muscleGroupsToSelect = {};
                 const muscleIntensities = {};
 
                 muscleTargets.forEach(target => {
                     if (target && target.muscle) {
-                        // Find which muscle group contains this muscle
                         const muscleGroup = findMuscleGroupForMuscle(target.muscle);
                         if (muscleGroup) {
                             muscleGroupsToSelect[muscleGroup] = true;
                             muscleIntensities[muscleGroup] = target.intensity || 'MODERATE';
                         }
-                        // Also set the individual muscle as checked for the advanced view
                         checkedMuscles[target.muscle] = true;
                         console.log('Setting muscle target:', target.muscle, 'as checked');
                     }
                 });
 
-                // Pre-select the muscle groups in the UI
                 Object.keys(muscleGroupsToSelect).forEach(muscleGroup => {
                     selectMuscleGroup(muscleGroup, muscleIntensities[muscleGroup]);
                 });
 
-                // Update the UI to reflect the checked muscles
                 updateSelectedMuscleTypes();
-
-                // Trigger renderAdvancedMuscles to show the selected muscles
                 renderAdvancedMuscles();
             }
 
-            // Helper function to find which muscle group contains a specific muscle
             function findMuscleGroupForMuscle(muscle) {
                 const muscleGroupSelect = document.querySelector('.muscle-group-select');
                 if (!muscleGroupSelect) return null;
@@ -2812,18 +2645,16 @@
                     if (musclesData) {
                         const muscles = musclesData.split(',');
                         if (muscles.includes(muscle)) {
-                            return option.value; // Return the muscle group value
+                            return option.value;
                         }
                     }
                 }
                 return null;
             }
 
-            // Helper function to select a muscle group in the UI
             function selectMuscleGroup(muscleGroup, intensity) {
                 console.log('Selecting muscle group:', muscleGroup, 'with intensity:', intensity);
 
-                // Find the first muscle group entry and set its values
                 const firstEntry = document.querySelector('.muscle-group-entry');
                 if (firstEntry) {
                     const groupSelect = firstEntry.querySelector('.muscle-group-select');
@@ -2831,7 +2662,6 @@
 
                     if (groupSelect) {
                         groupSelect.value = muscleGroup;
-                        // Trigger change event to update the UI
                         groupSelect.dispatchEvent(new Event('change', { bubbles: true }));
                     }
 
@@ -2841,7 +2671,6 @@
                 }
             }
 
-            // Initialize muscle targets for edit mode or AI-generated exercises
             function initializeMuscleTargetsForEdit() {
                 console.log('Initializing muscle targets for edit mode');
                 const muscleTargets = window.muscleTargetsData || [];
@@ -2854,24 +2683,20 @@
                 console.log('Edit mode:', editMode, 'Edit type:', editType);
                 console.log('Muscle targets:', muscleTargets);
 
-                // Initialize muscle targets for exercises (edit mode or AI-generated)
                 if ((editMode && editType === 'EXERCISE') || (!editMode && muscleTargets.length > 0)) {
                     console.log('Initializing muscle targets for exercise');
                     initializeExerciseMuscleTargets(muscleTargets);
                 }
 
-                // Initialize workout exercises for edit mode
                 console.log('Checking workout edit condition: editMode =', editMode, 'editType =', editType, 'condition =', editMode && editType === 'WORKOUT');
                 if (editMode && editType === 'WORKOUT') {
                     console.log('Calling initializeWorkoutExercisesForEdit() from conditional block');
                     initializeWorkoutExercisesForEdit();
                 }
 
-                // Initialize plan for edit mode
                 console.log('Checking plan edit condition: editMode =', editMode, 'editType =', editType, 'condition =', editMode && editType === 'PLAN');
                 if (editMode && editType === 'PLAN') {
                     console.log('Calling initializePlanForEdit() from conditional block');
-                    // Add a small delay to ensure DOM is ready
                     setTimeout(() => {
                         initializePlanForEdit();
                     }, 100);
@@ -2906,10 +2731,8 @@
 
             document.addEventListener('DOMContentLoaded', function () {
 
-                // Initialize muscle targets for edit mode
                 initializeMuscleTargetsForEdit();
 
-                // Add event listeners for all existing muscle group selects
                 const muscleSelects = document.querySelectorAll('.muscle-group-select');
                 muscleSelects.forEach(select => {
                     if (select.dataset.listenerAttached === 'true') {
@@ -2922,7 +2745,6 @@
                     select.dataset.listenerAttached = 'true';
                 });
 
-                // Add event listeners for all existing intensity selects
                 const intensitySelects = document.querySelectorAll('[name*="intensity"]');
                 intensitySelects.forEach(select => {
                     if (select.dataset.listenerAttached === 'true') {
@@ -2932,7 +2754,6 @@
                     select.dataset.listenerAttached = 'true';
                 });
 
-                // Add muscle group button
                 const addBtn = document.getElementById('addMuscleGroupBtn');
                 
                 if (addBtn) {
@@ -2944,100 +2765,45 @@
                     console.error('Add button not found!');
                 }
 
-                // Remove muscle group buttons (existing and future) - delegate to document
                 document.addEventListener('click', function(e) {
                     if (e.target.closest('.remove-muscle-group')) {
                         removeMuscleGroup(e);
                     }
                 });
 
-                // Advanced muscles toggle button
                 const toggleBtn = document.getElementById('toggleAdvancedMusclesBtn');
                 if (toggleBtn) {
                     toggleBtn.addEventListener('click', toggleAdvancedMuscles);
                 }
 
-                // Initial state: hide toggle until muscle groups are selected
                 updateAdvancedMusclesVisibility();
-
-                // Initialize selected muscle types hidden input
-                
                 updateSelectedMuscleTypes();
-
-                // Initialize target names
                 updateTargetNames();
 
-                // Add form validation for exercise form
                 let exerciseForm = document.querySelector('#exercise form');
                 if (!exerciseForm) {
-                    // Fallback: find form containing our container
                     const container = document.getElementById('exerciseMuscleTargetsContainer');
                     if (container) {
                         exerciseForm = container.closest('form');
                     }
                 }
-                
-
-                // Store form reference globally for use in submit handler
                 window.exerciseFormRef = exerciseForm;
                 if (exerciseForm) {
-                    
                     exerciseForm.addEventListener('submit', function(e) {
-                        
-                        
-                        
-                        
-                        
-
-                        
-                        
-
-                        // Update muscle targets before validation
                         try {
                             updateSelectedMuscleTypes();
                         } catch (error) {
                             console.error('Error in updateSelectedMuscleTypes:', error);
                         }
 
-                        // Check what will actually be submitted
                         let actualForm = window.exerciseFormRef || exerciseForm;
                         if (!actualForm) {
-                            // Try to find the form that contains our container
                             const container = document.getElementById('exerciseMuscleTargetsContainer');
                             if (container) {
                                 actualForm = container.closest('form');
-                                
                             }
                         }
 
-                        
-                        if (actualForm) {
-                            
-                        }
-
-                        const formData = new FormData(actualForm || exerciseForm);
-                        
-                        for (let [key, value] of formData.entries()) {
-                            
-                        }
-                        
-
-                        // Also check all form elements
-                        
-                        const formToCheck = actualForm || exerciseForm;
-                        if (formToCheck) {
-                            const allElements = formToCheck.querySelectorAll('input, select, textarea');
-                            allElements.forEach((el, i) => {
-                                if (el.name) {
-                                    
-                                }
-                            });
-                        } else {
-                            
-                        }
-                        
-
-                        // Check for duplicate muscle groups
                         const allMuscleGroupSelects = document.querySelectorAll('.muscle-group-select');
                         const selectedGroups = new Set();
                         let hasDuplicates = false;
@@ -3061,9 +2827,7 @@
                             return false;
                         }
 
-                        // Check if any muscle groups are selected but missing intensity
                         const muscleGroupEntries = document.querySelectorAll('.muscle-group-entry');
-                        
 
                         let hasIncompleteMuscleGroups = false;
                         let missingIntensityCount = 0;
@@ -3073,13 +2837,6 @@
                             const muscleGroupSelect = entry.querySelector('.muscle-group-select');
                             const intensitySelect = entry.querySelector('[name*="intensity"]');
 
-                            
-                            
-                            
-                            
-                            
-
-                            // Check if this entry has either group or intensity selected (incomplete entry)
                             const hasGroupSelected = muscleGroupSelect && muscleGroupSelect.value;
                             const hasIntensitySelected = intensitySelect && intensitySelect.value;
 
@@ -3098,14 +2855,7 @@
                             }
                         });
 
-                        
-                        
-                        
-
                         if (hasIncompleteMuscleGroups) {
-                            
-
-                            // Choose appropriate error message based on the type of incompleteness
                             let errorMessage;
                             if (missingIntensityCount > 0 && missingGroupCount === 0) {
                                 errorMessage = 'All selected muscle groups must have an intensity level selected.';
@@ -3116,14 +2866,10 @@
                             }
 
                             showFormError(errorMessage);
-                            
-
-                            // Multiple prevention methods
                             e.preventDefault();
                             e.stopImmediatePropagation();
                             e.stopPropagation();
 
-                            // Also try to disable the form temporarily
                             const submitBtn = this.querySelector('button[type="submit"]');
                             if (submitBtn) {
                                 submitBtn.disabled = true;
@@ -3138,11 +2884,7 @@
                             return false;
                         }
 
-                        
-
-                        // Check if any muscle targets were created
                         const muscleTargetInputs = document.querySelectorAll('input[name^="muscleTargets"]');
-                        
 
                         if (muscleTargetInputs.length === 0) {
                             
@@ -3151,54 +2893,40 @@
                             e.stopImmediatePropagation();
                             return false;
                         }
-
-                        // Validate that all checked muscles have intensities
-                        
-                        
                         
                         let hasInvalidMuscles = false;
                         Object.keys(checkedMuscles).forEach(muscleDisplayName => {
                             if (checkedMuscles[muscleDisplayName]) {
-                                // This muscle is checked, find its enum key and check if it has an intensity
                                 const muscleEnumName = findEnumKeyForMuscle(muscleDisplayName, currentMuscleTargets);
                                 
                                 if (muscleEnumName && !currentMuscleTargets[muscleEnumName]) {
-                                    
                                     hasInvalidMuscles = true;
                                 }
                             }
                         });
 
                         if (hasInvalidMuscles) {
-                            
                             showFormError('All selected muscles must have an intensity level selected. Please check the advanced muscle selection.');
                             
                             e.preventDefault();
                             e.stopImmediatePropagation();
                             return false;
                         }
-
-                        
                     });
                 }
 
-                // Add event listeners for intensity selects to update muscle targets
                 document.addEventListener('change', function(e) {
                     if (e.target.matches('[name*="intensity"]') || e.target.matches('.muscle-group-select')) {
                         updateSelectedMuscleTypes();
                     }
                 });
 
-                // Fallback: Prevent form submission on button click if validation fails
                 document.addEventListener('click', function(e) {
                     if (e.target.matches('button[type="submit"]') || e.target.closest('button[type="submit"]')) {
                         const button = e.target.matches('button[type="submit"]') ? e.target : e.target.closest('button[type="submit"]');
                         const form = button.closest('form');
 
                         if (form && form.matches('#exercise form')) {
-                            
-
-                            // Check for duplicate muscle groups first
                             const allMuscleGroupSelects = document.querySelectorAll('.muscle-group-select');
                             const selectedGroups = new Set();
                             let hasDuplicates = false;
@@ -3221,7 +2949,6 @@
                                 return false;
                             }
 
-                            // Quick validation check for incomplete entries
                             const muscleGroupEntries = document.querySelectorAll('.muscle-group-entry');
                             let hasIncompleteMuscleGroups = false;
 
@@ -3238,7 +2965,6 @@
                             });
 
                             if (hasIncompleteMuscleGroups) {
-                                
                                 e.preventDefault();
                                 e.stopImmediatePropagation();
                                 showFormError('All muscle targeting entries must be complete. Each entry needs both a muscle group and intensity level, or be left empty.');
@@ -3248,7 +2974,6 @@
                     }
                 });
 
-                // Handle public/private toggle text and description change
                 const publicToggle = document.getElementById('exerciseIsPublic');
                 const toggleText = publicToggle?.parentElement?.querySelector('.toggle-label-text');
                 const toggleDescription = publicToggle?.parentElement?.parentElement?.querySelector('.small-hint');
@@ -3263,10 +2988,9 @@
                     }
 
                     publicToggle.addEventListener('change', updateToggleState);
-                    updateToggleState(); // Set initial state
+                    updateToggleState();
                 }
 
-                // Handle workout public/private toggle
                 const workoutPublicToggle = document.getElementById('workoutIsPublic');
                 const workoutToggleText = workoutPublicToggle?.parentElement?.querySelector('.toggle-label-text');
                 const workoutToggleDescription = workoutPublicToggle?.parentElement?.parentElement?.querySelector('.small-hint');
@@ -3281,10 +3005,9 @@
                     }
 
                     workoutPublicToggle.addEventListener('change', updateWorkoutToggleState);
-                    updateWorkoutToggleState(); // Set initial state
+                    updateWorkoutToggleState();
                 }
 
-                // Handle plan public/private toggle
                 const planPublicToggle = document.getElementById('planIsPublic');
                 const planToggleText = planPublicToggle?.parentElement?.querySelector('.toggle-label-text');
                 const planToggleDescription = planPublicToggle?.parentElement?.parentElement?.querySelector('.small-hint');
@@ -3299,25 +3022,21 @@
                     }
 
                     planPublicToggle.addEventListener('change', updatePlanToggleState);
-                    updatePlanToggleState(); // Set initial state
+                    updatePlanToggleState();
                 }
             });
         })();
 
-        // Handle active tab from URL parameter or server-side errors
         (function() {
-            // First check URL parameter
             const urlParams = new URLSearchParams(window.location.search);
             let activeTab = urlParams.get('tab');
 
-            // If no URL parameter, check server-side data attribute
             if (!activeTab) {
                 const activeTabElement = document.querySelector('[data-active-tab]');
                 activeTab = activeTabElement ? activeTabElement.getAttribute('data-active-tab') : null;
             }
 
             if (activeTab && ['exercise', 'workout', 'plan'].includes(activeTab)) {
-                // Remove active class from current tab
                 document.querySelectorAll('.nav-link.active').forEach(tab => {
                     tab.classList.remove('active');
                 });
@@ -3325,7 +3044,6 @@
                     pane.classList.remove('show', 'active');
                 });
 
-                // Add active class to the specified tab
                 const targetTab = document.getElementById(activeTab + '-tab');
                 const targetPane = document.getElementById(activeTab);
 
@@ -3333,28 +3051,23 @@
                     targetTab.classList.add('active');
                     targetPane.classList.add('show', 'active');
 
-                    // Trigger Bootstrap tab event for proper initialization
                     const tabEvent = new Event('shown.bs.tab', { bubbles: true });
                     targetTab.dispatchEvent(tabEvent);
                 }
             }
         })();
 
-        // Force disable animations on elements with no-animation class
         (function() {
             function disableNoAnimationElements() {
                 const noAnimationElements = document.querySelectorAll('.no-animation');
                 noAnimationElements.forEach(element => {
-                    // Force disable all animations and transitions
                     element.style.animation = 'none';
                     element.style.transition = 'none';
                     element.style.transform = 'none';
                     element.style.opacity = '1';
 
-                    // Also disable for all child elements EXCEPT toggle switches
                     const allChildren = element.querySelectorAll('*');
                     allChildren.forEach(child => {
-                        // Skip toggle switch elements
                         if (!child.classList.contains('toggle-switch-knob') &&
                             !child.classList.contains('toggle-switch-slider') &&
                             !child.closest('.toggle-switch-container')) {
@@ -3365,16 +3078,10 @@
                         }
                     });
                 });
-
-                if (noAnimationElements.length > 0) {
-                    
-                }
             }
 
-            // Run immediately
             disableNoAnimationElements();
 
-            // Also run when the workout tab becomes active
             const workoutTab = document.getElementById('workout-tab');
             if (workoutTab) {
                 workoutTab.addEventListener('shown.bs.tab', function() {
@@ -3382,7 +3089,6 @@
                 });
             }
 
-            // Run on any DOM changes
             const observer = new MutationObserver(function(mutations) {
                 mutations.forEach(function(mutation) {
                     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
@@ -3397,17 +3103,14 @@
             }
         })();
 
-        // Global functions for workout selection
         function initializeWorkoutSelect(selectElement, dayNumber) {
                 console.log('initializeWorkoutSelect called for day', dayNumber, 'element:', selectElement);
 
-                // Check if jQuery and Select2 are available
                 if (typeof $ === 'undefined' || typeof $.fn.select2 === 'undefined') {
                     console.error('jQuery or Select2 not available');
                     return;
                 }
 
-                // Check if already initialized
                 if ($(selectElement).hasClass('select2-hidden-accessible')) {
                     return;
                 }
@@ -3467,43 +3170,36 @@
                     }
                 });
 
-                // Load initial workouts when dropdown opens
                 $(selectElement).on('select2:open', function () {
                     const select2Instance = $(this).data('select2');
                     if (!select2Instance || !select2Instance.dropdown || !select2Instance.dropdown.$dropdown) return;
 
-                    // Change arrow to up
                     const arrow = $(this).next('.select2-container').find('.select2-selection__arrow::after');
                     if (arrow.length) {
-                        arrow.css('content', '"\\F144"'); // chevron-up
+                        arrow.css('content', '"\\F144"');
                     }
 
-                    // If no search term, trigger search to load initial results
                     const searchInput = select2Instance.dropdown.$search || select2Instance.dropdown.$dropdown.find('input');
                     if (searchInput && !searchInput.val()) {
-                        // Trigger initial load
                         setTimeout(function () {
                             searchInput.val('').trigger('input');
                         }, 10);
                     }
                 });
 
-                // Change arrow back to down when dropdown closes
                 $(selectElement).on('select2:close', function () {
                     const arrow = $(this).next('.select2-container').find('.select2-selection__arrow::after');
                     if (arrow.length) {
-                        arrow.css('content', '"\\F145"'); // chevron-down
+                        arrow.css('content', '"\\F145"');
                     }
                 });
 
-                // Handle workout selection - directly add to this day
                 $(selectElement).on('select2:select', function (e) {
                     console.log('Workout selected:', e.params.data);
                     const workout = e.params.data.workout;
                     const currentDayNumber = parseInt(selectElement.getAttribute('data-day'));
                     console.log('Adding workout to day', currentDayNumber, '(from data-day attr)', ':', workout);
 
-                    // Find the day card directly
                     const dayCard = selectElement.closest('.card[id^="planDay_"]');
                     console.log('Found day card via closest:', dayCard, 'id:', dayCard?.id);
 
@@ -3511,17 +3207,15 @@
                         addWorkoutToDayViaCard(dayCard, workout);
                     } else {
                         console.error('Could not find day card for select element');
-                        addWorkoutToDay(currentDayNumber, workout); // Fallback
+                        addWorkoutToDay(currentDayNumber, workout);
                     }
 
-                    $(this).val(null).trigger('change'); // Clear selection
+                    $(this).val(null).trigger('change');
                 });
             }
 
-        // Global storage for workout data
         const workoutDataStore = new Map();
 
-        // Global functions for workout management
         function addWorkoutToDayViaCard(dayCard, workout) {
             console.log('addWorkoutToDayViaCard called with dayCard:', dayCard?.id, 'workout:', workout);
 
@@ -3539,27 +3233,22 @@
                 return;
             }
 
-            // Clear empty state if present
             const emptyState = workoutContainer.querySelector('.empty-workouts-message');
             if (emptyState) {
                 emptyState.remove();
             }
 
-            // Generate unique instance ID for this workout
             const uniqueInstanceId = `${workout.id}_${Date.now()}_${Math.random()}`;
 
-            // Store workout data for modal display
             console.log('Storing workout in data store:', uniqueInstanceId, workout);
             workoutDataStore.set(uniqueInstanceId, workout);
 
-            // Add hidden input
             const hiddenInput = document.createElement('input');
             hiddenInput.type = 'hidden';
             hiddenInput.name = `days[${parseInt(dayCard.id.replace('planDay_', '')) - 1}].workoutIds`;
             hiddenInput.value = workout.id;
             dayCard.appendChild(hiddenInput);
 
-            // Add workout display
             console.log('Creating HTML for workout:', workout.name, 'type:', workout.type, 'count:', workout.exerciseCount);
             const typeText = workoutTypeDisplayNames[workout.type] || workout.type || 'UNKNOWN';
             const countText = workout.exerciseCount || workout.exercises?.length || 0;
@@ -3593,7 +3282,6 @@
             const workoutDiv = workoutElement.firstElementChild;
             workoutContainer.appendChild(workoutDiv);
 
-            // Add event listeners
             const viewBtn = workoutDiv.querySelector('.view-workout-btn');
             viewBtn.addEventListener('click', function() {
                 const instanceId = this.getAttribute('data-workout-instance-id');
@@ -3643,27 +3331,22 @@
                 return;
             }
 
-            // Clear empty state if present (only the "No workouts assigned yet" message)
             const emptyState = workoutContainer.querySelector('.empty-workouts-message');
             if (emptyState) {
                 emptyState.remove();
             }
 
-            // Generate unique instance ID for this workout (allows duplicates)
             const uniqueInstanceId = `${workout.id}_${Date.now()}_${Math.random()}`;
 
-            // Store workout data for modal display
             console.log('Storing workout in data store:', uniqueInstanceId, workout);
             workoutDataStore.set(uniqueInstanceId, workout);
 
-            // Add hidden input
             const hiddenInput = document.createElement('input');
             hiddenInput.type = 'hidden';
             hiddenInput.name = `days[${dayNumber - 1}].workoutIds`;
             hiddenInput.value = workout.id;
             dayCard.appendChild(hiddenInput);
 
-            // Add workout display
             console.log('Creating HTML for workout:', workout.name, 'type:', workout.type, 'count:', workout.exerciseCount);
             const typeText = workoutTypeDisplayNames[workout.type] || workout.type || 'UNKNOWN';
             const countText = workout.exerciseCount || workout.exercises?.length || 0;
@@ -3697,7 +3380,6 @@
             workoutElement.innerHTML = html;
             workoutContainer.appendChild(workoutElement);
 
-            // Add view exercises event listener
             const viewBtn = workoutElement.querySelector('.view-workout-btn');
             viewBtn.addEventListener('click', function() {
                 const instanceId = this.getAttribute('data-workout-instance-id');
@@ -3707,7 +3389,6 @@
                 }
             });
 
-            // Add remove event listener
             const removeBtn = workoutElement.querySelector('.remove-workout-btn');
             removeBtn.addEventListener('click', function() {
                 const instanceId = this.getAttribute('data-workout-instance-id');
@@ -3723,7 +3404,6 @@
             modal.id = 'workoutExercisesModal';
             modal.setAttribute('tabindex', '-1');
 
-            // Create exercise list HTML
             let exercisesHtml = '';
             if (exercises.length > 0) {
                 exercisesHtml = exercises.map((we) => {
@@ -3732,7 +3412,6 @@
                         exercise.muscleGroups.join(', ') :
                         'No targets specified';
 
-                    // Format workout-specific details
                     let workoutDetails = [];
                     if (we.reps) workoutDetails.push(`${we.reps} reps`);
                     if (we.weight) workoutDetails.push(`${we.weight}kg`);
@@ -3797,7 +3476,6 @@
             const bsModal = new bootstrap.Modal(modal);
             bsModal.show();
 
-            // Clean up modal when hidden
             modal.addEventListener('hidden.bs.modal', function() {
                 modal.remove();
             });
@@ -3806,24 +3484,19 @@
         function removeWorkoutFromDay(dayNumber, instanceId) {
             const dayCard = document.getElementById(`planDay_${dayNumber}`);
 
-            // Remove from workout data store
             workoutDataStore.delete(instanceId);
 
-            // Remove workout display
             const workoutElement = dayCard.querySelector(`[data-workout-instance-id="${instanceId}"]`);
             if (workoutElement) {
                 workoutElement.remove();
             }
 
-            // Regenerate all hidden inputs based on remaining workout elements in the UI
             const existingInputs = dayCard.querySelectorAll('input[name*="workoutIds"]');
             existingInputs.forEach(input => input.remove());
 
-            // Get remaining workout elements in visual order
             const workoutContainer = dayCard.querySelector('.assigned-workouts');
             const remainingWorkoutElements = workoutContainer.querySelectorAll('.workout-item');
 
-            // Create inputs based on visual order
             remainingWorkoutElements.forEach((workoutElement, index) => {
                 const instanceId = workoutElement.getAttribute('data-workout-instance-id');
                 const workout = workoutDataStore.get(instanceId);
@@ -3836,7 +3509,6 @@
                 }
             });
 
-            // Update empty state
             const remainingElements = workoutContainer.querySelectorAll('.workout-item');
             if (remainingElements.length === 0) {
                 workoutContainer.innerHTML = `
@@ -3847,12 +3519,10 @@
             }
         }
 
-        // Initialize workout selects when plan tab becomes active
         (function() {
             const planTab = document.getElementById('plan-tab');
             if (planTab) {
                 planTab.addEventListener('shown.bs.tab', function() {
-                    // Initialize any existing workout selects that might not have been initialized
                     document.querySelectorAll('#plan .workout-select:not(.select2-hidden-accessible)').forEach(function(select) {
                         const dayNumber = parseInt(select.getAttribute('data-day'));
                         initializeWorkoutSelect(select, dayNumber);
@@ -3861,7 +3531,6 @@
             }
         })();
 
-        // Workout type display name mapping (matches enum displayName)
         const workoutTypeDisplayNames = {
             'STRENGTH': 'Strength',
             'BODY_WEIGHT': 'Body Weight',
@@ -3872,7 +3541,6 @@
             'YOGA': 'Yoga'
         };
 
-        // Exercise type display name mapping (matches enum displayName)
         const exerciseTypeDisplayNames = {
             'STRENGTH': 'Strength',
             'PLYOMETRIC': 'Plyometric',
@@ -3883,9 +3551,6 @@
             'RECOVERY': 'Recovery'
         };
 
-        // --- Plan Days Management ---
-
-        // Global function for creating plan day cards (used by edit initialization)
         function createPlanDayCard(dayNumber) {
                 console.log('Creating day card for day number:', dayNumber);
                 const dayId = `planDay_${dayNumber}`;
@@ -3939,7 +3604,6 @@
                     </div>
                 `;
 
-                // Add hidden input for dayNumber
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
                 hiddenInput.name = `days[${dayNumber - 1}].dayNumber`;
@@ -3949,9 +3613,7 @@
                 return card;
             }
 
-            // Global function for attaching event listeners to day cards
             function attachDayEventListeners(dayCard) {
-                // Remove day button (only exists on some days)
                 const removeBtn = dayCard.querySelector('.remove-day-btn');
                 if (removeBtn) {
                     removeBtn.addEventListener('click', function() {
@@ -3959,7 +3621,6 @@
                     });
                 }
 
-                // Handle day type changes (show/hide workout section)
                 const typeSelect = dayCard.querySelector('.day-type-select');
                 const workoutSection = dayCard.querySelector('.mt-3');
 
@@ -3972,11 +3633,8 @@
                 }
 
                 typeSelect.addEventListener('change', updateWorkoutVisibility);
-
-                // Initialize workout visibility based on current selection
                 updateWorkoutVisibility();
 
-                // Initialize workout search for this day
                 const workoutSelect = dayCard.querySelector('.workout-select');
                 console.log('Day card:', dayCard.id, 'workoutSelect found:', !!workoutSelect);
                 if (workoutSelect) {
@@ -3988,16 +3646,13 @@
                 }
             }
 
-        // Helper functions for plan day management
         function updateDayNumbers() {
-            // Update day numbers in headers
             const dayCards = document.querySelectorAll('#planDaysContainer .card');
             dayCards.forEach((card, index) => {
                 const header = card.querySelector('.card-header h6');
                 if (header) {
                     header.textContent = `Day ${index + 1}`;
                 }
-                // Update hidden input for dayNumber
                 const hiddenInput = card.querySelector('input[name*=".dayNumber"]');
                 if (hiddenInput) {
                     hiddenInput.value = index + 1;
@@ -4018,16 +3673,13 @@
             const planDaysContainer = document.getElementById('planDaysContainer');
             if (!planDaysContainer) return;
 
-            // Remove all existing remove buttons
             const allRemoveBtns = planDaysContainer.querySelectorAll('.remove-day-btn');
             allRemoveBtns.forEach(btn => btn.remove());
 
-            // Find all day cards (excluding the Add Day button)
             const dayCards = Array.from(planDaysContainer.children).filter(child =>
                 child.classList.contains('card')
             );
 
-            // Add remove button only to the last day card
             if (dayCards.length > 0) {
                 const lastDayCard = dayCards[dayCards.length - 1];
                 const header = lastDayCard.querySelector('.card-header');
@@ -4039,67 +3691,12 @@
                     removeBtn.innerHTML = '<i class="bi bi-x"></i>';
                     header.appendChild(removeBtn);
 
-                    // Attach event listener
                     attachDayEventListeners(lastDayCard);
                 }
             }
         }
 
-        // --- Plan Days Management ---
         (function() {
-            const emptyMessage = document.getElementById('emptyPlanDaysMessage');
-
-            // Available workouts will be added through search
-            const availableWorkouts = [];
-
-
-
-
-            // DUPLICATE FUNCTION - REMOVED
-            /*
-        function attachDayEventListeners(dayCard) {
-            // Remove day button (only if it exists)
-            const removeBtn = dayCard.querySelector('.remove-day-btn');
-            if (removeBtn) {
-                removeBtn.addEventListener('click', function() {
-                    removePlanDay(dayCard);
-                });
-            }
-
-                // Handle day type changes (show/hide workout section)
-                const typeSelect = dayCard.querySelector('.day-type-select');
-                const workoutSection = dayCard.querySelector('.mt-3');
-
-                function updateWorkoutVisibility() {
-                    if (typeSelect.value === 'REST') {
-                        workoutSection.style.display = 'none';
-                    } else {
-                        workoutSection.style.display = 'block';
-                    }
-                }
-
-                typeSelect.addEventListener('change', updateWorkoutVisibility);
-
-                // Initialize workout visibility based on current selection
-                updateWorkoutVisibility();
-
-                // Initialize workout search for this day
-                const workoutSelect = dayCard.querySelector('.workout-select');
-                console.log('Day card:', dayCard.id, 'workoutSelect found:', !!workoutSelect);
-                if (workoutSelect) {
-                    const dayNumber = parseInt(workoutSelect.getAttribute('data-day'));
-                    console.log('Initializing workout search for day', dayNumber);
-                    initializeWorkoutSelect(workoutSelect, dayNumber);
-                } else {
-                    console.error('Workout select not found in day card', dayCard.id);
-                }
-            }
-            */
-
-
-
-
-            // Initialize - add the first Add Day button
             const initialAddBtn = document.createElement('div');
             initialAddBtn.className = 'text-center mt-3 add-day-btn';
             initialAddBtn.innerHTML = `
@@ -4115,10 +3712,8 @@
             updateEmptyMessageVisibility();
         })();
 
-        // Global variables for plan day management
         let planDayCounter = 0;
 
-        // Global function for adding plan days
         function addPlanDay() {
             const planDaysContainer = document.getElementById('planDaysContainer');
             if (!planDaysContainer) {
@@ -4126,7 +3721,6 @@
                 return;
             }
 
-            // Remove existing Add Day button
             const existingAddBtn = planDaysContainer.querySelector('.add-day-btn');
             if (existingAddBtn) {
                 existingAddBtn.remove();
@@ -4135,10 +3729,8 @@
             planDayCounter++;
             const dayCard = createPlanDayCard(planDayCounter);
 
-            // Add the day card
             planDaysContainer.appendChild(dayCard);
 
-            // Create and add the Add Day button after the new day
             const addDayBtn = document.createElement('div');
             addDayBtn.className = 'text-center mt-3 add-day-btn';
             addDayBtn.innerHTML = `
@@ -4151,15 +3743,12 @@
             updateEmptyMessageVisibility();
             updateRemoveButtonVisibility();
 
-            // Add event listeners
             attachDayEventListeners(dayCard);
 
-            // Add event listener to the new Add Day button
             const newAddBtn = addDayBtn.querySelector('button');
             newAddBtn.addEventListener('click', addPlanDay);
         }
 
-        // Global function for removing plan days
         function removePlanDay(dayCard) {
             const planDaysContainer = document.getElementById('planDaysContainer');
             if (!planDaysContainer) {
@@ -4169,27 +3758,21 @@
             const dayNumber = parseInt(dayCard.id.split('_')[1]);
             dayCard.remove();
 
-            // Renumber remaining days
             const remainingDays = Array.from(planDaysContainer.children);
-            // Filter to only include actual day cards, not the Add Day button
             const dayCards = remainingDays.filter(card => card.classList.contains('card'));
             dayCards.forEach((card, index) => {
                 const newDayNumber = index + 1;
                 const oldDayNumber = parseInt(card.id.split('_')[1]);
 
                 if (newDayNumber !== oldDayNumber) {
-                    // Update card header
                     const header = card.querySelector('.card-header h6');
                     header.textContent = `Day ${newDayNumber}`;
 
-                    // Update card id
                     card.id = `planDay_${newDayNumber}`;
 
-                    // Update form field names
                     const typeSelect = card.querySelector('.day-type-select');
                     typeSelect.name = `days[${newDayNumber - 1}].type`;
 
-                    // Update workout visibility based on type
                     const workoutSection = card.querySelector('.mt-3');
                     if (workoutSection) {
                         workoutSection.style.display = typeSelect.value === 'REST' ? 'none' : 'block';
@@ -4199,7 +3782,6 @@
                     dayNumberInput.name = `days[${newDayNumber - 1}].dayNumber`;
                     dayNumberInput.value = newDayNumber;
 
-                    // Update workout container and buttons
                     const workoutContainer2 = card.querySelector('.assigned-workouts');
                     if (workoutContainer2) {
                         workoutContainer2.setAttribute('data-day', newDayNumber);
@@ -4210,7 +3792,6 @@
                         addWorkoutBtn.setAttribute('data-day', newDayNumber);
                     }
 
-                    // Update workout input names
                     const workoutInputs = card.querySelectorAll('input[name*="workoutIds"]');
                     workoutInputs.forEach((input) => {
                         const parts = input.name.match(/days\[(\d+)\]\.workoutIds/);
@@ -4221,22 +3802,16 @@
                 }
             });
 
-            // Update planDayCounter to reflect the current number of days
             planDayCounter = dayCards.length;
-
-            // Ensure only the last day has a remove button
             updateRemoveButtonVisibility();
-
             updateEmptyMessageVisibility();
         }
 
-        // Initialize plan for edit mode
         function initializePlanForEdit() {
             console.log('Initializing plan for edit mode');
             console.log('window.planData:', window.planData);
             let planData = {};
             try {
-                // Parse JSON string if it's a string
                 if (typeof window.planData === 'string') {
                     planData = JSON.parse(window.planData);
                     console.log('Parsed planData from string:', planData);
@@ -4249,7 +3824,6 @@
                 planData = {};
             }
 
-            // Check if plan tab is active
             const planTab = document.getElementById('plan');
             console.log('Plan tab element:', planTab);
             console.log('Plan tab classes:', planTab ? planTab.classList : 'null');
@@ -4257,7 +3831,6 @@
             const planNameField = document.getElementById('planName');
             console.log('Plan name field:', planNameField);
 
-            // Populate basic plan fields
             if (planData.name) {
                 const nameField = document.getElementById('planName');
                 if (nameField) {
@@ -4287,7 +3860,6 @@
                 if (publicField) {
                     publicField.checked = planData.isPublic;
                     console.log('Set plan isPublic:', planData.isPublic);
-                    // Update the toggle text manually
                     const toggleText = publicField.parentElement?.querySelector('.toggle-label-text');
                     const toggleDescription = publicField.parentElement?.parentElement?.querySelector('.small-hint');
                     if (toggleText && toggleDescription) {
@@ -4299,14 +3871,11 @@
                 }
             }
 
-            // Load plan days
             if (planData.days && Array.isArray(planData.days) && planData.days.length > 0) {
                 loadPlanDays(planData.days);
             } else if (planData.planDays && Array.isArray(planData.planDays) && planData.planDays.length > 0) {
-                // Fallback for older format
                 loadPlanDays(planData.planDays);
             } else {
-                // No plan days, ensure Add Day button exists
                 setTimeout(() => {
                     const existingAddBtn = planDaysContainer.querySelector('.add-day-btn');
                     if (!existingAddBtn) {
@@ -4338,17 +3907,13 @@
         }
 
         function updatePlanDayCard(card, planDay) {
-            // Update day type
             const typeSelect = card.querySelector('.day-type-select');
             if (typeSelect && planDay.type) {
                 typeSelect.value = planDay.type;
-                // Trigger change event to show/hide workout section
                 typeSelect.dispatchEvent(new Event('change'));
             }
 
-            // Add workouts if they exist
             if (planDay.workouts && Array.isArray(planDay.workouts) && planDay.workouts.length > 0) {
-                // Wait a bit for the day type change to take effect
                 setTimeout(() => {
                     planDay.workouts.forEach(workoutData => {
                         addWorkoutToDay(card, workoutData);
@@ -4366,7 +3931,6 @@
                 return;
             }
 
-            // Clear existing days (except the "Add Day" button)
             const existingCards = planDaysContainer.querySelectorAll('.card');
             console.log('Found', existingCards.length, 'existing cards');
             existingCards.forEach(card => {
@@ -4376,7 +3940,6 @@
                 }
             });
 
-            // Add each plan day
             planDays.forEach((planDay, index) => {
                 console.log(`Creating plan day ${index + 1}:`, planDay.dayNumber, planDay.type, planDay.workoutIds?.length || 0, 'workouts');
                 const dayCard = createPlanDayCard(planDay.dayNumber);
@@ -4386,7 +3949,6 @@
                     return;
                 }
 
-                // Set day type
                 const typeSelect = dayCard.querySelector('.day-type-select');
                 if (typeSelect && planDay.type) {
                     typeSelect.value = planDay.type;
@@ -4396,7 +3958,6 @@
                 }
 
 
-                // Add the card before the "Add Day" button
                 const addBtn = planDaysContainer.querySelector('.add-day-btn');
                 if (addBtn) {
                     planDaysContainer.insertBefore(dayCard, addBtn);
@@ -4406,13 +3967,10 @@
                     console.log('Appended day card to container');
                 }
 
-                // Attach event listeners to the newly inserted day card
                 attachDayEventListeners(dayCard);
 
-                // Load workouts for this day after the DOM has updated
                 if (planDay.workouts && planDay.workouts.length > 0) {
                     console.log('Scheduling workout loading for day', planDay.dayNumber, 'with', planDay.workouts.length, 'workouts');
-                    // Use a longer delay and check that the element exists
                     setTimeout(() => {
                         const dayElement = document.getElementById(`planDay_${planDay.dayNumber}`);
                         if (dayElement) {
@@ -4420,20 +3978,18 @@
                         } else {
                             console.error('Day element not found for workout loading:', `planDay_${planDay.dayNumber}`);
                         }
-                    }, 1500 + (index * 500)); // Much longer delay
+                    }, 1500 + (index * 500));
                 } else {
                     console.log('No workouts to load for day', planDay.dayNumber);
                 }
             });
 
-            // Update planDayCounter to the highest day number loaded
             if (planDays.length > 0) {
                 const maxDayNumber = Math.max(...planDays.map(day => day.dayNumber || 0));
                 planDayCounter = maxDayNumber;
                 console.log('Updated planDayCounter to', planDayCounter);
             }
 
-            // Ensure Add Day button exists
             setTimeout(() => {
                 const existingAddBtn = planDaysContainer.querySelector('.add-day-btn');
                 if (!existingAddBtn) {
@@ -4456,7 +4012,7 @@
                 updateEmptyMessageVisibility();
                 updateRemoveButtonVisibility();
                 console.log('Plan days loading complete');
-            }, 2000); // Increased delay
+            }, 2000);
         }
 
         function loadWorkoutsForDay(dayElement, dayNumber, workouts) {
@@ -4474,7 +4030,6 @@
                 return;
             }
 
-            // Directly add workouts to the DOM (synchronous to maintain order)
             workouts.forEach((workout, index) => {
                 console.log(`Adding workout ${index + 1}/${workouts.length}: ${workout.name} (${workout.id}) to day ${dayNumber}`);
                 addWorkoutDirectly(dayElement, workout, dayNumber);
@@ -4500,22 +4055,14 @@
                         <h6 class="mb-3">Exercises in this workout:</h6>
                         <div class="exercise-list">
                             ${workout.exercises.map(workoutExercise => {
-                                // Handle different data structures:
-                                // 1. API: workoutExercise.exercise is ExerciseDTO
-                                // 2. Entity: workoutExercise.exercise is Exercise (with muscleGroupTarget)
-                                // 3. Flattened: workoutExercise has direct properties (name, imageUrl, muscleGroups)
-
                                 let exerciseType, imageUrl, exerciseName, muscleGroups = [];
 
                                 if (workoutExercise.exercise) {
-                                    // Structure 1 or 2: nested exercise object
                                     const exercise = workoutExercise.exercise;
 
                                     if (exercise.muscleGroups && Array.isArray(exercise.muscleGroups)) {
-                                        // From API: ExerciseDTO.muscleGroups is List<String>
                                         muscleGroups = exercise.muscleGroups;
                                     } else if (exercise.muscleGroupTarget && Array.isArray(exercise.muscleGroupTarget)) {
-                                        // From entity: Exercise.muscleGroupTarget needs mapping
                                         muscleGroups = exercise.muscleGroupTarget.map(mt => mt.muscle ? mt.muscle.displayName : mt.muscle);
                                     }
 
@@ -4523,13 +4070,12 @@
                                     imageUrl = exercise.imageUrl || '/images/exercises/default.png';
                                     exerciseName = exercise.name;
                                 } else if (workoutExercise.name) {
-                                    // Structure 3: flattened properties directly on workoutExercise
                                     exerciseType = workoutExercise.type || 'UNKNOWN';
                                     imageUrl = workoutExercise.imageUrl || '/images/exercises/default.png';
                                     exerciseName = workoutExercise.name;
                                     muscleGroups = workoutExercise.muscleGroups || [];
                                 } else {
-                                    return ''; // Invalid exercise data
+                                    return '';
                                 }
 
                                 const exerciseTypeText = exerciseTypeDisplayNames[exerciseType] || exerciseType || 'UNKNOWN';
@@ -4544,7 +4090,6 @@
                                         if (typeof mg === 'string') {
                                             return `<span class="muscle-group-tag">${mg}</span>`;
                                         } else if (mg && typeof mg === 'object' && mg.muscle) {
-                                            // Handle {intensity: 'HIGH', muscle: 'Glutes'} format
                                             return `<span class="muscle-group-tag">${mg.muscle}</span>`;
                                         } else {
                                             return `<span class="muscle-group-tag">${mg.displayName || mg.name || String(mg)}</span>`;
@@ -4620,7 +4165,6 @@
             const bsModal = new bootstrap.Modal(modal);
             bsModal.show();
 
-            // Clean up modal when hidden
             modal.addEventListener('hidden.bs.modal', function() {
                 modal.remove();
             });
@@ -4629,20 +4173,17 @@
         function addWorkoutDirectly(dayElement, workout, dayNumber) {
             console.log('Adding workout directly:', workout.name, 'to day', dayNumber);
 
-            // Add hidden input for form submission
             const hiddenInput = document.createElement('input');
             hiddenInput.type = 'hidden';
             hiddenInput.name = `days[${dayNumber - 1}].workoutIds`;
             hiddenInput.value = workout.id;
             dayElement.appendChild(hiddenInput);
 
-            // Clear empty message if it exists
             const emptyMessage = dayElement.querySelector('.empty-workouts-message');
             if (emptyMessage) {
                 emptyMessage.remove();
             }
 
-            // Create workout display element
             const workoutContainer = dayElement.querySelector('.assigned-workouts');
             if (!workoutContainer) {
                 console.error('Workout container not found in day element');
@@ -4677,13 +4218,11 @@
 
             workoutContainer.appendChild(workoutElement);
 
-            // Add view exercises functionality
             const viewBtn = workoutElement.querySelector('.view-workout-btn');
             viewBtn.addEventListener('click', function() {
                 showWorkoutExercisesModal(workout);
             });
 
-            // Add remove functionality
             const removeBtn = workoutElement.querySelector('.remove-workout-btn');
             removeBtn.addEventListener('click', function() {
                 workoutElement.remove();
@@ -4698,13 +4237,11 @@
             console.log('Populating workout row with ID:', workoutId);
             const workoutSelect = row.querySelector('.workout-select');
             if (workoutSelect) {
-                // Find the option with this workout ID and select it
                 const option = Array.from(workoutSelect.options).find(opt => opt.value === workoutId);
                 if (option) {
                     workoutSelect.value = workoutId;
                     console.log('Selected workout:', option.textContent);
 
-                    // Trigger change event to load workout details
                     const event = new Event('change');
                     workoutSelect.dispatchEvent(event);
                 } else {
@@ -4718,7 +4255,6 @@
             if (addWorkoutBtn) {
                 addWorkoutBtn.click();
 
-                // Wait for the workout row to be added, then populate it
                 setTimeout(() => {
                     const workoutRows = dayCard.querySelectorAll('.workout-row');
                     const lastWorkoutRow = workoutRows[workoutRows.length - 1];
@@ -4732,14 +4268,11 @@
         function populateWorkoutRow(row, workoutData) {
             const workoutSelect = row.querySelector('.workout-select');
             if (workoutSelect && workoutData.exerciseId) {
-                // Set the workout select value
                 workoutSelect.value = workoutData.exerciseId;
 
-                // Trigger change event to load workout details
                 const event = new Event('change');
                 workoutSelect.dispatchEvent(event);
 
-                // Set other workout data
                 setTimeout(() => {
                     const repsInput = row.querySelector('input[name*="reps"]');
                     const weightInput = row.querySelector('input[name*="weight"]');
@@ -4761,6 +4294,5 @@
 
     </script>
 </div>
-
 </body>
 </html>

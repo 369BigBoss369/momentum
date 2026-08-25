@@ -13,7 +13,6 @@ import com.momentum.nutrition.dto.seed.ProductSeedDTO;
 import com.momentum.nutrition.model.Product;
 import com.momentum.nutrition.model.enums.ProductType;
 import com.momentum.nutrition.repository.ProductRepository;
-import com.momentum.security.AuthenticationMetadata;
 import com.momentum.user.model.User;
 import com.momentum.user.service.NutritionActivityService;
 import com.momentum.user.service.UserService;

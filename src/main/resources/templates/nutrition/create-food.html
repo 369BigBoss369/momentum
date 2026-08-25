@@ -2,24 +2,19 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout}">
 <head>
     <title>Create Custom Food</title>
-    <!-- Select2 CSS - Load before custom styles -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-    <!-- INLINE STYLE TO HIDE AOS DEBUG IMMEDIATELY - RUNS BEFORE ANYTHING -->
     <style id="aos-disabler-inline">
-        /* Override CSS variable for primary gradient to be green on this page */
         :root {
             --primary-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
         }
         
-        /* Hide ALL possible AOS debug indicators - runs immediately */
         .aos-debug,
         [class*="aos-debug"],
         [id*="aos-debug"],
         body > div:first-child,
         body > div[style*="position: fixed"],
         body > div[style*="z-index"],
-        /* Hide ANY small element at the top of the page that might be a debug indicator */
         body > div[style*="top"][style*="left"],
         body > div[style*="top: 0"],
         body > div[style*="top:0"] {
@@ -36,17 +31,13 @@
         }
         
     </style>
-    <!-- Additional inline style that runs immediately -->
     <style>
-        /* Hide any fixed position element that's small and might be a debug indicator */
         body > div[style*="position:fixed"][style*="z-index"] {
             display: none !important;
         }
     </style>
     <script>
-        // COMPLETELY DISABLE AOS - MUST RUN BEFORE AOS LOADS
         (function() {
-            // Step 1: Create a stub AOS object BEFORE the real AOS loads
             window.AOS = {
                 init: function() { 
                     console.log('[AOS] Init blocked on create-food page');
@@ -55,28 +46,21 @@
                 refresh: function() { return; },
                 refreshHard: function() { return; },
                 destroy: function() { return; },
-                // Disable debug mode
                 debug: false
             };
             
-            // Step 2: Monitor and override AOS if it gets loaded
             let aosCheckInterval = setInterval(function() {
                 if (typeof window.AOS !== 'undefined' && window.AOS !== null) {
-                    // AOS was loaded - disable it completely
                     try {
-                        // Disable debug mode
                         if (window.AOS.debug !== undefined) {
                             window.AOS.debug = false;
                         }
-                        // Try to destroy it
                         if (typeof window.AOS.destroy === 'function') {
                             window.AOS.destroy();
                         }
                     } catch (e) {
-                        // Ignore errors
                     }
                     
-                    // Replace with our stub
                     window.AOS = {
                         init: function() { return; },
                         refresh: function() { return; },
@@ -89,17 +73,14 @@
                 }
             }, 10);
             
-            // Stop checking after 5 seconds
             setTimeout(function() {
                 clearInterval(aosCheckInterval);
             }, 5000);
             
-            // Step 3: Intercept script loading to prevent AOS from executing
             const originalAppendChild = Node.prototype.appendChild;
             Node.prototype.appendChild = function(child) {
                 if (child.tagName === 'SCRIPT' && child.src && child.src.includes('aos.js')) {
                     console.log('[AOS] Script loading intercepted and blocked');
-                    // Don't append the script - this prevents it from loading
                     return child;
                 }
                 return originalAppendChild.call(this, child);
@@ -114,58 +95,45 @@
                 return originalInsertBefore.call(this, newNode, referenceNode);
             };
             
-            // Remove AOS CSS and JS from DOM when they load
             function removeAOSResources() {
-                // Remove AOS CSS link - CRITICAL: This prevents AOS styles from applying
                 const aosCSSLinks = document.querySelectorAll('link[href*="aos.css"], link[href*="aos@"]');
                 aosCSSLinks.forEach(function(link) {
-                    // Remove the link element
                     if (link.parentNode) {
                         link.parentNode.removeChild(link);
                     }
                     link.remove();
                 });
                 
-                // Remove AOS JS script - CRITICAL: This prevents AOS from executing
                 const aosJSScripts = document.querySelectorAll('script[src*="aos.js"], script[src*="aos@"]');
                 aosJSScripts.forEach(function(script) {
-                    // Remove event listeners if any
                     script.onload = null;
                     script.onerror = null;
-                    // Remove the script element
                     if (script.parentNode) {
                         script.parentNode.removeChild(script);
                     }
                     script.remove();
                 });
                 
-                // Also disable any AOS-related stylesheets that might be loaded
                 Array.from(document.styleSheets).forEach(function(sheet) {
                     try {
                         if (sheet.href && sheet.href.includes('aos')) {
                             sheet.disabled = true;
                         }
                     } catch (e) {
-                        // Cross-origin stylesheets can't be accessed
                     }
                 });
                 
-                // Completely override AOS if it somehow got loaded
                 if (typeof window.AOS !== 'undefined') {
-                    // Disable debug mode first
                     try {
                         if (window.AOS.debug !== undefined) {
                             window.AOS.debug = false;
                         }
-                        // Destroy any existing AOS instances
                         if (typeof window.AOS.destroy === 'function') {
                             window.AOS.destroy();
                         }
                     } catch (e) {
-                        // Ignore errors
                     }
                     
-                    // Replace with stub
                     window.AOS = {
                         init: function() { return; },
                         refresh: function() { return; },
@@ -174,7 +142,6 @@
                         debug: false
                     };
                     
-                    // Also try to remove AOS from window completely
                     try {
                         delete window.AOS;
                         window.AOS = {
@@ -185,17 +152,14 @@
                             debug: false
                         };
                     } catch (e) {
-                        // Ignore
                     }
                 }
                 
-                // Remove any AOS debug indicators immediately
                 const debugIndicators = document.querySelectorAll('.aos-debug, [class*="aos-debug"], [id*="aos-debug"]');
                 debugIndicators.forEach(function(el) {
                     el.remove();
                 });
                 
-                // Check for purple circles in card-body and entire document
                 function removePurpleCircles(container) {
                     if (!container) return;
                     const children = Array.from(container.children || []);
@@ -213,7 +177,6 @@
                                 el.remove();
                             }
                         } catch (e) {
-                            // Ignore
                         }
                     });
                 }
@@ -225,14 +188,12 @@
                 }
             }
             
-            // Run immediately
             removeAOSResources();
             
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', removeAOSResources);
             }
             
-            // Also run repeatedly to catch resources that load late
             const removeInterval = setInterval(function() {
                 removeAOSResources();
             }, 50);
@@ -241,7 +202,6 @@
                 clearInterval(removeInterval);
             }, 10000);
             
-            // Also run after delays to catch late-loading resources
             setTimeout(removeAOSResources, 0);
             setTimeout(removeAOSResources, 100);
             setTimeout(removeAOSResources, 500);
@@ -496,10 +456,8 @@
 </head>
 <body class="nutrition-theme">
     <div layout:fragment="content">
-        <!-- Ingredient Modal Backdrop -->
         <div class="modal-backdrop" id="ingredientModalBackdrop" style="display: none;"></div>
         
-        <!-- Ingredient Modal -->
         <div class="modal fade" id="ingredientModal" tabindex="-1" aria-labelledby="ingredientModalLabel" aria-hidden="true" style="display: none;">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -512,12 +470,10 @@
 
                     <div class="modal-body">
                         <form id="ingredientForm" novalidate>
-                            <!-- Food Type Selection View -->
                             <div id="ingredientFoodTypeSelectionView">
                                 <div class="mb-3">
                                     <label class="form-label">Select Food Type <span class="text-danger">*</span></label>
                                     <div class="food-type-list" id="ingredientFoodTypeList">
-                                        <!-- Products -->
                                         <div class="food-type-category">
                                             <div class="food-type-category-title">Products</div>
                                             <div th:each="productType : ${productTypes}" class="food-type-item" 
@@ -534,7 +490,6 @@
                                             </div>
                                         </div>
                                         
-                                        <!-- Composite Foods -->
                                         <div class="food-type-category">
                                             <div class="food-type-category-title">Composite Foods</div>
                                             <div th:each="compositeType : ${compositeFoodTypes}" class="food-type-item" 
@@ -554,7 +509,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Food Selection View -->
                             <div id="ingredientFoodSelectionView" style="display: none;">
                                 <div class="mb-4">
                                     <label class="form-label">
@@ -604,9 +558,7 @@
             </div>
         </div>
         
-        <!-- Inline styles for ingredient modal - Applied immediately -->
         <style id="ingredientModalStyles">
-            /* Force styles with maximum specificity */
             #ingredientModal.show .modal-dialog {
                 transform: scale(1) !important;
                 transition: transform 0.3s ease-out !important;
@@ -687,7 +639,6 @@
         </style>
 
         <div class="container mt-4">
-            <!-- Page Header -->
     <div class="page-header-nutrition">
         <h2 class="mb-0">
             <i class="bi bi-plus-circle me-2"></i>
@@ -702,7 +653,6 @@
         </p>
     </div>
 
-            <!-- Tabs Navigation -->
             <ul class="nav nav-tabs mb-4" id="foodTypeTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link"
@@ -725,9 +675,7 @@
                 </li>
             </ul>
 
-            <!-- Tab Content -->
             <div class="tab-content" id="foodTypeTabsContent">
-                <!-- Product Tab -->
                 <div class="tab-pane fade" th:classappend="${activeTab} == 'product' or activeTab == null ? ' show active' : ''" id="product" role="tabpanel">
                     <div class="card">
                         <div class="card-body">
@@ -736,7 +684,6 @@
                             <form th:action="${editMode} == true ? @{|/nutrition/products/${foodId}/edit|} : @{/nutrition/create-food/product}"
                                   th:method="${editMode} == true ? 'put' : 'post'"
                                   th:object="${createProductDTO}">
-                                <!-- Basic Information -->
                                 <div class="form-section">
                                     <h6><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
                                     <div class="row">
@@ -805,7 +752,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Macronutrients -->
                                 <div class="form-section">
                                     <h6><i class="bi bi-calculator me-2"></i>Macronutrients</h6>
                                     <div class="row">
@@ -854,7 +800,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Additional Nutrients -->
                                 <div class="form-section">
                                     <h6><i class="bi bi-heart-pulse me-2"></i>Additional Nutrients (Optional)</h6>
                                     <div class="row">
@@ -924,7 +869,6 @@
                     </div>
                 </div>
 
-                <!-- Composite Food Tab -->
                 <div class="tab-pane fade" th:classappend="${activeTab} == 'composite' ? ' show active' : ''" id="composite" role="tabpanel" aria-labelledby="composite-tab">
                     <div class="card">
                         <div class="card-body">
@@ -933,7 +877,6 @@
                             <form th:object="${createCompositeFoodDTO}"
                                   th:method="${editMode} == true ? 'put' : 'post'"
                                   th:action="${editMode} == true ? @{|/nutrition/composites/${foodId}/edit|} : @{/nutrition/create-food/composite-food}">
-                                <!-- Basic Information -->
                                 <div class="form-section">
                                     <h6><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
                                     <div class="row">
@@ -1002,7 +945,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Macronutrients -->
                                 <div class="form-section">
                                     <h6><i class="bi bi-calculator me-2"></i>Macronutrients</h6>
                                     <div class="row">
@@ -1051,7 +993,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Additional Nutrients -->
                                 <div class="form-section">
                                     <h6><i class="bi bi-heart-pulse me-2"></i>Additional Nutrients (Optional)</h6>
                                     <div class="row">
@@ -1121,7 +1062,6 @@
                     </div>
                 </div>
 
-                <!-- Recipe Tab -->
                 <div class="tab-pane fade" th:classappend="${activeTab} == 'recipe' ? ' show active' : ''" id="recipe" role="tabpanel" aria-labelledby="recipe-tab">
                     <div class="card">
                         <div class="card-body">
@@ -1131,7 +1071,6 @@
                                   th:method="${editMode} == true ? 'put' : 'post'"
                                   th:action="${editMode} == true ? @{|/nutrition/recipes/${foodId}/edit|} : @{/nutrition/create-food/recipe}"
                                   id="recipeForm">
-                                <!-- Basic Information -->
                                 <div class="form-section">
                                     <h6><i class="bi bi-info-circle me-2"></i>Basic Information</h6>
                                     <div class="row">
@@ -1200,7 +1139,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Ingredients -->
                                 <div class="form-section">
                                     <h6><i class="bi bi-box-seam me-2"></i>Ingredients</h6>
                                     <p class="text-muted small mb-3">
@@ -1208,7 +1146,6 @@
                                     </p>
                                 
                                     <ul id="ingredientsList" class="list-group mb-3">
-                                        <!-- Existing ingredients (editing) -->
                                         <li th:each="ingredient, iter : *{ingredients}" class="list-group-item d-flex justify-content-between align-items-center">
                                             <div class="d-flex align-items-center">
                                                 <img th:if="${ingredient.imagePath != null}"
@@ -1225,7 +1162,6 @@
                                                 <i class="bi bi-x"></i>
                                             </button>
                                 
-                                            <!-- Hidden fields for binding -->
                                             <input type="hidden" th:field="*{ingredients[__${iter.index}__].foodId}">
                                             <input type="hidden" th:field="*{ingredients[__${iter.index}__].servingSize}">
                                         </li>
@@ -1236,12 +1172,10 @@
                                     </button>
                                 </div>
            
-                                <!-- Steps -->
                                 <div class="form-section">
                                     <h6><i class="bi bi-list-ol me-2"></i>Cooking Steps</h6>
                                     <p class="text-muted small mb-3">Add step-by-step instructions for preparing this recipe.</p>
                                     <div id="stepsList">
-                                        <!-- Existing steps (editing) -->
                                         <div th:each="step, iter : *{steps}"
                                              class="step-item mb-4 p-3 border rounded">
                                             <div class="d-flex justify-content-end align-items-center mb-3">
@@ -1281,7 +1215,6 @@
                                     </button>
                                 </div>
 
-                                <!-- Nutrition Info -->
                                 <div class="alert alert-info">
                                     <i class="bi bi-info-circle me-2"></i>
                                     <strong>Note:</strong> Nutrition values will be automatically calculated from the ingredients you add. 
@@ -1746,17 +1679,14 @@
 
     <div layout:fragment="scripts">
         <script>
-            // NUCLEAR OPTION: KILL AOS COMPLETELY - RUNS FIRST, AFTER LAYOUT SCRIPTS
             (function() {
                 'use strict';
                 
-                let aosKilled = false; // Track if we've already killed AOS
+                let aosKilled = false;
                 
                 function killAOSCompletely() {
                     try {
-                        // Only try to kill AOS if we haven't already locked it down
                         if (!aosKilled) {
-                            // 1. Delete AOS from window if it exists
                             if (window.AOS) {
                                 try {
                                     if (typeof window.AOS.destroy === 'function') {
@@ -1768,7 +1698,6 @@
                                 } catch(e) {}
                             }
                             
-                            // 2. Replace with stub (non-configurable so AOS can't override it)
                             try {
                                 Object.defineProperty(window, 'AOS', {
                                     value: {
@@ -1782,25 +1711,20 @@
                                     configurable: false,
                                     enumerable: true
                                 });
-                                aosKilled = true; // Mark as killed - don't try again
+                                aosKilled = true; /
                             } catch(e) {
-                                // If defineProperty fails (already defined as non-configurable), that's fine
-                                // Just mark as killed and continue
                                 aosKilled = true;
                             }
                         }
                         
-                        // 3. Remove AOS scripts
                         document.querySelectorAll('script[src*="aos"]').forEach(function(s) {
                             try { s.remove(); } catch(e) {}
                         });
                         
-                        // 4. Remove AOS CSS
                         document.querySelectorAll('link[href*="aos"]').forEach(function(l) {
                             try { l.remove(); } catch(e) {}
                         });
                         
-                        // 5. Kill ALL purple circles - check EVERY element
                         const allElements = document.querySelectorAll('*');
                         let killedCount = 0;
                         
@@ -1817,8 +1741,7 @@
                                 const position = style.position || '';
                                 const zIndex = parseInt(style.zIndex) || 0;
                                 
-                                // More lenient detection - any small element with purple background
-                                const isPurple = bg.includes('102, 126, 234') || 
+                                const isPurple = bg.includes('102, 126, 234') ||
                                                bg.includes('118, 75, 162') ||
                                                bg.includes('667eea') ||
                                                bg.includes('764ba2');
@@ -1826,11 +1749,9 @@
                                 const hasNumber = /^\d+$/.test(text);
                                 const isAOSRelated = classes.includes('aos') || id.includes('aos');
                                 
-                                // Kill if: purple+small+number OR small+number+topCenter OR AOS-related
                                 if ((isPurple && isSmall && hasNumber) ||
                                     (isSmall && hasNumber && (position === 'fixed' || zIndex > 1000)) ||
                                     isAOSRelated) {
-                                    // Force hide and remove
                                     el.style.setProperty('display', 'none', 'important');
                                     el.style.setProperty('visibility', 'hidden', 'important');
                                     el.style.setProperty('opacity', '0', 'important');
@@ -1853,33 +1774,27 @@
                                     }
                                 }
                             } catch(e) {
-                                // Ignore errors accessing computed styles
                             }
                         });
                         
                     } catch(e) {
-                        // Silently ignore errors - don't spam console
                     }
                 }
                 
-                // Run immediately once
                 killAOSCompletely();
                 
-                // Run once after DOM is ready
                 if (document.readyState === 'loading') {
                     document.addEventListener('DOMContentLoaded', function() {
                         killAOSCompletely();
                     }, { once: true });
                 }
                 
-                // Run once after page loads
                 window.addEventListener('load', function() {
                     killAOSCompletely();
                 }, { once: true });
                 
-                // Run periodically but less frequently (every 100ms for 3 seconds only)
                 let runCount = 0;
-                const maxRuns = 30; // 30 runs * 100ms = 3 seconds
+                const maxRuns = 30;
                 const killInt = setInterval(function() {
                     killAOSCompletely();
                     runCount++;
@@ -1888,11 +1803,9 @@
                     }
                 }, 100);
                 
-                // MutationObserver - only watch for new elements, run cleanup less frequently
                 if (typeof MutationObserver !== 'undefined') {
                     let mutationTimeout;
                     const observer = new MutationObserver(function() {
-                        // Debounce - only run cleanup after mutations stop for 50ms
                         clearTimeout(mutationTimeout);
                         mutationTimeout = setTimeout(killAOSCompletely, 50);
                     });
@@ -1909,12 +1822,10 @@
                 }
             })();
             
-            // Force green underline for Nutrition dropdown via JavaScript
             (function() {
                 function applyGreenUnderline() {
                     const nutritionDropdown = document.querySelector('#mainNav .navbar-nav.me-auto > li.nav-item.dropdown:nth-of-type(2) > a.nav-link.dropdown-toggle');
                     if (nutritionDropdown) {
-                        // Ensure the ::after pseudo-element has green color
                         const style = document.createElement('style');
                         style.textContent = `
                             #mainNav .navbar-nav.me-auto > li.nav-item.dropdown:nth-of-type(2) > a.nav-link.dropdown-toggle::after {
@@ -1937,88 +1848,73 @@
                     applyGreenUnderline();
                 }
                 
-                // Also try after a delay to catch late-loading navbar
                 setTimeout(applyGreenUnderline, 100);
                 setTimeout(applyGreenUnderline, 500);
             })();
             
-            // PREVENT AOS INITIALIZATION ON THIS PAGE
             (function() {
                 const isCreateFoodPage = window.location.pathname.includes('/nutrition/create-food');
                 
                 if (!isCreateFoodPage) {
-                    return; // Not on create-food page, don't interfere
+                    return;
                 }
                 
-                // Method 1: Override AOS.init before it's called
                 if (typeof AOS !== 'undefined') {
                     const originalInit = AOS.init;
                     AOS.init = function(options) {
-                        // Don't initialize AOS on the create-food page
                         console.log('AOS.init blocked on create-food page');
-                        return; // Return undefined, don't initialize
+                        return;
                     };
                 }
                 
-                // Method 2: Wait for AOS to load and override
                 const checkAOS = setInterval(function() {
                     if (typeof AOS !== 'undefined') {
                         clearInterval(checkAOS);
                         const originalInit = AOS.init;
                         AOS.init = function(options) {
                             console.log('AOS.init blocked on create-food page (delayed)');
-                            return; // Don't initialize
+                            return;
                         };
                         
-                        // Also destroy AOS if it was already initialized
                         try {
                             if (AOS.refresh) {
-                                // Disable AOS by removing all observers
                                 AOS.refresh = function() { return; };
                             }
                             if (AOS.refreshHard) {
                                 AOS.refreshHard = function() { return; };
                             }
                         } catch (e) {
-                            // Ignore errors
                         }
                     }
                 }, 10);
                 
-                // Stop checking after 5 seconds
                 setTimeout(function() {
                     clearInterval(checkAOS);
                 }, 5000);
                 
-                // Method 3: After DOMContentLoaded, destroy AOS if it was initialized
                 function destroyAOS() {
                     if (typeof AOS === 'undefined') return;
                     
                     try {
-                        // Remove all AOS attributes from elements
                         const elementsWithAOS = document.querySelectorAll('[data-aos]');
                         elementsWithAOS.forEach(function(el) {
                             el.removeAttribute('data-aos');
                         });
                         
-                        // Disable AOS methods
                         if (AOS.refresh) AOS.refresh = function() { return; };
                         if (AOS.refreshHard) AOS.refreshHard = function() { return; };
                         if (AOS.init) AOS.init = function() { return; };
                         
                     } catch (e) {
-                        // Ignore errors
                     }
                 }
                 
-                // Try to destroy AOS after page loads
                 if (document.readyState === 'loading') {
                     document.addEventListener('DOMContentLoaded', destroyAOS);
                 } else {
                     destroyAOS();
                 }
                 
-                // Also try after a delay (in case AOS initializes late)
                 setTimeout(destroyAOS, 100);
                 setTimeout(destroyAOS, 500);
                 setTimeout(destroyAOS, 1000);
@@ -2042,7 +1938,6 @@
                     const ingredientsList = document.getElementById('ingredientsList');
                     const cookedFoodSelect = document.getElementById('cookedFoodSelect');
                     
-                    // New elements for two-step selection
                     const foodTypeSelectionView = document.getElementById('ingredientFoodTypeSelectionView');
                     const foodSelectionView = document.getElementById('ingredientFoodSelectionView');
                     const foodTypeList = document.getElementById('ingredientFoodTypeList');
@@ -2054,11 +1949,9 @@
                     let selectedFoodType = null;
                     let selectedFoodData = null;
                     
-                    // Initialize ingredient index, counting only ingredients with form fields
                     if (ingredientsList && ingredientIndex === 0) {
                         const existingIngredients = document.querySelectorAll("#ingredientsList li");
                         existingIngredients.forEach(li => {
-                            // Only count ingredients that have form fields (real ingredients, not examples)
                             const foodIdInput = li.querySelector('input[name*="foodId"]:not([name*="cookedFoodId"])');
                             if (foodIdInput) {
                                 ingredientIndex++;
@@ -2066,7 +1959,6 @@
                         });
                     }
                     
-                    // Initialize modal only if modal elements exist and not already initialized
                     if (modal && backdrop && openBtn && !modalInitialized) {
                         modalInitialized = true;
                     
@@ -2074,18 +1966,15 @@
                         selectedFoodType = null;
                         selectedFoodData = null;
                         
-                        // Reset form validation state
                         if (ingredientForm) {
                             ingredientForm.classList.remove('was-validated');
                             ingredientForm.reset();
                         }
                         
-                        // Disable Add Ingredient button initially
                         if (confirmBtn) {
                             confirmBtn.disabled = true;
                         }
                         
-                        // Clear Select2
                         if ($('#foodSelect').data('select2')) {
                             $('#foodSelect').select2('destroy');
                         }
@@ -2095,7 +1984,6 @@
                         $('#foodSelect').html('<option value="">Type to search foods...</option>');
                         $('#cookedFoodSelect').html('<option value="">Select cooked food</option>');
                         
-                        // Show type selection view, hide food selection view
                         if (foodTypeSelectionView) {
                             foodTypeSelectionView.style.display = 'block';
                         }
@@ -2112,7 +2000,6 @@
                             cookedSection.style.display = 'none';
                         }
                         
-                        // Clear visual selections
                         if (foodTypeList) {
                             const selectedItems = foodTypeList.querySelectorAll('.food-type-item.selected');
                             selectedItems.forEach(item => item.classList.remove('selected'));
@@ -2124,12 +2011,10 @@
                         backdrop.classList.add('show');
                         modal.classList.add('show');
                         
-                        // Apply hover effects via JavaScript - GUARANTEED TO WORK
                         function setupHoverEffects() {
                             if (!foodTypeList) return;
                             const items = foodTypeList.querySelectorAll('.food-type-item');
                             items.forEach(item => {
-                                // Skip if already has listeners
                                 if (item.dataset.hoverSetup === 'true') return;
                                 item.dataset.hoverSetup = 'true';
                                 
@@ -2166,7 +2051,6 @@
                                             name.style.color = '#333';
                                         }
                                     } else {
-                                        // Keep selected styles
                                         this.style.backgroundColor = '#e7f5f3';
                                         this.style.borderColor = '#11998e';
                                         this.style.transform = 'translateX(3px)';
@@ -2184,12 +2068,10 @@
                         setTimeout(setupHoverEffects, 50);
                         setTimeout(setupHoverEffects, 200);
                         
-                        // Force image sizes immediately and on load
                         function forceAllImageSizes() {
                             if (!foodTypeList) return;
                             const images = foodTypeList.querySelectorAll('img');
                             images.forEach(img => {
-                                // Set sizes immediately
                                 img.style.setProperty('width', '50px', 'important');
                                 img.style.setProperty('height', '50px', 'important');
                                 img.style.setProperty('max-width', '50px', 'important');
@@ -2199,7 +2081,6 @@
                                 img.style.setProperty('object-fit', 'cover', 'important');
                                 img.style.setProperty('flex-shrink', '0', 'important');
                                 
-                                // Also listen for when image loads and re-apply
                                 if (!img.dataset.sizeFixed) {
                                     img.dataset.sizeFixed = 'true';
                                     img.addEventListener('load', function() {
@@ -2212,10 +2093,8 @@
                             });
                         }
                         
-                        // Force immediately
                         forceAllImageSizes();
                         
-                        // Force multiple times to catch async loading
                         setTimeout(forceAllImageSizes, 10);
                         setTimeout(forceAllImageSizes, 50);
                         setTimeout(forceAllImageSizes, 100);
@@ -2223,7 +2102,6 @@
                         setTimeout(forceAllImageSizes, 500);
                         setTimeout(forceAllImageSizes, 1000);
                         
-                        // Also use MutationObserver to catch any new images
                         if (foodTypeList && !foodTypeList.dataset.observerAdded) {
                             foodTypeList.dataset.observerAdded = 'true';
                             const observer = new MutationObserver(function(mutations) {
@@ -2239,9 +2117,7 @@
                     }
                     
                     function hideModal() {
-                        // Restore body overflow immediately
                         document.body.style.overflow = '';
-                        // Remove show classes and hide immediately (no transition)
                         backdrop.classList.remove('show');
                         modal.classList.remove('show');
                         backdrop.style.display = 'none';
@@ -2249,11 +2125,9 @@
                         backdrop.style.pointerEvents = '';
                         modal.style.pointerEvents = '';
                         
-                        // Reset state
                         selectedFoodType = null;
                         selectedFoodData = null;
                         
-                        // Clear Select2
                         if ($('#foodSelect').data('select2')) {
                             $('#foodSelect').select2('destroy');
                         }
@@ -2261,7 +2135,6 @@
                             $('#cookedFoodSelect').select2('destroy');
                         }
                         
-                        // Reset views
                         if (foodTypeSelectionView) {
                             foodTypeSelectionView.style.display = 'block';
                         }
@@ -2273,7 +2146,6 @@
                         }
                     }
                     
-                    // Open modal
                     openBtn.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -2281,33 +2153,28 @@
                         showModal();
                     });
                     
-                    // Close modal buttons
                     if (closeBtn) {
                         closeBtn.addEventListener('click', hideModal);
                     }
                     
-                    // Close on backdrop click
                     backdrop.addEventListener('click', function(e) {
                         if (e.target === backdrop) {
                             hideModal();
                         }
                     });
                     
-                    // Close on ESC key
                     document.addEventListener('keydown', function(e) {
                         if (e.key === 'Escape' && modal.classList.contains('show')) {
                             hideModal();
                         }
                     });
                     
-                    // Set up image size enforcement on page load
                     function enforceImageSizesOnLoad() {
                         if (!foodTypeList) return;
                         
                         function forceImageSizes() {
                             const images = foodTypeList.querySelectorAll('img');
                             images.forEach(img => {
-                                // Force sizes via inline styles
                                 img.style.setProperty('width', '50px', 'important');
                                 img.style.setProperty('height', '50px', 'important');
                                 img.style.setProperty('max-width', '50px', 'important');
@@ -2317,7 +2184,6 @@
                                 img.style.setProperty('object-fit', 'cover', 'important');
                                 img.style.setProperty('flex-shrink', '0', 'important');
                                 
-                                // Add load listener if not already added
                                 if (!img.dataset.sizeListenerAdded) {
                                     img.dataset.sizeListenerAdded = 'true';
                                     img.addEventListener('load', function() {
@@ -2330,10 +2196,8 @@
                             });
                         }
                         
-                        // Force immediately
                         forceImageSizes();
                         
-                        // Set up MutationObserver to catch any changes
                         if (!foodTypeList.dataset.observerAdded) {
                             foodTypeList.dataset.observerAdded = 'true';
                             const observer = new MutationObserver(function() {
@@ -2348,46 +2212,37 @@
                         }
                     }
                     
-                    // Run on page load
                     if (document.readyState === 'loading') {
                         document.addEventListener('DOMContentLoaded', enforceImageSizesOnLoad);
                     } else {
                         enforceImageSizesOnLoad();
                     }
                     
-                    // Also run after a short delay to catch late-loading images
                     setTimeout(enforceImageSizesOnLoad, 100);
                     setTimeout(enforceImageSizesOnLoad, 500);
                     
-                    // Food type selection handler
                     if (foodTypeList) {
                         foodTypeList.addEventListener('click', function(e) {
                             const foodTypeItem = e.target.closest('.food-type-item');
                             if (foodTypeItem) {
-                                // Remove previous selection
                                 const selectedItems = foodTypeList.querySelectorAll('.food-type-item.selected');
                                 selectedItems.forEach(item => item.classList.remove('selected'));
                                 
-                                // Add selection to clicked item
                                 foodTypeItem.classList.add('selected');
                                 
-                                // Store selected food type data
                                 selectedFoodType = {
                                     type: foodTypeItem.dataset.type,
                                     value: foodTypeItem.dataset.value,
                                     name: foodTypeItem.dataset.name
                                 };
                                 
-                                // Initialize Select2 for this type
                                 initializeIngredientSelect2(selectedFoodType.type, selectedFoodType.value);
                             }
                         });
                     }
                     
-                    // Back to types button handler
                     if (backToTypesBtn) {
                         backToTypesBtn.addEventListener('click', function() {
-                            // Show food type selection view, hide food selection view
                             if (foodTypeSelectionView) {
                                 foodTypeSelectionView.style.display = 'block';
                             }
@@ -2395,21 +2250,17 @@
                                 foodSelectionView.style.display = 'none';
                             }
                             
-                            // Hide back button
                             backToTypesBtn.style.display = 'none';
                             
-                            // Clear food selection
                             selectedFoodData = null;
                             if (selectedIngredientFoodIdInput) {
                                 selectedIngredientFoodIdInput.value = '';
                             }
                             
-                            // Disable Add Ingredient button when going back to types
                             if (confirmBtn) {
                                 confirmBtn.disabled = true;
                             }
                             
-                            // Clear Select2
                             if ($('#foodSelect').data('select2')) {
                                 $('#foodSelect').val(null).trigger('change');
                             }
@@ -2417,7 +2268,6 @@
                                 $('#cookedFoodSelect').val(null).trigger('change');
                             }
                             
-                            // Clear amount
                             if (amountInput) {
                                 amountInput.value = '';
                             }
@@ -2430,17 +2280,13 @@
                         });
                     }
                     
-                    // Initialize Select2 for ingredient search with food type filtering
                     function initializeIngredientSelect2(type, foodTypeValue) {
-                        // Destroy existing Select2 if any
                         if ($('#foodSelect').data('select2')) {
                             $('#foodSelect').select2('destroy');
                         }
                         
-                        // Clear and reset the select
                         $('#foodSelect').html('<option value="">Type to search foods...</option>');
                         
-                        // Initialize Select2 with AJAX
                         $('#foodSelect').select2({
                             theme: 'bootstrap-5',
                             placeholder: 'Type to search foods...',
@@ -2481,7 +2327,6 @@
                             templateSelection: formatFoodSelection
                         });
                         
-                        // Show food selection view
                         if (foodTypeSelectionView) {
                             foodTypeSelectionView.style.display = 'none';
                         }
@@ -2492,12 +2337,10 @@
                             backToTypesBtn.style.display = 'block';
                         }
                         
-                        // Handle food selection
                         $('#foodSelect').on('select2:select', function(e) {
                             const selectedFood = e.params.data;
                             console.log('Selected food:', selectedFood);
                             
-                            // Store selected food data
                             selectedIngredientFoodIdInput.value = selectedFood.id;
                             selectedFoodData = {
                                 id: selectedFood.id,
@@ -2509,12 +2352,10 @@
                                 fat: selectedFood.fat
                             };
                             
-                            // Store imagePath in data attribute
                             if (selectedFood.imagePath) {
                                 $('#foodSelect option:selected').attr('data-image', selectedFood.imagePath);
                             }
                             
-                            // Show amount and cooked sections
                             if (amountSection) {
                                 amountSection.style.display = 'block';
                                 if (amountInput) {
@@ -2523,17 +2364,14 @@
                             }
                             if (cookedSection) {
                                 cookedSection.style.display = 'block';
-                                // Initialize cookedFoodSelect with general search
                                 initializeCookedFoodSelect2();
                             }
                             
-                            // Enable Add Ingredient button when food is selected
                             if (confirmBtn) {
                                 confirmBtn.disabled = false;
                             }
                         });
                         
-                        // Handle clearing selection
                         $('#foodSelect').on('select2:clear', function() {
                             selectedIngredientFoodIdInput.value = '';
                             selectedFoodData = null;
@@ -2544,17 +2382,15 @@
                                 cookedSection.style.display = 'none';
                             }
                             
-                            // Disable Add Ingredient button when food is cleared
                             if (confirmBtn) {
                                 confirmBtn.disabled = true;
                             }
                         });
                     }
                     
-                    // Initialize Select2 for cooked food search (searches all foods)
                     function initializeCookedFoodSelect2() {
                         if ($('#cookedFoodSelect').data('select2')) {
-                            return; // Already initialized
+                            return;
                         }
                         
                         $('#cookedFoodSelect').select2({
@@ -2591,7 +2427,6 @@
                         });
                     }
                     
-                    // Format functions for Select2
                     function formatFoodResult(food) {
                         if (!food.id) {
                             return food.text;
@@ -2607,43 +2442,35 @@
                     }
                     
                     function formatFoodSelection(food) {
-                        // Also save imagePath to data attribute
                         if (food.element && food.imagePath) {
                             $(food.element).attr('data-image', food.imagePath);
                         }
                         return food.text;
                     }
                     
-                    // Add ingredient
                     if (confirmBtn && ingredientForm && foodSelect && amountInput && ingredientsList) {
                         confirmBtn.addEventListener('click', function() {
-                            // If button is disabled, do nothing
                             if (this.disabled) {
                                 return;
                             }
                             
-                            // Validate food selection
                             if (!selectedFoodData || !selectedIngredientFoodIdInput.value) {
-                                // Disable button if no food selected
                                 this.disabled = true;
                                 return;
                             }
                             
-                            // Validate amount
                             if (!amountInput.value || parseFloat(amountInput.value) <= 0) {
                                 alert('Please enter a valid amount (minimum 1 gram).');
                                 amountInput.focus();
                                 return;
                             }
                             
-                            // Form is valid, proceed
                             const foodId = selectedFoodData.id;
                             const foodName = selectedFoodData.name;
                             const foodImagePath = selectedFoodData.imagePath;
 
                             const amount = amountInput.value;
 
-                            // Cooked food (optional) - also from Select2 data
                             const cookedFoodId = cookedFoodSelect && cookedFoodSelect.value ? cookedFoodSelect.value : '';
                             let cookedFoodName = '';
                             let cookedFoodImagePath = '';
@@ -2652,15 +2479,12 @@
                                 const cookedFoodData = $('#cookedFoodSelect').select2('data');
                                 const selectedCookedFood = cookedFoodData && cookedFoodData.length > 0 ? cookedFoodData[0] : null;
                                 cookedFoodName = selectedCookedFood ? selectedCookedFood.text : '';
-                                // Get imagePath from the data-image attribute or from the selectedCookedFood object
                                 cookedFoodImagePath = (selectedCookedFood && selectedCookedFood.imagePath) ? selectedCookedFood.imagePath :
                                                       ($('#cookedFoodSelect option:selected').attr('data-image') || '');
                             }
                             
-                            // Determine which image to show (always use uncooked/base ingredient image)
                             const displayImagePath = foodImagePath;
                             
-                            // Build image HTML (mirror the default example structure)
                             let imageHtml = '';
                             if (displayImagePath) {
                                 imageHtml = `
@@ -2672,7 +2496,6 @@
                                 imageHtml = '';
                             }
                             
-                            // Build display text
                             let displayText = `<strong>${foodName}</strong>`;
                             if (cookedFoodName) {
                                 displayText += ` <span class="text-muted">(cooked: ${cookedFoodName})</span>`;
@@ -2700,17 +2523,14 @@
                             ingredientsList.appendChild(li);
                             ingredientIndex++;
                     
-                            // Reset form and hide modal
                             hideModal();
                         });
                     }
-                    } // End of modal initialization block
-                    
-                    // Remove ingredient (works independently of modal) - only initialize once
+                    }
+
                     if (ingredientsList && !ingredientsList.hasAttribute('data-remove-handler-added')) {
                         ingredientsList.setAttribute('data-remove-handler-added', 'true');
                         ingredientsList.addEventListener("click", function(e) {
-                            // Check if click is on remove button or its child (icon)
                             const btn = e.target.closest(".removeIngredientBtn");
                             if (btn) {
                                 e.preventDefault();
@@ -2720,11 +2540,9 @@
                                 if (li) {
                                     li.remove();
                                     
-                                    // Reindex remaining ingredients (only those with form fields)
                                     let index = 0;
                                     const items = ingredientsList.querySelectorAll('li');
                                     items.forEach((item) => {
-                                        // Only reindex ingredients that have form fields
                                         const foodIdInput = item.querySelector('input[name*="foodId"]:not([name*="cookedFoodId"])');
                                         if (foodIdInput) {
                                             const amountInput = item.querySelector('input[name*="servingSize"]');
@@ -2745,7 +2563,6 @@
                         });
                     }
                     
-                    // Steps functionality (works independently) - only initialize once
                     const stepsList = document.getElementById('stepsList');
                     const addStepBtn = document.getElementById('addStepBtn');
                     
@@ -2763,7 +2580,6 @@
                                     stepNumberInput.value = stepNum;
                                     stepNumberInput.name = `steps[${index}].stepNumber`;
                                 }
-                                // Also update other field names
                                 const titleInput = item.querySelector('.step-title');
                                 const descInput = item.querySelector('.step-description');
                                 const imageInput = item.querySelector('.step-image');
@@ -2807,12 +2623,9 @@
                             stepsList.appendChild(stepItem);
                             stepNumber++;
                             
-                            // IMMEDIATELY remove AOS debug indicator after adding step
                             function removeAOSDebugImmediately() {
-                                // Check card-body for purple circles
                                 const cardBody = document.querySelector('.card-body');
                                 if (cardBody) {
-                                    // Get all children and check for purple circles
                                     const allChildren = Array.from(cardBody.children);
                                     allChildren.forEach(function(child) {
                                         const style = window.getComputedStyle(child);
@@ -2826,7 +2639,6 @@
                                         const isSmallCircle = rect.width < 80 && rect.height < 80;
                                         const hasNumber = /^\d+$/.test(text);
                                         
-                                        // Remove if it's a purple circle with a number at the top center
                                         if (isPurple && isSmallCircle && hasNumber) {
                                             child.style.display = 'none !important';
                                             child.style.visibility = 'hidden !important';
@@ -2835,7 +2647,6 @@
                                         }
                                     });
                                     
-                                    // Also check all descendants
                                     const allDescendants = cardBody.querySelectorAll('*');
                                     allDescendants.forEach(function(el) {
                                         if (el === cardBody) return;
@@ -2862,7 +2673,6 @@
                                     });
                                 }
                                 
-                                // Also check document.body for AOS debug elements
                                 const bodyChildren = Array.from(document.body.children);
                                 bodyChildren.forEach(function(child) {
                                     if (child.classList.contains('aos-debug') || 
@@ -2878,18 +2688,14 @@
                                 });
                             }
                             
-                            // Remove immediately
                             removeAOSDebugImmediately();
                             
-                            // Also remove on next animation frame (after DOM updates)
                             requestAnimationFrame(function() {
                                 removeAOSDebugImmediately();
-                                // And one more time after a tiny delay
                                 setTimeout(removeAOSDebugImmediately, 10);
                             });
                         });
                         
-                        // Remove step
                         stepsList.addEventListener('click', function(e) {
                             if (e.target.closest('.removeStepBtn')) {
                                 e.target.closest('.step-item').remove();
@@ -2900,7 +2706,6 @@
                     }
                 }
                 
-                // Wait for everything to load with retry mechanism
                 let retryCount = 0;
                 const maxRetries = 10;
                 
@@ -2925,7 +2730,6 @@
                     setTimeout(tryInit, 100);
                 }
                 
-                // Also try after window load as backup
                 window.addEventListener('load', function() {
                     setTimeout(function() {
                         const modal = document.getElementById('ingredientModal');
@@ -2937,7 +2741,6 @@
                     }, 500);
                 });
                 
-                // Initialize public recipe toggle
                 function initPublicRecipeToggle() {
                     const toggle = document.getElementById('recipeIsPublic');
                     const toggleContainer = toggle ? toggle.closest('.public-recipe-toggle-wrapper') : null;
@@ -2950,7 +2753,6 @@
                         function updateToggleState() {
                             const isChecked = toggle.checked;
                             
-                            // Update description text
                             if (descPrivate && descPublic) {
                                 if (isChecked) {
                                     descPrivate.style.display = 'none';
@@ -2961,7 +2763,6 @@
                                 }
                             }
                             
-                            // Update label text (Private/Public)
                             const textPrivate = toggleContainer ? toggleContainer.querySelector('.toggle-text-private') : null;
                             const textPublic = toggleContainer ? toggleContainer.querySelector('.toggle-text-public') : null;
                             if (textPrivate && textPublic) {
@@ -2974,7 +2775,6 @@
                                 }
                             }
                             
-                            // Move the knob
                             if (knob) {
                                 if (isChecked) {
                                     knob.style.transform = 'translateX(26px)';
@@ -2987,7 +2787,6 @@
                                 }
                             }
                             
-                            // Update slider background
                             if (slider) {
                                 if (isChecked) {
                                     slider.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
@@ -2997,20 +2796,16 @@
                             }
                         }
                         
-                        // Set initial state
                         updateToggleState();
                         
-                        // Update on change
                         toggle.addEventListener('change', updateToggleState);
                         
-                        // Also update on click (in case change event doesn't fire)
                         toggle.addEventListener('click', function() {
                             setTimeout(updateToggleState, 10);
                         });
                     }
                 }
                 
-                // Initialize public product toggle
                 function initPublicProductToggle() {
                     const toggle = document.getElementById('productIsPublic');
                     const toggleContainer = toggle ? toggle.closest('.public-recipe-toggle-wrapper') : null;
@@ -3023,7 +2818,6 @@
                         function updateToggleState() {
                             const isChecked = toggle.checked;
                             
-                            // Update description text
                             if (descPrivate && descPublic) {
                                 if (isChecked) {
                                     descPrivate.style.display = 'none';
@@ -3034,7 +2828,6 @@
                                 }
                             }
                             
-                            // Update label text (Private/Public)
                             const textPrivate = toggleContainer ? toggleContainer.querySelector('.toggle-text-private') : null;
                             const textPublic = toggleContainer ? toggleContainer.querySelector('.toggle-text-public') : null;
                             if (textPrivate && textPublic) {
@@ -3047,7 +2840,6 @@
                                 }
                             }
                             
-                            // Move the knob
                             if (knob) {
                                 if (isChecked) {
                                     knob.style.transform = 'translateX(26px)';
@@ -3060,7 +2852,6 @@
                                 }
                             }
                             
-                            // Update slider background
                             if (slider) {
                                 if (isChecked) {
                                     slider.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
@@ -3070,20 +2861,16 @@
                             }
                         }
                         
-                        // Set initial state
                         updateToggleState();
                         
-                        // Update on change
                         toggle.addEventListener('change', updateToggleState);
                         
-                        // Also update on click (in case change event doesn't fire)
                         toggle.addEventListener('click', function() {
                             setTimeout(updateToggleState, 10);
                         });
                     }
                 }
                 
-                // Initialize public composite food toggle
                 function initPublicCompositeFoodToggle() {
                     const toggle = document.getElementById('compositeFoodIsPublic');
                     const toggleContainer = toggle ? toggle.closest('.public-recipe-toggle-wrapper') : null;
@@ -3096,7 +2883,6 @@
                         function updateToggleState() {
                             const isChecked = toggle.checked;
                             
-                            // Update description text
                             if (descPrivate && descPublic) {
                                 if (isChecked) {
                                     descPrivate.style.display = 'none';
@@ -3107,7 +2893,6 @@
                                 }
                             }
                             
-                            // Update label text (Private/Public)
                             const textPrivate = toggleContainer ? toggleContainer.querySelector('.toggle-text-private') : null;
                             const textPublic = toggleContainer ? toggleContainer.querySelector('.toggle-text-public') : null;
                             if (textPrivate && textPublic) {
@@ -3120,7 +2905,6 @@
                                 }
                             }
                             
-                            // Move the knob
                             if (knob) {
                                 if (isChecked) {
                                     knob.style.transform = 'translateX(26px)';
@@ -3133,7 +2917,6 @@
                                 }
                             }
                             
-                            // Update slider background
                             if (slider) {
                                 if (isChecked) {
                                     slider.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
@@ -3143,20 +2926,14 @@
                             }
                         }
                         
-                        // Set initial state
                         updateToggleState();
-                        
-                        // Update on change
                         toggle.addEventListener('change', updateToggleState);
-                        
-                        // Also update on click (in case change event doesn't fire)
                         toggle.addEventListener('click', function() {
                             setTimeout(updateToggleState, 10);
                         });
                     }
                 }
                 
-                // Initialize toggles when DOM is ready
                 if (document.readyState === 'loading') {
                     document.addEventListener('DOMContentLoaded', function() {
                         initPublicRecipeToggle();
@@ -3170,15 +2947,12 @@
                 }
             })();
             
-            // ULTRA-AGGRESSIVE AOS DEBUG INDICATOR REMOVAL
             (function() {
                 function destroyAOSDebug() {
-                    // Method 1: Remove by class/id
                     document.querySelectorAll('.aos-debug, [class*="aos-debug"], [id*="aos-debug"]').forEach(function(el) {
                         el.remove();
                     });
-                    
-                    // Method 2: Find and remove purple circles anywhere in the DOM
+
                     function findAndRemovePurpleCircles(container) {
                         if (!container) return;
                         
@@ -3198,61 +2972,49 @@
                                 const position = style.position;
                                 const zIndex = parseInt(style.zIndex) || 0;
                                 
-                                // Check for purple background
-                                const isPurple = bg.includes('102, 126, 234') || 
+                                const isPurple = bg.includes('102, 126, 234') ||
                                                bg.includes('118, 75, 162') ||
                                                bg.includes('667eea') ||
                                                bg.includes('764ba2') ||
                                                bg.includes('rgb(102, 126, 234)') ||
                                                bg.includes('rgb(118, 75, 162)');
                                 
-                                // Check if it's a small circle
                                 const isSmall = rect.width > 0 && rect.width < 120 && rect.height > 0 && rect.height < 120;
                                 
-                                // Check if it has only a number as text
                                 const hasOnlyNumber = /^\d+$/.test(text);
                                 
-                                // Check if it's positioned at top center of viewport or card
                                 const isTopCenter = (rect.top < 200 && Math.abs(rect.left + rect.width/2 - window.innerWidth/2) < 200) ||
                                                    (rect.top < 300 && position === 'fixed');
                                 
-                                // Remove if it matches debug indicator criteria
                                 if ((isPurple && isSmall && hasOnlyNumber) ||
                                     (isSmall && hasOnlyNumber && isTopCenter && (classes.includes('aos') || id.includes('aos'))) ||
                                     classes.includes('aos-debug') ||
                                     id === 'aos-debug' ||
                                     (isSmall && hasOnlyNumber && position === 'fixed' && zIndex > 1000)) {
-                                    // Force removal
                                     el.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; width: 0 !important; height: 0 !important; position: absolute !important; left: -9999px !important;';
                                     try {
                                         el.remove();
                                     } catch (e) {
-                                        // If remove fails, parent might remove it
                                         if (el.parentNode) {
                                             try {
                                                 el.parentNode.removeChild(el);
                                             } catch (e2) {
-                                                // Ignore
                                             }
                                         }
                                     }
                                 }
                             } catch (e) {
-                                // Ignore errors
                             }
                         });
                     }
                     
-                    // Check entire document
                     findAndRemovePurpleCircles(document.body);
                     findAndRemovePurpleCircles(document.documentElement);
                     
-                    // Specifically check card-body
                     const cardBody = document.querySelector('.card-body');
                     if (cardBody) {
                         findAndRemovePurpleCircles(cardBody);
                         
-                        // Also check first child of card-body specifically
                         const firstChild = cardBody.firstElementChild;
                         if (firstChild) {
                             const style = window.getComputedStyle(firstChild);
@@ -3267,33 +3029,27 @@
                     }
                 }
                 
-                // Run immediately and continuously
                 destroyAOSDebug();
                 
-                // Run every 10ms for the first 5 seconds (very aggressive)
                 const aggressiveInterval = setInterval(destroyAOSDebug, 10);
                 setTimeout(function() {
                     clearInterval(aggressiveInterval);
                 }, 5000);
                 
-                // Then run every 50ms for another 25 seconds
                 const normalInterval = setInterval(destroyAOSDebug, 50);
                 setTimeout(function() {
                     clearInterval(normalInterval);
                 }, 30000);
                 
-                // Also run on various events
                 ['DOMContentLoaded', 'load', 'scroll', 'resize', 'click', 'mousedown', 'mouseup', 'keydown'].forEach(function(eventName) {
                     document.addEventListener(eventName, destroyAOSDebug, true);
                 });
                 
-                // MutationObserver - watch for ANY new elements
                 if (typeof MutationObserver !== 'undefined') {
                     const observer = new MutationObserver(function(mutations) {
                         mutations.forEach(function(mutation) {
                             if (mutation.addedNodes.length > 0) {
                                 destroyAOSDebug();
-                                // Double-check after animation frame
                                 requestAnimationFrame(function() {
                                     destroyAOSDebug();
                                     setTimeout(destroyAOSDebug, 10);
@@ -3319,11 +3075,8 @@
             })();
         </script>
         
-        <!-- Select2 JavaScript -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-        
-        <!-- Select2 initialization is now handled dynamically in the modal based on food type selection -->
     </div>
 </body>
 </html>

@@ -60,34 +60,6 @@ public class FitnessMath {
                 .orElse(Intensity.MODERATE);
     }
 
-    public static double calculateWorkoutCalories(Workout workout) {
-        if (workout == null || workout.getWorkoutExercises() == null) {
-            return 0.0;
-        }
-        return workout.getWorkoutExercises().stream()
-                .filter(we -> we.getBurnedCalories() != null)
-                .mapToDouble(WorkoutExercise::getBurnedCalories)
-                .sum();
-    }
-
-    public static double calculatePlanDayCalories(PlanDay planDay) {
-        if (planDay == null || planDay.getWorkouts() == null) {
-            return 0.0;
-        }
-        return planDay.getWorkouts().stream()
-                .mapToDouble(FitnessMath::calculateWorkoutCalories)
-                .sum();
-    }
-
-    public static double calculatePlanCalories(Plan plan) {
-        if (plan == null || plan.getPlanDays() == null) {
-            return 0.0;
-        }
-        return plan.getPlanDays().stream()
-                .mapToDouble(FitnessMath::calculatePlanDayCalories)
-                .sum();
-    }
-
     public static long estimateDurationSeconds(WorkoutExercise workoutExercise) {
         if (workoutExercise == null) {
             return 0;
@@ -104,7 +76,6 @@ public class FitnessMath {
             return reps != null ? (reps * 2L) + 60 : 180;
         }
 
-        // STRENGTH, and anything else lacking a real duration
         return reps != null ? (reps * 3L) + 60 : 180;
     }
 }

@@ -5,7 +5,6 @@
 </head>
 <body>
     <div layout:fragment="content">
-        <!-- Profile Header -->
         <div class="row mb-5" data-aos="fade-up">
             <div class="col-12">
                 <div class="card hover-lift">
@@ -14,7 +13,6 @@
                             <div class="d-flex flex-column profile-info">
                                 <h2 class="display-5 fw-bold gradient-text mb-3" th:text="${user?.username ?: 'User'}">User</h2>
 
-                                <!-- Weight Goals -->
                                 <div class="d-flex flex-column flex-sm-row gap-2 mb-3" th:if="${user?.targetWeight}">
                                     <span class="badge bg-primary">
                                         <i class="bi bi-weight me-1"></i>
@@ -26,7 +24,6 @@
                                     </span>
                                 </div>
 
-                                <!-- Member Since -->
                                 <div class="member-since">
                                     <i class="bi bi-calendar-check me-1"></i>
                                     <strong>Member since:</strong> <span th:text="${user?.createdAt != null ? #temporals.format(user.createdAt, 'MMMM yyyy') : 'Unknown'}">January 2024</span>
@@ -39,9 +36,7 @@
             </div>
         </div>
 
-        <!-- Profile Information -->
         <div class="row">
-            <!-- Personal Information -->
             <div class="col-lg-6 mb-4">
                 <div class="card h-100">
                     <div class="card-header">
@@ -53,7 +48,6 @@
                         <form th:action="@{/profile/update/biometrics}" method="post">
                             <input type="hidden" name="_method" value="patch">
 
-                            <!-- Display binding errors -->
                             <div th:if="${userProfileUpdateRequest != null}" th:object="${userProfileUpdateRequest}" class="alert alert-danger" role="alert">
                                 <h6 class="alert-heading">Please fix the following errors:</h6>
                                 <ul class="mb-0">
@@ -125,7 +119,6 @@
                 </div>
             </div>
 
-            <!-- Fitness Goals -->
             <div class="col-lg-6 mb-4">
                 <div class="card h-100">
                     <div class="card-header">
@@ -137,7 +130,6 @@
                         <form th:action="@{/profile/update/goals}" method="post">
                             <input type="hidden" name="_method" value="patch">
 
-                            <!-- Display binding errors -->
                             <div th:if="${userGoalsRequest != null}" th:object="${userGoalsRequest}" class="alert alert-danger" role="alert">
                                 <h6 class="alert-heading">Please fix the following errors:</h6>
                                 <ul class="mb-0">
@@ -189,7 +181,6 @@
             </div>
         </div>
 
-        <!-- Stats Overview -->
         <div class="row mb-4">
             <div class="col-lg-3 col-md-6 mb-3">
                 <div class="stats-card success">
@@ -219,7 +210,6 @@
 
     </div>
 
-    <!-- Edit Profile Modal -->
     <div class="modal fade" id="editProfileModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
