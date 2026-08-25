@@ -1,0 +1,23 @@
+package com.momentum.user.dto.enums;
+
+public enum FitnessActivityType {
+    EXERCISE_ADDED_TO_LIBRARY,
+    EXERCISE_REMOVED_FROM_LIBRARY,
+    WORKOUT_ADDED_TO_LIBRARY,
+    WORKOUT_REMOVED_FROM_LIBRARY,
+    PLAN_ADDED_TO_LIBRARY,
+    PLAN_REMOVED_FROM_LIBRARY,
+    PLAN_STARTED
+}
+
+
+
+
+
+
+
+
+
+
+
+

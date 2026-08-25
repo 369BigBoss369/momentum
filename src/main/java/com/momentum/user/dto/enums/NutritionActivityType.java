@@ -1,0 +1,18 @@
+package com.momentum.user.dto.enums;
+
+public enum NutritionActivityType {
+    MEAL_ADDED,
+    MEAL_REMOVED,
+    WATER_LOGGED,
+    FOOD_CREATED,
+    FOOD_UPDATED,
+    FOOD_ADDED_TO_LIBRARY,
+    FOOD_REMOVED_FROM_LIBRARY,
+    RECIPE_ADDED_TO_LIBRARY,
+    RECIPE_REMOVED_FROM_LIBRARY,
+    EXERCISE_ADDED_TO_LIBRARY,
+    EXERCISE_REMOVED_FROM_LIBRARY
+}
+
+
+
